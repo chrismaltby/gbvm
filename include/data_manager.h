@@ -22,9 +22,12 @@ extern UBYTE actors_len;
 extern LCD_isr_e scene_LCD_type;
 
 #define SCENE_STACK_SIZE 8
+#define MAX_SCENE_SPRITES 128
 
 extern scene_stack_item_t scene_stack[SCENE_STACK_SIZE];
 extern scene_stack_item_t * scene_stack_ptr;
+extern far_ptr_t scene_sprites_ptr;
+extern UBYTE base_tiles[MAX_SCENE_SPRITES];
 
 void load_init() __banked;
 UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) __banked;
@@ -34,5 +37,6 @@ void load_player() __banked;
 void load_emote(const unsigned char * tiles, UBYTE bank) __banked;
 void load_animations(const spritesheet_t * sprite, UBYTE bank, animation_t * res_animations) __banked;
 void load_bounds(const spritesheet_t * sprite, UBYTE bank, bounding_box_t * res_bounds) __banked;
+UBYTE get_farptr_index(const far_ptr_t * list, UBYTE bank, UBYTE count, far_ptr_t * item) __banked;
 
 #endif

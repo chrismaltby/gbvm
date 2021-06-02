@@ -16,7 +16,6 @@
 #include "data/spritesheet_none.h"
 #include "data/data_bootstrap.h"
 
-#define MAX_SCENE_SPRITES       128
 #define ALLOC_BKG_TILES_TOWARDS_SPR
 
 #define EMOTE_SPRITE            124
@@ -48,6 +47,9 @@ const far_ptr_t spritesheet_none_far = TO_FAR_PTR_T(spritesheet_none);
 
 scene_stack_item_t scene_stack[SCENE_STACK_SIZE];
 scene_stack_item_t * scene_stack_ptr;
+
+far_ptr_t scene_sprites_ptr = {0, 0};
+UBYTE base_tiles[MAX_SCENE_SPRITES];
 
 void load_init() __banked {
     actors_len = 0;
@@ -182,7 +184,7 @@ inline void load_sprite_palette(const palette_t * palette, UBYTE bank) {
     DMG_palette[2] = (UBYTE)(data >> 8);
 }
 
-UBYTE get_farptr_index(const far_ptr_t * list, UBYTE bank, UBYTE count, far_ptr_t * item) {
+UBYTE get_farptr_index(const far_ptr_t * list, UBYTE bank, UBYTE count, far_ptr_t * item) __banked {
     far_ptr_t v;
     for (UBYTE i = 0; i < count; i++, list++) {
         ReadBankedFarPtr(&v, (void *)list, bank);
@@ -208,6 +210,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) __banked {
     triggers_len = scn.n_triggers;
     projectiles_len = scn.n_projectiles;
     sprites_len = scn.n_sprites;
+    memcpy(&scene_sprites_ptr, &scn.sprites, sizeof(scene_sprites_ptr));
 
     collision_bank = scn.collisions.bank;
     collision_ptr = scn.collisions.ptr;
@@ -241,8 +244,6 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) __banked {
         PLAYER.sprite = spritesheet_none_far;
         memset(PLAYER.animations, 0, sizeof(PLAYER.animations));
     }
-
-    UBYTE base_tiles[MAX_SCENE_SPRITES];
 
     // Load sprites
     if (sprites_len != 0) {

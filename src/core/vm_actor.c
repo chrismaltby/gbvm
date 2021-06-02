@@ -273,9 +273,13 @@ void vm_actor_set_bounds(SCRIPT_CTX * THIS, INT16 idx, BYTE left, BYTE right, BY
 void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_bank, const spritesheet_t *spritesheet) __banked {
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor_t * actor = actors + *n_actor;
-    load_sprite(actor->base_tile, spritesheet, spritesheet_bank);
+
     actor->sprite.bank = spritesheet_bank;
     actor->sprite.ptr = (void *)spritesheet;
+
+    UBYTE sprite_idx = get_farptr_index(scene_sprites_ptr.ptr, scene_sprites_ptr.bank, sprites_len, &actor->sprite);
+    actor->base_tile = (sprite_idx < sprites_len) ? base_tiles[sprite_idx] : 0;
+ 
     load_animations(spritesheet, spritesheet_bank, actor->animations);
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
     actor_reset_anim(actor);
