@@ -69,7 +69,7 @@ typedef struct actor_t
 
 typedef struct trigger_t {
     UINT8 x, y, width, height;
-    far_ptr_t script;
+    far_ptr_t script, script_leave;
 } trigger_t;
 
 typedef struct scene_t {
