@@ -13,6 +13,10 @@ typedef struct cam_move_to_t {
     INT16 X, Y;
 } cam_move_to_t;
 
+typedef struct cam_get_pos_t {
+    INT16 X, Y;
+} cam_get_pos_t;
+
 typedef struct cam_set_pos_t {
     INT16 X, Y;
 } cam_set_pos_t;
@@ -49,6 +53,12 @@ void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lo
 
     THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx) + sizeof(speed) + sizeof(after_lock_camera));
     return;
+}
+
+void vm_camera_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+    cam_get_pos_t * params = VM_REF_TO_PTR(idx);
+    params->X = camera_x;
+    params->Y = camera_y;
 }
 
 void vm_camera_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
