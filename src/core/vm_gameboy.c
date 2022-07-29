@@ -181,9 +181,9 @@ void vm_replace_tile_xy(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE tileset_bank,
 #endif
 }
 
-void vm_rumble(SCRIPT_CTX * THIS, UBYTE enable) OLDCALL BANKED {
+void vm_rumble(SCRIPT_CTX * THIS, UBYTE addr, UBYTE enable) OLDCALL BANKED {
     THIS;
-    if (enable) SWITCH_RAM_BANK(RUMBLE_ENABLE, RUMBLE_ENABLE); else  SWITCH_RAM_BANK(0, RUMBLE_ENABLE);
+    if (enable) SWITCH_RAM_BANK(addr, addr); else  SWITCH_RAM_BANK(0, addr);
 }
 
 void vm_load_tiles(SCRIPT_CTX * THIS, UBYTE id, UBYTE len, UBYTE bank, UBYTE * offset) OLDCALL BANKED {

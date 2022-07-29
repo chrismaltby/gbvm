@@ -164,7 +164,7 @@ const SCRIPT_CMD script_cmds[] = {
     // SGB instructions section
     {vm_sgb_transfer,           0}, // 0x7E
     // RUMBLE
-    {vm_rumble,                 1}, // 0x7F
+    {vm_rumble,                 2}, // 0x7F
 
     // projectiles instructions section
     {vm_projectile_launch,      3}, // 0x80
