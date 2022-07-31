@@ -9,24 +9,16 @@
 #include "scroll.h"
 #include "game_time.h"
 
-typedef struct cam_move_to_t {
+typedef struct camera_position_t {
     INT16 X, Y;
-} cam_move_to_t;
-
-typedef struct cam_get_pos_t {
-    INT16 X, Y;
-} cam_get_pos_t;
-
-typedef struct cam_set_pos_t {
-    INT16 X, Y;
-} cam_set_pos_t;
+} camera_position_t;
 
 void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lock_camera) OLDCALL BANKED {
 
     // indicate waitable state of context
     THIS->waitable = 1;
 
-    cam_move_to_t * params = VM_REF_TO_PTR(idx);
+    camera_position_t * params = VM_REF_TO_PTR(idx);
 
     // Disable camera lock
     camera_settings &= ~(CAMERA_LOCK_FLAG);
@@ -56,13 +48,13 @@ void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lo
 }
 
 void vm_camera_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
-    cam_get_pos_t * params = VM_REF_TO_PTR(idx);
+    camera_position_t * params = VM_REF_TO_PTR(idx);
     params->X = camera_x;
     params->Y = camera_y;
 }
 
 void vm_camera_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
-    cam_set_pos_t * params = VM_REF_TO_PTR(idx);
+    camera_position_t * params = VM_REF_TO_PTR(idx);
     camera_x = params->X;
     camera_y = params->Y;
 
@@ -87,9 +79,9 @@ UBYTE camera_shake_frames(void * THIS, UBYTE start, UWORD * stack_frame) OLDCALL
             if (value > 10) value -= 10;
             scroll_offset_y = value - 5;
         }
-        ((SCRIPT_CTX *)THIS)->waitable = TRUE; 
+        ((SCRIPT_CTX *)THIS)->waitable = TRUE;
         return FALSE;
     }
-    scroll_offset_x = scroll_offset_y = 0; 
+    scroll_offset_x = scroll_offset_y = 0;
     return TRUE;
 }

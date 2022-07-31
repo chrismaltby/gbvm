@@ -1,5 +1,5 @@
 ; bytecode
-; calling convention 
+; calling convention
 ;      args: big-endian
 ;      order: left-to-right (leftmost argument pushed first)
 
@@ -50,7 +50,7 @@ EXCEPTION_LOAD          = 4
 ; stops execution of context
 OP_VM_STOP         = 0x00
 .macro VM_STOP
-        .db OP_VM_STOP 
+        .db OP_VM_STOP
 .endm
 
 ; push immediate value onto VM stack
@@ -74,12 +74,12 @@ OP_VM_CALL         = 0x04
 ; return from near call
 OP_VM_RET          = 0x05
 .macro VM_RET
-        .db OP_VM_RET, 0 
+        .db OP_VM_RET, 0
 .endm
 
 ; return from near call and remove N arguments on stack
 .macro VM_RET_N N
-        .db OP_VM_RET, #<N 
+        .db OP_VM_RET, #<N
 .endm
 
 ; get byte or word by far pointer into variable
@@ -96,7 +96,7 @@ OP_VM_LOOP         = 0x07
         .db OP_VM_LOOP, #<N, #>LABEL, #<LABEL, #>IDX, #<IDX
 .endm
 
-; switch table IDX is a variable, SIZE is a size of a table, remove N arguments on stack 
+; switch table IDX is a variable, SIZE is a size of a table, remove N arguments on stack
 OP_VM_SWITCH       = 0x08
 .macro VM_SWITCH IDX, SIZE, N
         .db OP_VM_SWITCH, #<N, #<SIZE, #>IDX, #<IDX
@@ -117,12 +117,12 @@ OP_VM_CALL_FAR     = 0x0A
 ; rerurn from far call
 OP_VM_RET_FAR      = 0x0B
 .macro VM_RET_FAR
-        .db OP_VM_RET_FAR, 0 
+        .db OP_VM_RET_FAR, 0
 .endm
 
 ; rerurn from far call and remove N arguments on stack
 .macro VM_RET_FAR_N N
-        .db OP_VM_RET_FAR, #<N 
+        .db OP_VM_RET_FAR, #<N
 .endm
 
 ; invokes <bank>:<address> C function until it returns true
@@ -169,7 +169,7 @@ OP_VM_RESERVE      = 0x12
         .db OP_VM_RESERVE, #<ARG0
 .endm
 
-; assignes a value on VM stack or a global to a value on VM stack or a global 
+; assignes a value on VM stack or a global to a value on VM stack or a global
 OP_VM_SET         = 0x13
 .macro VM_SET IDXA, IDXB
         .db OP_VM_SET, #>IDXB, #<IDXB, #>IDXA, #<IDXA
@@ -191,7 +191,7 @@ OP_VM_RPN          = 0x15
 .B_AND             = '&'
 .B_OR              = '|'
 .B_XOR             = '^'
-.B_NOT             = '~' 
+.B_NOT             = '~'
 .ABS               = '@'
 .MIN               = 'm'
 .MAX               = 'M'
@@ -340,9 +340,9 @@ OP_VM_INIT_RNG        = 0x23
 ; Returns random value between MIN and MIN+LIMIT
 OP_VM_RAND            = 0x24
 .macro VM_RAND IDX, MIN, LIMIT
-        .db OP_VM_RAND 
-        .db #>(LIMIT | (LIMIT >> 1) | (LIMIT >> 2) | (LIMIT >> 3) | (LIMIT >> 4) | (LIMIT >> 5) | (LIMIT >> 6) | (LIMIT >> 7) | (LIMIT >> 8) | (LIMIT >> 9) | (LIMIT >> 10) | (LIMIT >> 11) | (LIMIT >> 12) | (LIMIT >> 13) | (LIMIT >> 14) | (LIMIT >> 15))  
-        .db #<(LIMIT | (LIMIT >> 1) | (LIMIT >> 2) | (LIMIT >> 3) | (LIMIT >> 4) | (LIMIT >> 5) | (LIMIT >> 6) | (LIMIT >> 7) | (LIMIT >> 8) | (LIMIT >> 9) | (LIMIT >> 10) | (LIMIT >> 11) | (LIMIT >> 12) | (LIMIT >> 13) | (LIMIT >> 14) | (LIMIT >> 15))  
+        .db OP_VM_RAND
+        .db #>(LIMIT | (LIMIT >> 1) | (LIMIT >> 2) | (LIMIT >> 3) | (LIMIT >> 4) | (LIMIT >> 5) | (LIMIT >> 6) | (LIMIT >> 7) | (LIMIT >> 8) | (LIMIT >> 9) | (LIMIT >> 10) | (LIMIT >> 11) | (LIMIT >> 12) | (LIMIT >> 13) | (LIMIT >> 14) | (LIMIT >> 15))
+        .db #<(LIMIT | (LIMIT >> 1) | (LIMIT >> 2) | (LIMIT >> 3) | (LIMIT >> 4) | (LIMIT >> 5) | (LIMIT >> 6) | (LIMIT >> 7) | (LIMIT >> 8) | (LIMIT >> 9) | (LIMIT >> 10) | (LIMIT >> 11) | (LIMIT >> 12) | (LIMIT >> 13) | (LIMIT >> 14) | (LIMIT >> 15))
         .db #>LIMIT, #<LIMIT, #>MIN, #<MIN, #>IDX, #<IDX
 .endm
 
@@ -364,7 +364,7 @@ OP_VM_RAISE           = 0x27
         .db OP_VM_RAISE, #<SIZE, #<CODE
 .endm
 
-; assignes a value on VM stack or a global indirectly to a value on VM stack ar a global 
+; assignes a value on VM stack or a global indirectly to a value on VM stack ar a global
 OP_VM_SET_INDIRECT    = 0x28
 .macro VM_SET_INDIRECT IDXA, IDXB
         .db OP_VM_SET_INDIRECT, #>IDXB, #<IDXB, #>IDXA, #<IDXA
@@ -390,13 +390,13 @@ OP_VM_POLL_LOADED     = 0x2B
 .endm
 
 ; Translates idx into absolute index and pushes result to VM stack
-OP_VM_PUSH_REFERENCE  = 0x2C 
+OP_VM_PUSH_REFERENCE  = 0x2C
 .macro VM_PUSH_REFERENCE IDX
         .db OP_VM_PUSH_REFERENCE, #>IDX, #<IDX
 .endm
 
 ; call native code by far pointer
-OP_VM_CALL_NATIVE     = 0x2D 
+OP_VM_CALL_NATIVE     = 0x2D
 .macro VM_CALL_NATIVE BANK, PTR
         .db OP_VM_CALL_NATIVE, #>PTR, #<PTR, #<BANK
 .endm
@@ -434,54 +434,54 @@ OP_VM_SAVE_CLEAR         = 0x2F
 
 ; --- ACTOR ------------------------------------------
 
-OP_VM_ACTOR_MOVE_TO     = 0x30
-.ACTOR_ATTR_H_FIRST     = 0x01
-.ACTOR_ATTR_CHECK_COLL  = 0x02
-.ACTOR_ATTR_DIAGONAL    = 0x04
+OP_VM_ACTOR_MOVE_TO             = 0x30
+.ACTOR_ATTR_H_FIRST             = 0x01
+.ACTOR_ATTR_CHECK_COLL          = 0x02
+.ACTOR_ATTR_DIAGONAL            = 0x04
 .macro VM_ACTOR_MOVE_TO IDX
         .db OP_VM_ACTOR_MOVE_TO, #>IDX, #<IDX
 .endm
 
-OP_VM_ACTOR_MOVE_CANCEL = 0x88
+OP_VM_ACTOR_MOVE_CANCEL         = 0x88
 .macro VM_ACTOR_MOVE_CANCEL ACTOR
         .db OP_VM_ACTOR_MOVE_CANCEL, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_ACTIVATE    = 0x31
+OP_VM_ACTOR_ACTIVATE            = 0x31
 .macro VM_ACTOR_ACTIVATE ACTOR
         .db OP_VM_ACTOR_ACTIVATE, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_DIR     = 0x32
-.DIR_DOWN               = 0
-.DIR_RIGHT              = 1
-.DIR_UP                 = 2
-.DIR_LEFT               = 3
+OP_VM_ACTOR_SET_DIR             = 0x32
+.DIR_DOWN                       = 0
+.DIR_RIGHT                      = 1
+.DIR_UP                         = 2
+.DIR_LEFT                       = 3
 .macro VM_ACTOR_SET_DIR ACTOR, DIR
         .db OP_VM_ACTOR_SET_DIR, #<DIR, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_DEACTIVATE  = 0x33
+OP_VM_ACTOR_DEACTIVATE          = 0x33
 .macro VM_ACTOR_DEACTIVATE ACTOR
         .db OP_VM_ACTOR_DEACTIVATE, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_ANIM    = 0x34
+OP_VM_ACTOR_SET_ANIM            = 0x34
 .macro VM_ACTOR_SET_ANIM ACTOR, ANIM
         .db OP_VM_ACTOR_SET_ANIM, #>ANIM, #<ANIM, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_POS     = 0x35
+OP_VM_ACTOR_SET_POS             = 0x35
 .macro VM_ACTOR_SET_POS IDX
         .db OP_VM_ACTOR_SET_POS, #>IDX, #<IDX
 .endm
 
-OP_VM_ACTOR_EMOTE       = 0x36
+OP_VM_ACTOR_EMOTE               = 0x36
 .macro VM_ACTOR_EMOTE ACTOR, AVATAR_BANK, AVATAR
         .db OP_VM_ACTOR_EMOTE, #>AVATAR, #<AVATAR, #<AVATAR_BANK, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_BOUNDS  = 0x37
+OP_VM_ACTOR_SET_BOUNDS          = 0x37
 .macro VM_ACTOR_SET_BOUNDS ACTOR, LEFT, RIGHT, TOP, BOTTOM
         .db OP_VM_ACTOR_SET_BOUNDS, #<BOTTOM, #<TOP, #<RIGHT, #<LEFT, #>ACTOR, #<ACTOR
 .endm
@@ -501,57 +501,69 @@ OP_VM_ACTOR_REPLACE_TILE        = 0x39
         .db OP_VM_ACTOR_REPLACE_TILE, #<LEN, #<START, #>TILEDATA, #<TILEDATA, #<TILEDATA_BANK, #<TARGET_TILE, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_GET_POS     = 0x3A
+OP_VM_ACTOR_GET_POS             = 0x3A
 .macro VM_ACTOR_GET_POS IDX
         .db OP_VM_ACTOR_GET_POS, #>IDX, #<IDX
 .endm
 
-OP_VM_ACTOR_SET_HIDDEN     = 0x3B
-.macro VM_ACTOR_SET_HIDDEN ACTOR, HIDDEN
-        .db OP_VM_ACTOR_SET_HIDDEN, #<HIDDEN, #>ACTOR, #<ACTOR
-.endm
-
-OP_VM_ACTOR_GET_DIR     = 0x3C
+OP_VM_ACTOR_GET_DIR             = 0x3C
 .macro VM_ACTOR_GET_DIR IDX, DEST
         .db OP_VM_ACTOR_GET_DIR, #>DEST, #<DEST, #>IDX, #<IDX
 .endm
 
-OP_VM_ACTOR_GET_ANGLE     = 0x86
+OP_VM_ACTOR_GET_ANGLE           = 0x86
 .macro VM_ACTOR_GET_ANGLE IDX, DEST
         .db OP_VM_ACTOR_GET_ANGLE, #>DEST, #<DEST, #>IDX, #<IDX
 .endm
 
-OP_VM_ACTOR_SET_ANIM_TICK     = 0x3D
+OP_VM_ACTOR_SET_ANIM_TICK       = 0x3D
 .macro VM_ACTOR_SET_ANIM_TICK ACTOR, TICK
         .db OP_VM_ACTOR_SET_ANIM_TICK, #<TICK, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_MOVE_SPEED     = 0x3E
+OP_VM_ACTOR_SET_MOVE_SPEED      = 0x3E
 .macro VM_ACTOR_SET_MOVE_SPEED ACTOR, SPEED
         .db OP_VM_ACTOR_SET_MOVE_SPEED, #<SPEED, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_COLL_ENABLED     = 0x3F
-.macro VM_ACTOR_SET_COLL_ENABLED ACTOR, ENABLED
-        .db OP_VM_ACTOR_SET_COLL_ENABLED, #<ENABLED, #>ACTOR, #<ACTOR
+OP_VM_ACTOR_SET_FLAGS           = 0x3F
+.ACTOR_FLAG_PINNED              = 0x01
+.ACTOR_FLAG_HIDDEN              = 0x02
+.ACTOR_FLAG_ANIM_NOLOOP         = 0x04
+.ACTOR_FLAG_COLLISION           = 0x08
+.ACTOR_FLAG_PERSISTENT          = 0x10
+.macro VM_ACTOR_SET_FLAGS ACTOR, FLAGS, MASK
+        .db OP_VM_ACTOR_SET_FLAGS, #<MASK, #<FLAGS, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_TERMINATE_UPDATE  = 0x74
+.ACTOR_VISIBLE                  = 0
+.ACTOR_HIDDEN                   = 1
+.macro VM_ACTOR_SET_HIDDEN ACTOR, HIDDEN
+        VM_ACTOR_SET_FLAGS ACTOR, ^/(HIDDEN << 1)/, .ACTOR_FLAG_HIDDEN
+.endm
+
+.ACTOR_COLLISION_DISABLED       = 0
+.ACTOR_COLLISION_ENABLED        = 1
+.macro VM_ACTOR_SET_COLL_ENABLED ACTOR, ENABLED
+        VM_ACTOR_SET_FLAGS ACTOR, ^/(ENABLED << 3)/, .ACTOR_FLAG_COLLISION
+.endm
+
+OP_VM_ACTOR_TERMINATE_UPDATE    = 0x74
 .macro VM_ACTOR_TERMINATE_UPDATE ACTOR
         .db OP_VM_ACTOR_TERMINATE_UPDATE, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_ANIM_FRAME     = 0x75
+OP_VM_ACTOR_SET_ANIM_FRAME      = 0x75
 .macro VM_ACTOR_SET_ANIM_FRAME ACTOR
         .db OP_VM_ACTOR_SET_ANIM_FRAME, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_GET_ANIM_FRAME     = 0x83
+OP_VM_ACTOR_GET_ANIM_FRAME      = 0x83
 .macro VM_ACTOR_GET_ANIM_FRAME ACTOR
         .db OP_VM_ACTOR_GET_ANIM_FRAME, #>ACTOR, #<ACTOR
 .endm
 
-OP_VM_ACTOR_SET_ANIM_SET       = 0x84
+OP_VM_ACTOR_SET_ANIM_SET        = 0x84
 .macro VM_ACTOR_SET_ANIM_SET ACTOR, OFFSET
         .db OP_VM_ACTOR_SET_ANIM_SET, #>OFFSET, #<OFFSET, #>ACTOR, #<ACTOR
 .endm
@@ -625,7 +637,7 @@ OP_VM_OVERLAY_SHOW      = 0x46
 
 OP_VM_OVERLAY_CLEAR     = 0x47
 .macro VM_OVERLAY_CLEAR X, Y, W, H, COLOR, OPTIONS
-        .db OP_VM_OVERLAY_CLEAR, #<OPTIONS, #<COLOR, #<H, #<W, #<Y, #<X 
+        .db OP_VM_OVERLAY_CLEAR, #<OPTIONS, #<COLOR, #<H, #<W, #<Y, #<X
 .endm
 
 OP_VM_CHOICE            = 0x48
@@ -653,22 +665,22 @@ OP_VM_SET_FONT          = 0x4B
 
 OP_VM_OVERLAY_SET_SUBMAP_EX = 0x4C
 .macro VM_OVERLAY_SET_SUBMAP_EX PARAMS_IDX
-        .db OP_VM_OVERLAY_SET_SUBMAP_EX, #>PARAMS_IDX, #<PARAMS_IDX 
+        .db OP_VM_OVERLAY_SET_SUBMAP_EX, #>PARAMS_IDX, #<PARAMS_IDX
 .endm
 
 OP_VM_OVERLAY_SCROLL    = 0x4D
 .macro VM_OVERLAY_SCROLL X, Y, W, H, COLOR
-        .db OP_VM_OVERLAY_SCROLL, #<COLOR, #<H, #<W, #<Y, #<X 
+        .db OP_VM_OVERLAY_SCROLL, #<COLOR, #<H, #<W, #<Y, #<X
 .endm
 
 OP_VM_OVERLAY_SET_SCROLL = 0x4E
 .macro VM_OVERLAY_SET_SCROLL X, Y, W, H, COLOR
-        .db OP_VM_OVERLAY_SET_SCROLL, #<COLOR, #<H, #<W, #<Y, #<X 
+        .db OP_VM_OVERLAY_SET_SCROLL, #<COLOR, #<H, #<W, #<Y, #<X
 .endm
 
 OP_VM_OVERLAY_SET_SUBMAP = 0x4F
 .macro VM_OVERLAY_SET_SUBMAP X, Y, W, H, SX, SY
-        .db OP_VM_OVERLAY_SET_SUBMAP, #<SY, #<SX, #<H, #<W, #<Y, #<X 
+        .db OP_VM_OVERLAY_SET_SUBMAP, #<SY, #<SX, #<H, #<W, #<Y, #<X
 .endm
 
 ; --- GAMEBOY ------------------------------------------
@@ -691,7 +703,7 @@ OP_VM_SET_SPRITE_VISIBLE = 0x51
 .SPRITES_SHOW           = 0
 .SPRITES_HIDE           = 1
 .macro VM_SET_SPRITE_VISIBLE MODE
-        .db OP_VM_SET_SPRITE_VISIBLE, #<MODE 
+        .db OP_VM_SET_SPRITE_VISIBLE, #<MODE
 .endm
 
 .macro VM_SHOW_SPRITES
@@ -764,19 +776,19 @@ OP_VM_TIMER_PREPARE     = 0x58
 ; Start a timer calling once every interval*16 frames
 OP_VM_TIMER_SET         = 0x59
 .macro VM_TIMER_SET TIMER, INTERVAL
-        .db OP_VM_TIMER_SET, #<INTERVAL, #<TIMER 
+        .db OP_VM_TIMER_SET, #<INTERVAL, #<TIMER
 .endm
 
 ; Stop a timer
 OP_VM_TIMER_STOP         = 0x72
 .macro VM_TIMER_STOP TIMER
-        .db OP_VM_TIMER_STOP, #<TIMER 
+        .db OP_VM_TIMER_STOP, #<TIMER
 .endm
 
 ; Reset a timers countdown to 0
 OP_VM_TIMER_RESET         = 0x73
 .macro VM_TIMER_RESET TIMER
-        .db OP_VM_TIMER_RESET, #<TIMER 
+        .db OP_VM_TIMER_RESET, #<TIMER
 .endm
 
 OP_VM_GET_TILE_XY       = 0x5A
@@ -791,14 +803,14 @@ OP_VM_REPLACE_TILE      = 0x5B
 
 OP_VM_POLL              = 0x5C
 .macro VM_POLL IDX_EVENT, IDX_VALUE, MASK
-        .db OP_VM_POLL, #<MASK, #>IDX_VALUE, #<IDX_VALUE, #>IDX_EVENT, #<IDX_EVENT 
+        .db OP_VM_POLL, #<MASK, #>IDX_VALUE, #<IDX_VALUE, #>IDX_EVENT, #<IDX_EVENT
 .endm
 
 OP_VM_SET_SPRITE_MODE   = 0x5D
 .MODE_8X8               = 0
 .MODE_8X16              = 1
 .macro VM_SET_SPRITE_MODE MODE
-        .db OP_VM_SET_SPRITE_MODE, #<MODE 
+        .db OP_VM_SET_SPRITE_MODE, #<MODE
 .endm
 
 OP_VM_REPLACE_TILE_XY   = 0x5E
@@ -962,7 +974,7 @@ OP_VM_LOAD_PALETTE       = 0x7C
 .PALETTE_SPRITE          = 4
 .macro .DMG_PAL COL1, COL2, COL3, COL4
         .dw #((COL1 & 0x03) | ((COL2 & 0x03) << 2) | ((COL3 & 0x03) << 4) | ((COL4 & 0x03) << 6))
-        .dw 0,0,0 
+        .dw 0,0,0
 .endm
 .macro .CGB_PAL R1,G1,B1 R2,G2,B2 R3,G3,B3 R4,G4,B4
         .dw #((R1 & 0x1F) | ((G1 & 0x1F) << 5) | ((B1 & 0x1F) << 10))
@@ -979,7 +991,7 @@ OP_VM_LOAD_PALETTE       = 0x7C
 
 ; transfers SGB packet(s)
 OP_VM_SGB_TRANSFER       = 0x7E
-.macro VM_SGB_TRANSFER 
+.macro VM_SGB_TRANSFER
         .db OP_VM_SGB_TRANSFER
 .endm
 
@@ -993,6 +1005,8 @@ OP_VM_RUMBLE             = 0x7F
 ; --- PROJECTILES ---------------------------------
 
 OP_VM_PROJECTILE_LAUNCH  = 0x80
+.PROJECTILE_ANIM_ONCE    = 0x01
+.PROJECTILE_STRONG       = 0x02
 .macro VM_PROJECTILE_LAUNCH TYPE, IDX
         .db OP_VM_PROJECTILE_LAUNCH, #>IDX, #<IDX, #<TYPE
 .endm
@@ -1011,7 +1025,7 @@ OP_VM_COS_SCALE         = 0x8A
 
 ; --- TEXT SOUND -------------------------------------
 
-; Set sound effect for text 
+; Set sound effect for text
 OP_VM_SET_TEXT_SOUND    = 0x8B
 .macro VM_SET_TEXT_SOUND BANK, ADDR, MASK
         .db OP_VM_SET_TEXT_SOUND, #<MASK, #>ADDR, #<ADDR, #<BANK
