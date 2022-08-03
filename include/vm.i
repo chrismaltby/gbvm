@@ -921,9 +921,12 @@ OP_VM_CAMERA_MOVE_TO     = 0x70
 .CAMERA_LOCK_Y           = 0b00000010
 .CAMERA_UNLOCK           = 0b00000000
 
-OP_VM_CAMERA_GET_POS     = 0x6F
-.macro VM_CAMERA_GET_POS IDX
-        .db OP_VM_CAMERA_GET_POS, #>IDX, #<IDX
+.CAMERA_POS              = 1
+.CAMERA_DRAW_SCROLL      = 2
+
+OP_VM_CAMERA_GET         = 0x6F
+.macro VM_CAMERA_GET IDX, VAL
+        .db OP_VM_CAMERA_GET, #<VAL, #>IDX, #<IDX
 .endm
 
 OP_VM_CAMERA_SET_POS     = 0x71

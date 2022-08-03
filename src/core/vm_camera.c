@@ -47,10 +47,15 @@ void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lo
     return;
 }
 
-void vm_camera_get_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_camera_get(SCRIPT_CTX * THIS, INT16 idx, UBYTE val) OLDCALL BANKED {
     camera_position_t * params = VM_REF_TO_PTR(idx);
-    params->X = camera_x;
-    params->Y = camera_y;
+    if (val == CAMERA_POS) {
+      params->X = camera_x;
+      params->Y = camera_y;
+    } else if (val == CAMERA_DRAW_SCROLL) {
+      params->X = draw_scroll_x;
+      params->Y = draw_scroll_y;
+    }
 }
 
 void vm_camera_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {

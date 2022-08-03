@@ -143,7 +143,7 @@ const SCRIPT_CMD script_cmds[] = {
     {0, 0},
 
     // camera instructions section
-    {vm_camera_get_pos,         2}, // 0x6F
+    {vm_camera_get,             3}, // 0x6F
     {vm_camera_move_to,         4}, // 0x70
     {vm_camera_set_pos,         2}, // 0x71
     {vm_timer_stop,             1}, // 0x72
