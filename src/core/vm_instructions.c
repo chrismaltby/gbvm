@@ -141,7 +141,6 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_sio_set_mode,                   BANK(VM_SIO),           1}, // 0x6C
     {vm_sio_exchange,                   BANK(VM_SIO),           5}, // 0x6D
     {0, 0, 0},
-    {0, 0, 0},
 
     // camera instructions section
     {vm_camera_get,                     BANK(VM_CAMERA),        3}, // 0x6F
