@@ -1,4 +1,4 @@
 ROMTITLE = "EXAMPLE"
 #settings: CGB hUGE MBC3 batteryless
-#settings: CGB hUGE MBC3
-settings: DMG hUGE MBC3
+settings: CGB hUGE MBC3
+#settings: DMG hUGE MBC3
