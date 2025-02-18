@@ -243,9 +243,9 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
     actor = actors_inactive_head;
 
     while (actor) {
-        UBYTE ty = actor->pos.y >> 7;
+        UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
         if (ty == y) {
-            UBYTE tx = actor->pos.x >> 7;
+            UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
             if ((tx + 1 > x) && (tx < x + SCREEN_TILE_REFRES_W)) {
                 actor_t * next = actor->next;
                 activate_actor(actor);
@@ -261,10 +261,10 @@ void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
     static actor_t *actor;
     actor = actors_inactive_head;
     while (actor) {
-        UBYTE tx_left   = actor->pos.x >> 7;
-        UBYTE ty_bottom = actor->pos.y >> 7;
-        UBYTE tx_right  = ((actor->pos.x >> 4) + (actor->bounds.right)) >> 3;
-        UBYTE ty_top    = ((actor->pos.y >> 4) + (actor->bounds.top)) >> 3;
+        UBYTE tx_left   = SUBPX_TO_TILE(actor->pos.x);
+        UBYTE ty_bottom = SUBPX_TO_TILE(actor->pos.y);
+        UBYTE tx_right  = PX_TO_TILE(SUBPX_TO_PX(actor->pos.x) + actor->bounds.right);
+        UBYTE ty_top    = PX_TO_TILE(SUBPX_TO_PX(actor->pos.y) + actor->bounds.top);
         if (tx_left <= x && tx_right >= x && ty_top <= (y + SCREEN_TILE_REFRES_H) && ty_bottom >= y) {
             actor_t * next = actor->next;
             activate_actor(actor);
@@ -313,7 +313,7 @@ actor_t *actor_at_tile(UBYTE tx, UBYTE ty, UBYTE inc_noclip) BANKED {
         if ((!inc_noclip && !actor->collision_enabled))
             continue;
 
-        UBYTE a_tx = (actor->pos.x >> 7), a_ty = (actor->pos.y >> 7);
+        UBYTE a_tx = SUBPX_TO_TILE(actor->pos.x), a_ty = SUBPX_TO_TILE(actor->pos.y);
         if ((ty == a_ty || ty == a_ty + 1) && (tx == a_tx || tx == a_tx + 1 || tx == a_tx - 1)) return actor;
     }
     return NULL;
@@ -391,15 +391,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
     WORD tx1, ty1, tx2, ty2, tt;
     switch (check_dir) {
         case CHECK_DIR_LEFT:  // Check left
-            tx1 = (((start_x >> 4) + bounds->left) >> 3);
-            tx2 = (((end_pos >> 4) + bounds->left) >> 3) - 1;
-            ty1 = (((start_y >> 4) + bounds->top) >> 3);
-            ty2 = (((start_y >> 4) + bounds->bottom) >> 3) + 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->left);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->left) - 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->top);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->bottom) + 1;
             while (tx1 != tx2) {
                 tt = ty1;
                 while (tt != ty2) {
                     if (tile_at(tx1, tt) & COLLISION_RIGHT) {
-                        return ((tx1 + 1) << 7) - (bounds->left << 4);
+                        return TILE_TO_SUBPX(tx1 + 1) - PX_TO_SUBPX(bounds->left);
                     }
                     tt++;
                 }
@@ -407,15 +407,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             }
             return end_pos;
         case CHECK_DIR_RIGHT:  // Check right
-            tx1 = (((start_x >> 4) + bounds->right) >> 3);
-            tx2 = (((end_pos >> 4) + bounds->right) >> 3) + 1;
-            ty1 = (((start_y >> 4) + bounds->top) >> 3);
-            ty2 = (((start_y >> 4) + bounds->bottom) >> 3) + 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->right);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->right) + 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->top);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->bottom) + 1;
             while (tx1 != tx2) {
                 tt = ty1;
                 while (tt != ty2) {
                     if (tile_at(tx1, tt) & COLLISION_LEFT) {
-                        return (tx1 << 7) - ((bounds->right + 1) << 4);
+                        return TILE_TO_SUBPX(tx1) - PX_TO_SUBPX(bounds->right + 1);
                     }
                     tt++;
                 }
@@ -423,15 +423,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             }
             return end_pos;
         case CHECK_DIR_UP:  // Check up
-            ty1 = (((start_y >> 4) + bounds->top) >> 3);
-            ty2 = (((end_pos >> 4) + bounds->top) >> 3) - 1;
-            tx1 = (((start_x >> 4) + bounds->left) >> 3);
-            tx2 = (((start_x >> 4) + bounds->right) >> 3) + 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->top);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->top) - 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->left);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->right) + 1;
             while (ty1 != ty2) {
                 tt = tx1;
                 while (tt != tx2) {
                     if (tile_at(tt, ty1) & COLLISION_BOTTOM) {
-                        return ((ty1 + 1) << 7) - ((bounds->top) << 4);
+                        return TILE_TO_SUBPX(ty1 + 1) - PX_TO_SUBPX(bounds->top);
                     }
                     tt++;
                 }
@@ -439,15 +439,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             }
             return end_pos;
         case CHECK_DIR_DOWN:  // Check down
-            ty1 = (((start_y >> 4) + bounds->bottom) >> 3);
-            ty2 = (((end_pos >> 4) + bounds->bottom) >> 3) + 1;
-            tx1 = (((start_x >> 4) + bounds->left) >> 3);
-            tx2 = (((start_x >> 4) + bounds->right) >> 3) + 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->bottom);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->bottom) + 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->left);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->right) + 1;
             while (ty1 != ty2) {
                 tt = tx1;
                 while (tt != tx2) {
                     if (tile_at(tt, ty1) & COLLISION_TOP) {
-                        return ((ty1) << 7) - ((bounds->bottom + 1) << 4);
+                        return TILE_TO_SUBPX(ty1) - PX_TO_SUBPX(bounds->bottom + 1);
                     }
                     tt++;
                 }
