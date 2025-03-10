@@ -608,7 +608,7 @@ void platform_update(void) BANKED {
             if (plat_dash_through != 3 || dash_end_clear == FALSE) {
               if (tile_at(tile_current, tile_start) & COLLISION_LEFT) {
                 // The landing space is the tile we collided on, but one to the left
-                new_x = PX_TO_SUBPX(((TILE_TO_PX(tile_current))-PLAYER.bounds.right)) - 1;
+                new_x = PX_TO_SUBPX((TILE_TO_PX(tile_current))-PLAYER.bounds.right) - 1;
                 col = 1;
                 last_wall = 1;
                 wc_val = plat_coyote_max;
@@ -651,7 +651,7 @@ void platform_update(void) BANKED {
         while (tile_current != tile_x) {
           // Camera lock check
           if ((plat_camera_block & 1) && tile_current < PX_TO_TILE(camera_x - SCREEN_WIDTH_HALF)) {
-            new_x = PX_TO_SUBPX(((TILE_TO_PX(tile_current + 1)) - PLAYER.bounds.left)) + 1;
+            new_x = PX_TO_SUBPX(TILE_TO_PX(tile_current + 1) - PLAYER.bounds.left) + 1;
             dash_currentframe == 0;
             goto endLcol;
           }
@@ -660,7 +660,7 @@ void platform_update(void) BANKED {
             // check for walls
             if (plat_dash_through != 3 || dash_end_clear == FALSE) {  // If you collide with walls
               if (tile_at(tile_current, tile_start) & COLLISION_RIGHT) {
-                new_x = PX_TO_SUBPX(((TILE_TO_PX(tile_current + 1)) - PLAYER.bounds.left)) + 1;
+                new_x = PX_TO_SUBPX(TILE_TO_PX(tile_current + 1) - PLAYER.bounds.left) + 1;
                 col = -1;
                 last_wall = -1;
                 dash_currentframe == 0;
@@ -731,7 +731,7 @@ void platform_update(void) BANKED {
           while (tile_start != tile_end) {
             if (tile_at(tile_start, tile_y) & COLLISION_TOP) {
               // Land on Floor
-              new_y = PX_TO_SUBPX(((TILE_TO_PX(tile_y))-PLAYER.bounds.bottom)) - 1;
+              new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
               actor_attached = FALSE;  // Detach when MP moves through a solid tile.
               pl_vel_y = 256;
               break;
@@ -745,7 +745,7 @@ void platform_update(void) BANKED {
           UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.top);
           while (tile_start != tile_end) {
             if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-              new_y = PX_TO_SUBPX((((UBYTE)TILE_TO_PX(tile_y + 1)) - PLAYER.bounds.top)) + 1;
+              new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_y + 1) - PLAYER.bounds.top) + 1;
               pl_vel_y = 0;
               break;
             }
@@ -1015,7 +1015,7 @@ gotoXCol: {
           }
         }
         // End New Slope Stuff P2
-        new_x = PX_TO_SUBPX((TILE_TO_PX(tile_x) - PLAYER.bounds.right)) - 1;
+        new_x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;
         pl_vel_x = 0;
         col = 1;
         last_wall = 1;
@@ -1068,7 +1068,7 @@ gotoXCol: {
             }
           }
         }
-        new_x = PX_TO_SUBPX(((TILE_TO_PX(tile_x + 1)) - PLAYER.bounds.left)) + 1;
+        new_x = PX_TO_SUBPX((TILE_TO_PX(tile_x + 1)) - PLAYER.bounds.left) + 1;
         pl_vel_x = 0;
         col = -1;
         last_wall = -1;
@@ -1116,23 +1116,23 @@ gotoYCol: {
       if (IS_ON_SLOPE(col)) {
         if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_RIGHT) {
           slope_y_coord =
-              PX_TO_SUBPX((TILE_TO_PX(tile_y) + (8 - x_offset) - PLAYER.bounds.bottom)) - 1;
+              PX_TO_SUBPX(TILE_TO_PX(tile_y) + (8 - x_offset) - PLAYER.bounds.bottom) - 1;
         } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_BOT) {
           slope_y_coord =
-              PX_TO_SUBPX((TILE_TO_PX(tile_y) + (8 - DIV_2(x_offset)) - PLAYER.bounds.bottom)) - 1;
+              PX_TO_SUBPX(TILE_TO_PX(tile_y) + (8 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
         } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_TOP) {
           slope_y_coord =
-              PX_TO_SUBPX((TILE_TO_PX(tile_y) + (4 - DIV_2(x_offset)) - PLAYER.bounds.bottom)) - 1;
+              PX_TO_SUBPX(TILE_TO_PX(tile_y) + (4 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
         }
 
         else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_LEFT) {
-          slope_y_coord = PX_TO_SUBPX((TILE_TO_PX(tile_y) + (x_offset)-PLAYER.bounds.bottom)) - 1;
+          slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (x_offset)-PLAYER.bounds.bottom) - 1;
         } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_BOT) {
           slope_y_coord =
-              PX_TO_SUBPX((TILE_TO_PX(tile_y) + DIV_2(x_offset) - PLAYER.bounds.bottom + 4)) - 1;
+              PX_TO_SUBPX(TILE_TO_PX(tile_y) + DIV_2(x_offset) - PLAYER.bounds.bottom + 4) - 1;
         } else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_TOP) {
           slope_y_coord =
-              PX_TO_SUBPX((TILE_TO_PX(tile_y) + DIV_2(x_offset) - PLAYER.bounds.bottom)) - 1;
+              PX_TO_SUBPX(TILE_TO_PX(tile_y) + DIV_2(x_offset) - PLAYER.bounds.bottom) - 1;
         }
       }
 
@@ -1201,7 +1201,7 @@ gotoYCol: {
           }
         // Land on Floor
         land:
-          new_y = PX_TO_SUBPX(((TILE_TO_PX(tile_y))-PLAYER.bounds.bottom)) - 1;
+          new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
           actor_attached = FALSE;  // Detach when MP moves through a solid tile.
           // The distinction here is used so that we can check the velocity when the player hits the
           // ground.
@@ -1226,7 +1226,7 @@ gotoYCol: {
     UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.top);
     while (tile_start != tile_end) {
       if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-        new_y = PX_TO_SUBPX((((UBYTE)TILE_TO_PX(tile_y + 1)) - PLAYER.bounds.top)) + 1;
+        new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_y + 1) - PLAYER.bounds.top) + 1;
         pl_vel_y = 0;
         // MP Test: Attempting stuff to stop the player from continuing upward
         if (actor_attached) {
@@ -1712,8 +1712,7 @@ void ladder_check(void) BANKED {
     UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
     UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
     if (IS_LADDER(tile_at(tile_x_mid, tile_y))) {
-      PLAYER.pos.x =
-          PX_TO_SUBPX((TILE_TO_PX(tile_x_mid) + 4 - (PLAYER.bounds.left + p_half_width)));
+      PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 4 - (PLAYER.bounds.left + p_half_width));
       que_state = LADDER_INIT;
       pl_vel_x = 0;
     }
