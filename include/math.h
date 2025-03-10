@@ -83,6 +83,7 @@
 #define SUBX_SNAP_PX(a)     ((a) & 0xFFF0)
 #define SUBX_SNAP_TILE(a)   ((a) & 0xFF80)
 #define SUBX_SNAP_TILE16(a) ((a) & 0xFF00)
+#define PX_SNAP_TILE(a)     ((a) & 0xFFF8)
 
 typedef struct upoint16_t {
     uint16_t x, y;
