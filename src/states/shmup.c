@@ -33,19 +33,19 @@ void shmup_init(void) BANKED {
     if (shooter_direction == DIR_LEFT) {
         // Right to left scrolling
         camera_offset_x = 48;
-        shooter_dest = (SCREEN_WIDTH_HALF + 48) << 4;
+        shooter_dest = PX_TO_SUBPX(SCREEN_WIDTH_HALF + 48);
     } else if (shooter_direction == DIR_RIGHT) {
         // Left to right scrolling
         camera_offset_x = -64;
-        shooter_dest = (image_width - SCREEN_WIDTH_HALF - 64) << 4;
+        shooter_dest = PX_TO_SUBPX(image_width - SCREEN_WIDTH_HALF - 64);
     } else if (shooter_direction == DIR_UP) {
         // Bottom to top scrolling
         camera_offset_y = 48;
-        shooter_dest = (SCREEN_WIDTH_HALF + 40) << 4;
+        shooter_dest = PX_TO_SUBPX(SCREEN_WIDTH_HALF + 40);
     } else {
         // Top to bottom scrolling
         camera_offset_y = -48;
-        shooter_dest = (image_height - SCREEN_WIDTH_HALF - 40) << 4;
+        shooter_dest = PX_TO_SUBPX(image_height - SCREEN_WIDTH_HALF - 40);
     }
 
     shooter_reached_end = FALSE;
@@ -94,23 +94,23 @@ void shmup_update(void) BANKED {
         // Check for tile collisions
         if (IS_DIR_HORIZONTAL(shooter_direction)) {
             // Step Y
-            tile_start = (((PLAYER.pos.x >> 4) + PLAYER.bounds.left)  >> 3);
-            tile_end   = (((PLAYER.pos.x >> 4) + PLAYER.bounds.right) >> 3) + 1;
+            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
+            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
             if (PLAYER.dir == DIR_DOWN) {
-                UBYTE tile_y = ((new_pos.y >> 4) + PLAYER.bounds.bottom) >> 3;
+                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.bottom);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_start, tile_y) & COLLISION_TOP) {
-                        new_pos.y = ((((tile_y) << 3) - PLAYER.bounds.bottom) << 4) - 1;
+                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
                         break;
                     }
                     tile_start++;
                 }
                 PLAYER.pos.y = new_pos.y;
             } else {
-                UBYTE tile_y = (((new_pos.y >> 4) + PLAYER.bounds.top) >> 3);
+                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.top);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-                        new_pos.y = ((((UBYTE)(tile_y + 1) << 3) - PLAYER.bounds.top) << 4) + 1;
+                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.bounds.top) + 1;
                         break;
                     }
                     tile_start++;
@@ -119,23 +119,23 @@ void shmup_update(void) BANKED {
             }
         } else {
             // Step X
-            tile_start = (((PLAYER.pos.y >> 4) + PLAYER.bounds.top)    >> 3);
-            tile_end   = (((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom) >> 3) + 1;
+            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
+            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
             if (PLAYER.dir == DIR_RIGHT) {
-                UBYTE tile_x = ((new_pos.x >> 4) + PLAYER.bounds.right) >> 3;
+                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.right);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_x, tile_start) & COLLISION_LEFT) {
-                        new_pos.x = (((tile_x << 3) - PLAYER.bounds.right) << 4) - 1;           
+                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;           
                         break;
                     }
                     tile_start++;
                 }
-                PLAYER.pos.x = MIN((image_width - PLAYER.bounds.right - 1) << 4, new_pos.x);
+                PLAYER.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.bounds.right - 1), new_pos.x);
             } else {
-                UBYTE tile_x = ((new_pos.x >> 4) + PLAYER.bounds.left) >> 3;
+                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.left);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_x, tile_start) & COLLISION_RIGHT) {
-                        new_pos.x = ((((tile_x + 1) << 3) - PLAYER.bounds.left) << 4) + 1;         
+                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.bounds.left) + 1;         
                         break;
                     }
                     tile_start++;

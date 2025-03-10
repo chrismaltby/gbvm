@@ -82,8 +82,8 @@ void projectiles_update(void) NONBANKED {
             }
         }
 
-        UBYTE screen_x = (projectile->pos.x >> 4) - draw_scroll_x + 8,
-              screen_y = (projectile->pos.y >> 4) - draw_scroll_y + 8;
+        UBYTE screen_x = SUBPX_TO_PX(projectile->pos.x) - draw_scroll_x + 8,
+              screen_y = SUBPX_TO_PX(projectile->pos.y) - draw_scroll_y + 8;
 
         if ((screen_x > DEVICE_SCREEN_PX_WIDTH) || (screen_y > DEVICE_SCREEN_PX_HEIGHT)) {
             // Remove projectile
@@ -119,8 +119,8 @@ void projectiles_render(void) NONBANKED {
     _save_bank = _current_bank;
 
     while (projectile) {
-        UINT8 screen_x = ((projectile->pos.x >> 4) + 8) - draw_scroll_x,
-              screen_y = ((projectile->pos.y >> 4) + 8) - draw_scroll_y;
+        UINT8 screen_x = (SUBPX_TO_PX(projectile->pos.x) + 8) - draw_scroll_x,
+              screen_y = (SUBPX_TO_PX(projectile->pos.y) + 8) - draw_scroll_y;
 
         if ((screen_x > DEVICE_SCREEN_PX_WIDTH) || (screen_y > DEVICE_SCREEN_PX_HEIGHT)) {
             // Remove projectile

@@ -42,10 +42,10 @@ UBYTE trigger_activate_at(UBYTE tx, UBYTE ty, UBYTE force) BANKED {
 }
 
 UBYTE trigger_at_intersection(bounding_box_t *bb, point16_t *offset) BANKED {
-    UBYTE tile_left   = ((offset->x >> 4) + bb->left)   >> 3;
-    UBYTE tile_right  = ((offset->x >> 4) + bb->right)  >> 3;
-    UBYTE tile_top    = ((offset->y >> 4) + bb->top)    >> 3;
-    UBYTE tile_bottom = ((offset->y >> 4) + bb->bottom) >> 3;
+    UBYTE tile_left   = PX_TO_TILE(SUBPX_TO_PX(offset->x) + bb->left);
+    UBYTE tile_right  = PX_TO_TILE(SUBPX_TO_PX(offset->x) + bb->right);
+    UBYTE tile_top    = PX_TO_TILE(SUBPX_TO_PX(offset->y) + bb->top);
+    UBYTE tile_bottom = PX_TO_TILE(SUBPX_TO_PX(offset->y) + bb->bottom);
     UBYTE i;
 
     for (i = 0; i != triggers_len; i++) {

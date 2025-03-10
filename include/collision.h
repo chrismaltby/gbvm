@@ -31,10 +31,10 @@ extern UBYTE image_tile_height;
  * @return Point is within bounding box
  */
 inline UBYTE bb_contains(bounding_box_t *bb, point16_t *offset, point16_t *point) {
-    if ((point->x < (offset->x >> 4) + bb->left) || 
-        (point->x > (offset->x >> 4) + bb->right)) return FALSE;
-    if ((point->y < (offset->y >> 4) + bb->top) || 
-        (point->y > (offset->y >> 4) + bb->bottom)) return FALSE;
+    if ((point->x < SUBPX_TO_PX(offset->x) + bb->left) || 
+        (point->x > SUBPX_TO_PX(offset->x) + bb->right)) return FALSE;
+    if ((point->y < SUBPX_TO_PX(offset->y) + bb->top) || 
+        (point->y > SUBPX_TO_PX(offset->y) + bb->bottom)) return FALSE;
     return TRUE;
 }
 
@@ -48,10 +48,10 @@ inline UBYTE bb_contains(bounding_box_t *bb, point16_t *offset, point16_t *point
  * @return Positioned bounding boxes intersect
  */
 inline UBYTE bb_intersects(bounding_box_t *bb_a, point16_t *offset_a, bounding_box_t *bb_b, point16_t *offset_b) {
-    if (((offset_b->x >> 4) + bb_b->left   > (offset_a->x >> 4) + bb_a->right) ||
-        ((offset_b->x >> 4) + bb_b->right  < (offset_a->x >> 4) + bb_a->left)) return FALSE;
-    if (((offset_b->y >> 4) + bb_b->top    > (offset_a->y >> 4) + bb_a->bottom) ||
-        ((offset_b->y >> 4) + bb_b->bottom < (offset_a->y >> 4) + bb_a->top)) return FALSE;
+    if ((SUBPX_TO_PX(offset_b->x) + bb_b->left   > SUBPX_TO_PX(offset_a->x) + bb_a->right) ||
+        (SUBPX_TO_PX(offset_b->x) + bb_b->right  < SUBPX_TO_PX(offset_a->x) + bb_a->left)) return FALSE;
+    if ((SUBPX_TO_PX(offset_b->y) + bb_b->top    > SUBPX_TO_PX(offset_a->y) + bb_a->bottom) ||
+        (SUBPX_TO_PX(offset_b->y) + bb_b->bottom < SUBPX_TO_PX(offset_a->y) + bb_a->top)) return FALSE;
     return TRUE;
 }
 

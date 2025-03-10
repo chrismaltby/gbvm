@@ -64,8 +64,8 @@ void scroll_update(void) BANKED {
     INT16 x, y;
     UBYTE render = FALSE;
 
-    x = (camera_x >> 4) - (SCREENWIDTH >> 1);
-    y = (camera_y >> 4) - (SCREENHEIGHT >> 1);
+    x = SUBPX_TO_PX(camera_x) - (SCREENWIDTH >> 1);
+    y = SUBPX_TO_PX(camera_y) - (SCREENHEIGHT >> 1);
 
     if (x & 0x8000u) {  // check for negative signed bit
         x = 0u;
@@ -78,10 +78,10 @@ void scroll_update(void) BANKED {
         y = scroll_y_max;
     }
 
-    current_col = scroll_x >> 3;
-    current_row = scroll_y >> 3;
-    new_col = x >> 3;
-    new_row = y >> 3;
+    current_col = PX_TO_TILE(scroll_x);
+    current_row = PX_TO_TILE(scroll_y);
+    new_col = PX_TO_TILE(x);
+    new_row = PX_TO_TILE(y);
 
     scroll_x = x;
     scroll_y = y;
@@ -106,7 +106,7 @@ UBYTE scroll_viewport(parallax_row_t * port) {
         }
 
         port->shadow_scx = shift_scroll_x;        
-        UBYTE shift_col = shift_scroll_x >> 3;
+        UBYTE shift_col = PX_TO_TILE(shift_scroll_x);
 
         // If column is +/- 1 just render next column
         if (current_col == new_col - 1) {
@@ -185,8 +185,8 @@ void scroll_render_rows(INT16 scroll_x, INT16 scroll_y, BYTE row_offset, BYTE n_
     pending_w_i = 0;
     pending_h_i = 0;
 
-    UBYTE x = MAX(0, (scroll_x >> 3) - SCREEN_PAD_LEFT);
-    UBYTE y = MAX(0, (scroll_y >> 3) + row_offset);
+    UBYTE x = MAX(0, PX_TO_TILE(scroll_x) - SCREEN_PAD_LEFT);
+    UBYTE y = MAX(0, PX_TO_TILE(scroll_y) + row_offset);
 
     for (BYTE i = 0; i != n_rows && y != image_tile_height; ++i, y++) {
         scroll_load_row(x, y);

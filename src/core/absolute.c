@@ -9,7 +9,7 @@
 
 #define add_check__(a,b) add_check___(a,b)
 #define add_check___(a,b) check_##a##_##b
-#define check_size(typ,sz) typedef char add_check__(typ,__LINE__)[ (sizeof(typ) == (sz)) ? 1 : -1]
+#define check_size(typ,sz) typedef char add_check__(typ,__LINE__)[ (sizeof(typ) == (sz)) ? 1 : "error"]
 
 OAM_item_t      AT(SHADOW_OAM2_BASE_ADDRESS)                                           shadow_OAM2[40];        // 160 bytes
 check_size(shadow_OAM2, 160);

@@ -65,16 +65,16 @@ void pointnclick_update(void) BANKED {
     if (player_moving) {
         point_translate_angle(&(PLAYER.pos), angle, PLAYER.move_speed);
         // Clamp X
-        if ((PLAYER.pos.x >> 4) - PLAYER.bounds.left > image_width) {
-            PLAYER.pos.x = (PLAYER.bounds.left << 4);
-        } else if ((PLAYER.pos.x >> 4) + PLAYER.bounds.right > image_width) {
-            PLAYER.pos.x = (image_width - PLAYER.bounds.right) << 4;
+        if (SUBPX_TO_PX(PLAYER.pos.x) - PLAYER.bounds.left > image_width) {
+            PLAYER.pos.x = PX_TO_SUBPX(PLAYER.bounds.left);
+        } else if (SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right > image_width) {
+            PLAYER.pos.x = PX_TO_SUBPX(image_width - PLAYER.bounds.right);
         }
         // Clamp Y
-        if ((PLAYER.pos.y >> 4) + PLAYER.bounds.top > image_height) {
-            PLAYER.pos.y = -(PLAYER.bounds.top << 4);
-        } else if ((PLAYER.pos.y >> 4) + PLAYER.bounds.bottom > image_height) {
-            PLAYER.pos.y = (image_height - PLAYER.bounds.bottom) << 4;
+        if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top > image_height) {
+            PLAYER.pos.y = -PX_TO_SUBPX(PLAYER.bounds.top);
+        } else if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom > image_height) {
+            PLAYER.pos.y = PX_TO_SUBPX(image_height - PLAYER.bounds.bottom);
         }             
     }
 

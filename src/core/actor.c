@@ -84,14 +84,14 @@ void actors_update(void) NONBANKED {
     // allowing full range of scene to be represented in 7 bits
     // offset by 64 to allow signed comparisons on
     // unsigned int values (is faster)
-    screen_tile16_x = (draw_scroll_x >> 4) + TILE16_OFFSET;
-    screen_tile16_y = (draw_scroll_y >> 4) + TILE16_OFFSET;
+    screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
+    screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
 
     if (emote_actor) {
         SWITCH_ROM(emote_actor->sprite.bank);
         spritesheet_t *sprite = emote_actor->sprite.ptr;
-        screen_x = (emote_actor->pos.x >> 4) - scroll_x + 8 + sprite->emote_origin.x;
-        screen_y = (emote_actor->pos.y >> 4) - scroll_y + 8 + sprite->emote_origin.y;
+        screen_x = SUBPX_TO_PX(emote_actor->pos.x) - scroll_x + 8 + sprite->emote_origin.x;
+        screen_y = SUBPX_TO_PX(emote_actor->pos.y) - scroll_y + 8 + sprite->emote_origin.y;
 
         SWITCH_ROM(BANK(ACTOR));  // bank of emote_offsets[] and emote_metasprite[]
         if (emote_timer < EMOTE_BOUNCE_FRAMES) {
@@ -116,13 +116,13 @@ void actors_update(void) NONBANKED {
     actor = actors_active_tail;
     while (actor) {
         if (actor->pinned) {
-            screen_x = (actor->pos.x >> 4) + 8, screen_y = (actor->pos.y >> 4) + 8;
+            screen_x = SUBPX_TO_PX(actor->pos.x) + 8, screen_y = SUBPX_TO_PX(actor->pos.y) + 8;
         } else {
             // Bottom right coordinate of actor in 16px tile coordinates
             // Subtract bounding box estimate width/height
             // and offset by 64 to allow signed comparisons with screen tiles
-            actor_tile16_x = (actor->pos.x >> 8) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
-            actor_tile16_y = (actor->pos.y >> 8) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+            actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+            actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
 
             if (
                 // Actor right edge < screen left edge
@@ -145,7 +145,7 @@ void actors_update(void) NONBANKED {
                 continue;
             }
             // calculate screen coordinates
-            screen_x = ((actor->pos.x >> 4) + 8) - draw_scroll_x, screen_y = ((actor->pos.y >> 4) + 8) - draw_scroll_y;
+            screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
         }
         if (actor->hidden) {
             actor = actor->prev;
@@ -243,9 +243,9 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
     actor = actors_inactive_head;
 
     while (actor) {
-        UBYTE ty = actor->pos.y >> 7;
+        UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
         if (ty == y) {
-            UBYTE tx = actor->pos.x >> 7;
+            UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
             if ((tx + 1 > x) && (tx < x + SCREEN_TILE_REFRES_W)) {
                 actor_t * next = actor->next;
                 activate_actor(actor);
@@ -261,10 +261,10 @@ void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
     static actor_t *actor;
     actor = actors_inactive_head;
     while (actor) {
-        UBYTE tx_left   = actor->pos.x >> 7;
-        UBYTE ty_bottom = actor->pos.y >> 7;
-        UBYTE tx_right  = ((actor->pos.x >> 4) + (actor->bounds.right)) >> 3;
-        UBYTE ty_top    = ((actor->pos.y >> 4) + (actor->bounds.top)) >> 3;
+        UBYTE tx_left   = SUBPX_TO_TILE(actor->pos.x);
+        UBYTE ty_bottom = SUBPX_TO_TILE(actor->pos.y);
+        UBYTE tx_right  = PX_TO_TILE(SUBPX_TO_PX(actor->pos.x) + actor->bounds.right);
+        UBYTE ty_top    = PX_TO_TILE(SUBPX_TO_PX(actor->pos.y) + actor->bounds.top);
         if (tx_left <= x && tx_right >= x && ty_top <= (y + SCREEN_TILE_REFRES_H) && ty_bottom >= y) {
             actor_t * next = actor->next;
             activate_actor(actor);
@@ -313,7 +313,7 @@ actor_t *actor_at_tile(UBYTE tx, UBYTE ty, UBYTE inc_noclip) BANKED {
         if ((!inc_noclip && !actor->collision_enabled))
             continue;
 
-        UBYTE a_tx = (actor->pos.x >> 7), a_ty = (actor->pos.y >> 7);
+        UBYTE a_tx = SUBPX_TO_TILE(actor->pos.x), a_ty = SUBPX_TO_TILE(actor->pos.y);
         if ((ty == a_ty || ty == a_ty + 1) && (tx == a_tx || tx == a_tx + 1 || tx == a_tx - 1)) return actor;
     }
     return NULL;
@@ -323,7 +323,7 @@ actor_t *actor_in_front_of_player(UBYTE grid_size, UBYTE inc_noclip) BANKED {
     point16_t offset;
     offset.x = PLAYER.pos.x;
     offset.y = PLAYER.pos.y;
-    point_translate_dir_word(&offset, PLAYER.dir, grid_size << 4);
+    point_translate_dir_word(&offset, PLAYER.dir, PX_TO_SUBPX(grid_size));
     return actor_overlapping_bb(&PLAYER.bounds, &offset, &PLAYER, inc_noclip);
 }
 
@@ -391,15 +391,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
     WORD tx1, ty1, tx2, ty2, tt;
     switch (check_dir) {
         case CHECK_DIR_LEFT:  // Check left
-            tx1 = (((start_x >> 4) + bounds->left) >> 3);
-            tx2 = (((end_pos >> 4) + bounds->left) >> 3) - 1;
-            ty1 = (((start_y >> 4) + bounds->top) >> 3);
-            ty2 = (((start_y >> 4) + bounds->bottom) >> 3) + 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->left);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->left) - 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->top);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->bottom) + 1;
             while (tx1 != tx2) {
                 tt = ty1;
                 while (tt != ty2) {
                     if (tile_at(tx1, tt) & COLLISION_RIGHT) {
-                        return ((tx1 + 1) << 7) - (bounds->left << 4);
+                        return TILE_TO_SUBPX(tx1 + 1) - PX_TO_SUBPX(bounds->left);
                     }
                     tt++;
                 }
@@ -407,15 +407,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             }
             return end_pos;
         case CHECK_DIR_RIGHT:  // Check right
-            tx1 = (((start_x >> 4) + bounds->right) >> 3);
-            tx2 = (((end_pos >> 4) + bounds->right) >> 3) + 1;
-            ty1 = (((start_y >> 4) + bounds->top) >> 3);
-            ty2 = (((start_y >> 4) + bounds->bottom) >> 3) + 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->right);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->right) + 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->top);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->bottom) + 1;
             while (tx1 != tx2) {
                 tt = ty1;
                 while (tt != ty2) {
                     if (tile_at(tx1, tt) & COLLISION_LEFT) {
-                        return (tx1 << 7) - ((bounds->right + 1) << 4);
+                        return TILE_TO_SUBPX(tx1) - PX_TO_SUBPX(bounds->right + 1);
                     }
                     tt++;
                 }
@@ -423,15 +423,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             }
             return end_pos;
         case CHECK_DIR_UP:  // Check up
-            ty1 = (((start_y >> 4) + bounds->top) >> 3);
-            ty2 = (((end_pos >> 4) + bounds->top) >> 3) - 1;
-            tx1 = (((start_x >> 4) + bounds->left) >> 3);
-            tx2 = (((start_x >> 4) + bounds->right) >> 3) + 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->top);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->top) - 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->left);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->right) + 1;
             while (ty1 != ty2) {
                 tt = tx1;
                 while (tt != tx2) {
                     if (tile_at(tt, ty1) & COLLISION_BOTTOM) {
-                        return ((ty1 + 1) << 7) - ((bounds->top) << 4);
+                        return TILE_TO_SUBPX(ty1 + 1) - PX_TO_SUBPX(bounds->top);
                     }
                     tt++;
                 }
@@ -439,15 +439,15 @@ UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, bounding_box_t 
             }
             return end_pos;
         case CHECK_DIR_DOWN:  // Check down
-            ty1 = (((start_y >> 4) + bounds->bottom) >> 3);
-            ty2 = (((end_pos >> 4) + bounds->bottom) >> 3) + 1;
-            tx1 = (((start_x >> 4) + bounds->left) >> 3);
-            tx2 = (((start_x >> 4) + bounds->right) >> 3) + 1;
+            ty1 = PX_TO_TILE(SUBPX_TO_PX(start_y) + bounds->bottom);
+            ty2 = PX_TO_TILE(SUBPX_TO_PX(end_pos) + bounds->bottom) + 1;
+            tx1 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->left);
+            tx2 = PX_TO_TILE(SUBPX_TO_PX(start_x) + bounds->right) + 1;
             while (ty1 != ty2) {
                 tt = tx1;
                 while (tt != tx2) {
                     if (tile_at(tt, ty1) & COLLISION_TOP) {
-                        return ((ty1) << 7) - ((bounds->bottom + 1) << 4);
+                        return TILE_TO_SUBPX(ty1) - PX_TO_SUBPX(bounds->bottom + 1);
                     }
                     tt++;
                 }
