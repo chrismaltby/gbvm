@@ -2,67 +2,75 @@
 Future notes on things to do:
 - Limit air dashes before touching the ground
 - Add an option for wall jump that only allows alternating walls.
-- Currently, dashing through walls checks the potential end point, and if it isn't clear then it
-continues with the normal dash routine. The result is that there could be a valid landing point
-across a wall, but the player is just a little too close for it to register. I could create a
-'look-back' loop that runs through the intervening tiles until it finds an empty landing spot.
-- The bounce event is a funny one, because it can have the player going up without being in the jump
-state. I should perhaps add some error catching stuff for such situations
-- Can I have a wall_jump init ahead of the normal jump init? If it's just checking a few more
-boxes....
-- Improve ladder situation: jump from ladder option, bug with hitting the bottom of ladders, other
-stuff?
+- Currently, dashing through walls checks the potential end point, and if it
+isn't clear then it continues with the normal dash routine. The result is that
+there could be a valid landing point across a wall, but the player is just a
+little too close for it to register. I could create a 'look-back' loop that runs
+through the intervening tiles until it finds an empty landing spot.
+- The bounce event is a funny one, because it can have the player going up
+without being in the jump state. I should perhaps add some error catching stuff
+for such situations
+- Can I have a wall_jump init ahead of the normal jump init? If it's just
+checking a few more boxes....
+- Improve ladder situation: jump from ladder option, bug with hitting the bottom
+of ladders, other stuff?
 
 - Add check for camera bounds on Dash Init
-- Solid actors have a fault: they only check collisions once on enter. This is especially
-problematic because of how GBStudio does invincibility frames, because it means the player can
-attach to a platform without causing the hit trigger to run.
+- Solid actors have a fault: they only check collisions once on enter. This is
+especially problematic because of how GBStudio does invincibility frames,
+because it means the player can attach to a platform without causing the hit
+trigger to run.
      - 2 potential solutions:
-     - give the player a minimum velocity every frame, forcing a re-collision. This might break the
-moving platform code though
+     - give the player a minimum velocity every frame, forcing a re-collision.
+This might break the moving platform code though
      - manually re-trigger the collision call if the actor is attached.
 
 
 
 
 TARGETS for Optimization
-- State script assignment could be 100% be re-written to avoid all those assignments and directly
-use the pointers. I am not canny enough to do that.
-- I should be able to combine solid actors and platform actors into a single check...
-- It's inellegant that the dash check requires me to check again later if it succeeded or not. Can I
-reorganize this somehow?
+- State script assignment could be 100% be re-written to avoid all those
+assignments and directly use the pointers. I am not canny enough to do that.
+- I should be able to combine solid actors and platform actors into a single
+check...
+- It's inellegant that the dash check requires me to check again later if it
+succeeded or not. Can I reorganize this somehow?
 - I think I can probably combine actor_attached and last_actor
-- I need to refactor the downwards collision for Y, it's a bit of a mess at this point. I just can't
-wrap my head around it atm
-- Wall Slide could be optimized to skill the acceleration bit, as the only thing that matters is
-tapping away
+- I need to refactor the downwards collision for Y, it's a bit of a mess at this
+point. I just can't wrap my head around it atm
+- Wall Slide could be optimized to skill the acceleration bit, as the only thing
+that matters is tapping away
 
 THINGS TO WATCH
 - Does every state (that needs to) end up resetting DeltaX?
 
 NOTES on GBStudio Quirks
 - 256 velocities per position, 16 'positions' per pixel, 8 pixels per tile
-- Player bounds: for an ordinary 16x16 sprite, bounds.left starts at 0 and bounds.right starts
-at 16. If it's smaller, bounds.left is POSITIVE For bounds.top, however, Y starts counting from the
-middle of a sprite. bounds.top is negative and bounds.bottom is positive
+- Player bounds: for an ordinary 16x16 sprite, bounds.left starts at 0 and
+bounds.right starts at 16. If it's smaller, bounds.left is POSITIVE For
+bounds.top, however, Y starts counting from the middle of a sprite. bounds.top
+is negative and bounds.bottom is positive
 - CameraX is in the middle of the screen, not left corner
 
 GENERAL STRUCTURE OF THIS FILE
-The old format was well structured as a state-machine, isolating all the components into states.
-Unfortunately, it seems like the overhead of calling collision functions on the GameBoy makes this
-model unperformant. However, I'm also limited to the total amount of code that can be placed in a
-single bank. I cannot get rid of the functions and move the code into the file itself. New structure
-is a compromise that uses goto commands to skip some sections that are shared by most of the states.
+The old format was well structured as a state-machine, isolating all the
+components into states. Unfortunately, it seems like the overhead of calling
+collision functions on the GameBoy makes this model unperformant. However, I'm
+also limited to the total amount of code that can be placed in a single bank. I
+cannot get rid of the functions and move the code into the file itself. New
+structure is a compromise that uses goto commands to skip some sections that are
+shared by most of the states.
 
 INIT()
     Tweak a few fields so they don't overflow variables
     Normalize some fields so that they are applied over multiple frames
     Initialize variables
 UPDATE()
-    A. Input Checks (Double-tap Dash, Drop-Through)    I'm considering moving the drop-through check
-into a state B. STATE MACHINE 1 SWITCH: Falling, Ground, Jumping, Dashing, Climbing a Ladder, Wall
-Sliding State Initialization Calculate Change in Vertical Movement Some calculate horziontal
-movement Some calculate collisions C. Shared Collision Acceleration Code Basic X Collision gotoXCol
+    A. Input Checks (Double-tap Dash, Drop-Through)    I'm considering moving
+the drop-through check into a state B. STATE MACHINE 1 SWITCH: Falling, Ground,
+Jumping, Dashing, Climbing a Ladder, Wall Sliding State Initialization Calculate
+Change in Vertical Movement Some calculate horziontal movement Some calculate
+collisions C. Shared Collision Acceleration Code Basic X Collision gotoXCol
         Basic Y Collision           gotoYCol
         Actor Collision Check       gotoActorCol
     D. STATE MACHINE 2 SWITCH:      gotoSwitch2
@@ -74,8 +82,8 @@ movement Some calculate collisions C. Shared Collision Acceleration Code Basic X
 
 
 BUGS:
- - When the player is on a moving platform and is hit by another one, they get caught mid-way on the
-next one.
+ - When the player is on a moving platform and is hit by another one, they get
+caught mid-way on the next one.
 */
 #pragma bank 3
 
@@ -1517,12 +1525,10 @@ gotoSwitch2:
                     if (col == 0 || (col == 1 && !INPUT_RIGHT) ||
                         (col == -1 && !INPUT_LEFT)) {
                         que_state = DASH_STATE;
-                        plat_state = FALL_END;
                         break;
                     }
                 } else if (que_state == GROUND_STATE && plat_dash_style != 1) {
                     que_state = DASH_STATE;
-                    plat_state = FALL_END;
                     break;
                 }
             }
@@ -1536,13 +1542,11 @@ gotoSwitch2:
                     nocontrol_h = 5;
                     pl_vel_x += (plat_wall_kick + plat_walk_vel) * -last_wall;
                     que_state = JUMP_STATE;
-                    plat_state = FALL_END;
                     break;
                 } else if (ct_val != 0) {
                     // Coyote Time Jump
                     jump_type = 1;
                     que_state = JUMP_STATE;
-                    plat_state = FALL_END;
                     break;
                 } else if (dj_val != 0) {
                     // Double Jump
@@ -1552,7 +1556,6 @@ gotoSwitch2:
                     }
                     jump_reduction_val += jump_reduction;
                     que_state = JUMP_STATE;
-                    plat_state = FALL_END;
                     break;
                 } else {
                     // Setting the Jump Buffer when jump is pressed while not on
@@ -1562,11 +1565,6 @@ gotoSwitch2:
             }
             // NEUTRAL -> LADDER check
             ladder_check();
-
-            // Check for final frame
-            if (que_state != FALL_STATE) {
-                plat_state = FALL_END;
-            }
 
             // COUNTERS
             //  Counting down Jump Buffer Window
@@ -1619,7 +1617,6 @@ gotoSwitch2:
             // GROUND -> DASH Check
             if (dash_press && plat_dash_style != 1 && dash_ready_val == 0) {
                 que_state = DASH_STATE;
-                plat_state = GROUND_END;
                 break;
             }
             // GROUND -> JUMP Check
@@ -1629,7 +1626,6 @@ gotoSwitch2:
                     // Standard Jump
                     jump_type = 1;
                     que_state = JUMP_STATE;
-                    plat_state = GROUND_END;
                     break;
                 }
             }
@@ -1637,11 +1633,6 @@ gotoSwitch2:
 
             // GROUND -> LADDER Check
             ladder_check();
-
-            // Check for final frame
-            if (que_state != GROUND_STATE) {
-                plat_state = GROUND_END;
-            }
 
             // COUNTERS
             //  Counting down the drop-through floor frames
@@ -1667,7 +1658,6 @@ gotoSwitch2:
             if (dash_press && dash_ready_val == 0) {
                 if (plat_dash_style != 0 || ct_val != 0) {
                     que_state = DASH_STATE;
-                    plat_state = JUMP_END;
                     break;
                 }
             }
@@ -1681,7 +1671,6 @@ gotoSwitch2:
                     nocontrol_h = 5;
                     pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
                     que_state = JUMP_STATE;
-                    plat_state = JUMP_END;
                 } else if (dj_val != 0) {
                     // Double Jump
                     jump_type = 2;
@@ -1690,7 +1679,6 @@ gotoSwitch2:
                     }
                     jump_reduction_val += jump_reduction;
                     que_state = JUMP_STATE;
-                    plat_state = JUMP_END;
                 }
                 break;
             }
