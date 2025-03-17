@@ -7,6 +7,7 @@
 
 script_event_t input_events[8];
 UBYTE input_slots[8];
+script_event_t state_events[21];
 
 script_event_t timer_events[MAX_CONCURRENT_TIMERS];
 timer_time_t timer_values[MAX_CONCURRENT_TIMERS];
@@ -63,4 +64,12 @@ void timers_update(void) NONBANKED {
         }
         ctimer++;
     } 
+}
+
+void state_events_execute(UBYTE i) NONBANKED {
+    script_event_t * event = &state_events[i];
+    if (!event->script_addr) return;
+    if ((event->handle == 0) || ((event->handle & SCRIPT_TERMINATED) != 0)) {
+        script_execute(event->script_bank, event->script_addr, &event->handle, 0, 0);
+    }
 }

@@ -12,12 +12,6 @@ void ladder_switch(void) BANKED;
 void dash_init_switch(void) BANKED;
 UBYTE drop_press(void) BANKED;
 
-typedef struct script_state_t {
-    UBYTE script_bank;
-    UBYTE *script_addr;
-} script_state_t;
-
-
 extern WORD pl_vel_x;
 extern WORD pl_vel_y;
 extern WORD plat_min_vel;

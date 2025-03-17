@@ -92,6 +92,7 @@ next one.
 #include "scroll.h"
 #include "trigger.h"
 #include "vm.h"
+#include "events.h"
 
 #ifndef INPUT_PLATFORM_JUMP
 #define INPUT_PLATFORM_JUMP INPUT_A
@@ -136,9 +137,6 @@ next one.
 #define IS_SLOPE_RIGHT(t) (((t) & 0x10) == 0)
 #define IS_LADDER(t) (((t) & 0xF0) == 0x10)
 #define VEL_TO_SUBPX(v) ((v) >> 8)
-
-// TEST
-script_state_t state_events[21];
 
 // DEFAULT ENGINE VARIABLES
 WORD plat_min_vel;
@@ -1897,19 +1895,4 @@ UBYTE drop_press(void) BANKED {
       return 0;
   }
   return 0;
-}
-// UBYTE slot, UBYTE bank, UBYTE * pc
-//
-void assign_state_script(SCRIPT_CTX* THIS) OLDCALL BANKED {
-  UWORD* slot = VM_REF_TO_PTR(FN_ARG2);
-  UBYTE* bank = VM_REF_TO_PTR(FN_ARG1);
-  UBYTE** ptr = VM_REF_TO_PTR(FN_ARG0);
-  state_events[*slot].script_bank = *bank;
-  state_events[*slot].script_addr = *ptr;
-}
-
-void clear_state_script(SCRIPT_CTX* THIS) OLDCALL BANKED {
-  UWORD* slot = VM_REF_TO_PTR(FN_ARG0);
-  state_events[*slot].script_bank = NULL;
-  state_events[*slot].script_addr = NULL;
 }
