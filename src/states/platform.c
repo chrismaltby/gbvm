@@ -107,6 +107,10 @@ next one.
 #define PLATFORM_CAMERA_DEADZONE_Y 16
 #endif
 
+#define DASH_INPUT_INTERACT 1
+#define DASH_INPUT_DOUBLE_TAP 2
+#define DASH_INPUT_DOWN_JUMP 3
+
 #ifndef COLLISION_LADDER
 #define COLLISION_LADDER 0x10
 #endif
@@ -366,13 +370,13 @@ void platform_update(void) BANKED {
   // Dash Input Check
   UBYTE dash_press = FALSE;
   switch (plat_dash) {
-    case 1:
+    case DASH_INPUT_INTERACT:
       // Interact Dash
       if (INPUT_PRESSED(INPUT_PLATFORM_INTERACT)) {
         dash_press = TRUE;
       }
       break;
-    case 2:
+    case DASH_INPUT_DOUBLE_TAP:
       // Double-Tap Dash
       if (INPUT_PRESSED(INPUT_LEFT)) {
         if (tap_val < 0) {
@@ -388,7 +392,7 @@ void platform_update(void) BANKED {
         }
       }
       break;
-    case 3:
+    case DASH_INPUT_DOWN_JUMP:
       // Down and Interact (need to check both orders)
       if ((INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) ||
           (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))) {
