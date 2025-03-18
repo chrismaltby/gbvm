@@ -766,6 +766,7 @@ void platform_update(void) BANKED
         {
             nocollide -= 1;
         }
+
         break;
     }
 
@@ -1136,6 +1137,8 @@ void platform_update(void) BANKED
         // {
         //     goto gotoCounters;
         // }
+
+        break;
     }
 
     case LADDER_STATE: {
@@ -1215,6 +1218,7 @@ void platform_update(void) BANKED
         }
 
         apply_collisions(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+
         break;
     }
 
@@ -1383,6 +1387,8 @@ void platform_update(void) BANKED
 
     if (plat_state != que_state)
     {
+        // Exit state
+
         switch (plat_state)
         {
         case FALL_STATE: {
@@ -1454,7 +1460,7 @@ void platform_update(void) BANKED
         }
         case DASH_STATE: {
             dash_init_switch();
-            state_events_execute(DASH_STATE);
+            state_events_execute(DASH_INIT);
             break;
         }
         case WALL_STATE: {
