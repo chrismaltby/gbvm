@@ -1851,7 +1851,7 @@ gotoSwitch2:
         // WALL -> DASH Check
         if (dash_press && plat_dash_style != 0 && dash_ready_val == 0)
         {
-            if ((col = WALL_COL_RIGHT && !INPUT_RIGHT) || (col == WALL_COL_LEFT && !INPUT_LEFT))
+            if ((col == WALL_COL_RIGHT && !INPUT_RIGHT) || (col == WALL_COL_LEFT && !INPUT_LEFT))
             {
                 que_state = DASH_STATE;
                 plat_state = WALL_END;
