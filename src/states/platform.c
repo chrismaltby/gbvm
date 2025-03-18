@@ -119,6 +119,12 @@ caught mid-way on the next one.
 #define DASH_INPUT_DOUBLE_TAP 2
 #define DASH_INPUT_DOWN_JUMP 3
 
+#define JUMP_TYPE_NONE 0
+#define JUMP_TYPE_GROUND 1
+#define JUMP_TYPE_DOUBLE 2
+#define JUMP_TYPE_WALL 3
+#define JUMP_TYPE_FLOATING 4
+
 #ifndef COLLISION_LADDER
 #define COLLISION_LADDER 0x10
 #endif
@@ -381,7 +387,7 @@ void platform_init(void) BANKED {
     dj_val = 0;
     wj_val = plat_wall_jump_max;
     dash_end_clear = FALSE;  // could also be mixed into the collision bitmask
-    jump_type = 0;
+    jump_type = JUMP_TYPE_NONE;
     deltaX = 0;
     deltaY = 0;
 }
@@ -443,8 +449,9 @@ void platform_update(void) BANKED {
         // case FALL_INIT:
         //   que_state = FALL_STATE;
         case FALL_STATE: {
-            jump_type = 0;  // Keep this here, rather than in init, so that we
-                            // can easily track float as a jump type
+            // Keep this here, rather than in init, so that
+            // we can easily track float as a jump type
+            jump_type = JUMP_TYPE_NONE;
 
             // Vertical
             // Movement--------------------------------------------------------------------------------------------
@@ -452,7 +459,7 @@ void platform_update(void) BANKED {
             if (((plat_float_input == 1 && INPUT_PLATFORM_JUMP) ||
                  (plat_float_input == 2 && INPUT_UP)) &&
                 pl_vel_y >= 0) {
-                jump_type = 4;
+                jump_type = JUMP_TYPE_FLOATING;
                 pl_vel_y = plat_float_grav;
             } else if (nocollide != 0) {
                 // magic number, rough minimum for actually having the player
@@ -486,7 +493,7 @@ void platform_update(void) BANKED {
             // case GROUND_INIT:
             //   que_state = GROUND_STATE;
             //   pl_vel_y = 256;
-            //   jump_type = 0;
+            //   jump_type = JUMP_TYPE_NONE;
             //   wc_val = 0;
             //   ct_val = plat_coyote_max;
             //   dj_val = plat_extra_jumps;
@@ -790,7 +797,7 @@ void platform_update(void) BANKED {
                         pl_vel_y = -(plat_jump_min + (plat_jump_vel / 2));
                         jb_val = 0;
                         ct_val = 0;
-                        jump_type = 1;
+                        jump_type = JUMP_TYPE_GROUND;
                     } else if (dj_val != 0) {
                         // If the player is in the air, and can double jump
                         dj_val -= 1;
@@ -802,7 +809,7 @@ void platform_update(void) BANKED {
                         pl_vel_y = -(plat_jump_min + (plat_jump_vel / 2));
                         jb_val = 0;
                         ct_val = 0;
-                        jump_type = 2;
+                        jump_type = JUMP_TYPE_DOUBLE;
                     }
                 }
 
@@ -866,7 +873,7 @@ void platform_update(void) BANKED {
             //================================================================================================================
         // case LADDER_INIT:
         //   que_state = LADDER_STATE;
-        //   jump_type = 0;
+        //   jump_type = JUMP_TYPE_NONE;
         case LADDER_STATE: {
             ladder_switch();
         }
@@ -874,7 +881,7 @@ void platform_update(void) BANKED {
             //================================================================================================================
         // case WALL_INIT:
         //   que_state = WALL_STATE;
-        //   jump_type = 0;
+        //   jump_type = JUMP_TYPE_NONE;
         //   run_stage = 0;
         case WALL_STATE: {
             // Vertical
@@ -903,7 +910,7 @@ void platform_update(void) BANKED {
             //================================================================================================================
         // case KNOCKBACK_INIT:
         //   run_stage = 0;
-        //   jump_type = 0;
+        //   jump_type = JUMP_TYPE_NONE;
         //   que_state = KNOCKBACK_STATE;
         case KNOCKBACK_STATE: {
             // Horizontal
@@ -939,7 +946,7 @@ void platform_update(void) BANKED {
         //   pl_vel_x = 0;
         //   pl_vel_y = 0;
         //   run_stage = 0;
-        //   jump_type = 0;
+        //   jump_type = JUMP_TYPE_NONE;
         case BLANK_STATE:
             goto gotoActorCol;
     }
@@ -1537,7 +1544,7 @@ gotoSwitch2:
             if (INPUT_PRESSED(INPUT_PLATFORM_JUMP)) {
                 // Wall Jump
                 if (wc_val != 0 && wj_val != 0) {
-                    jump_type = 3;
+                    jump_type = JUMP_TYPE_WALL;
                     wj_val -= 1;
                     nocontrol_h = 5;
                     pl_vel_x += (plat_wall_kick + plat_walk_vel) * -last_wall;
@@ -1545,12 +1552,12 @@ gotoSwitch2:
                     break;
                 } else if (ct_val != 0) {
                     // Coyote Time Jump
-                    jump_type = 1;
+                    jump_type = JUMP_TYPE_GROUND;
                     que_state = JUMP_STATE;
                     break;
                 } else if (dj_val != 0) {
                     // Double Jump
-                    jump_type = 2;
+                    jump_type = JUMP_TYPE_DOUBLE;
                     if (dj_val != 255) {
                         dj_val -= 1;
                     }
@@ -1624,7 +1631,7 @@ gotoSwitch2:
             if (INPUT_PRESSED(INPUT_PLATFORM_JUMP) || jb_val != 0) {
                 if (nocollide == 0) {
                     // Standard Jump
-                    jump_type = 1;
+                    jump_type = JUMP_TYPE_GROUND;
                     que_state = JUMP_STATE;
                     break;
                 }
@@ -1666,14 +1673,14 @@ gotoSwitch2:
             if (INPUT_PRESSED(INPUT_PLATFORM_JUMP)) {
                 // Wall Jump
                 if (wc_val != 0 && wj_val != 0) {
-                    jump_type = 3;
+                    jump_type = JUMP_TYPE_WALL;
                     wj_val -= 1;
                     nocontrol_h = 5;
                     pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
                     que_state = JUMP_STATE;
                 } else if (dj_val != 0) {
                     // Double Jump
-                    jump_type = 2;
+                    jump_type = JUMP_TYPE_DOUBLE;
                     if (dj_val != 255) {
                         dj_val -= 1;
                     }
@@ -1757,7 +1764,7 @@ gotoSwitch2:
                 wj_val -= 1;
                 nocontrol_h = 5;
                 pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
-                jump_type = 3;
+                jump_type = JUMP_TYPE_WALL;
                 que_state = JUMP_STATE;
                 plat_state = WALL_END;
                 break;
@@ -1882,7 +1889,7 @@ gotoCounters:
             }
             case GROUND_STATE: {
                 pl_vel_y = 256;
-                jump_type = 0;
+                jump_type = JUMP_TYPE_NONE;
                 wc_val = 0;
                 ct_val = plat_coyote_max;
                 dj_val = plat_extra_jumps;
@@ -1892,7 +1899,7 @@ gotoCounters:
                 break;
             }
             case LADDER_STATE: {
-                jump_type = 0;
+                jump_type = JUMP_TYPE_NONE;
                 state_events_execute(LADDER_INIT);
                 break;
             }
@@ -1902,14 +1909,14 @@ gotoCounters:
                 break;
             }
             case WALL_STATE: {
-                jump_type = 0;
+                jump_type = JUMP_TYPE_NONE;
                 run_stage = 0;
                 state_events_execute(WALL_INIT);
                 break;
             }
             case KNOCKBACK_STATE: {
                 run_stage = 0;
-                jump_type = 0;
+                jump_type = JUMP_TYPE_NONE;
                 state_events_execute(KNOCKBACK_INIT);
                 break;
             }
@@ -1917,7 +1924,7 @@ gotoCounters:
                 pl_vel_x = 0;
                 pl_vel_y = 0;
                 run_stage = 0;
-                jump_type = 0;
+                jump_type = JUMP_TYPE_NONE;
                 state_events_execute(BLANK_INIT);
                 break;
             }
@@ -2149,7 +2156,7 @@ initDash:
     }
     dash_currentframe = plat_dash_frames;
     tap_val = 0;
-    jump_type = 0;
+    jump_type = JUMP_TYPE_NONE;
     run_stage = 0;
     que_state = DASH_STATE;
 }
