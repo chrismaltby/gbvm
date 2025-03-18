@@ -325,6 +325,8 @@ UBYTE grounded; // Needed? Add for compatability?
 UBYTE on_slope;
 UBYTE slope_y;
 
+WORD temp_y = 0;
+
 void platform_init(void) BANKED
 {
     // Initialize Camera
@@ -427,13 +429,11 @@ void platform_init(void) BANKED
 void platform_update(void) BANKED
 {
     // INITIALIZE VARS
-    WORD temp_y = 0;
+
     col = WALL_COL_NONE; // tracks if there is a block left or right
-    UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
-    UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
-    UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
 
     // A. INPUT CHECK =========================================================
+
     // Dash Input Check
     UBYTE dash_press = FALSE;
     switch (plat_dash)
@@ -480,9 +480,7 @@ void platform_update(void) BANKED
     }
 
     // B. STATE MACHINE =======================================================
-    // SWITCH that includes state initialization, calculation of horizontal
-    // motion and vertical Motion
-    plat_state = que_state;
+
     switch (plat_state)
     {
 
@@ -1845,9 +1843,7 @@ void apply_movement(void) BANKED
 
 void apply_collisions(UBYTE mask) BANKED
 {
-    WORD temp_y = 0;
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
-    UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
     UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
     UBYTE prev_on_slope = 0;
     UBYTE old_x = 0;
@@ -2308,9 +2304,9 @@ gotoActorCol:
                     }
                 }
             }
+            // Platform Actors
             else if (hit_actor->collision_group == plat_mp_group)
             {
-                // Platform Actors
                 if (!actor_attached || hit_actor != last_actor)
                 {
                     if (temp_y < hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top) && pl_vel_y >= 0)
