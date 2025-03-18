@@ -134,6 +134,10 @@ caught mid-way on the next one.
 #define FLOAT_INPUT_HOLD_JUMP 1
 #define FLOAT_INPUT_HOLD_UP 2
 
+#define WALL_COL_NONE 0
+#define WALL_COL_LEFT -1
+#define WALL_COL_RIGHT 1
+
 #ifndef COLLISION_LADDER
 #define COLLISION_LADDER 0x10
 #endif
@@ -404,7 +408,7 @@ void platform_init(void) BANKED
     pl_vel_x = 0;
     pl_vel_y = 4000; // Magic number for preventing a small glitch when loading
                      // into a scene
-    last_wall = 0;   // This could be 1 bit
+    last_wall = WALL_COL_NONE;   // This could be 1 bit
     hold_jump_val = plat_hold_jump_max;
     dj_val = 0;
     wj_val = plat_wall_jump_max;
@@ -418,7 +422,7 @@ void platform_update(void) BANKED
 {
     // INITIALIZE VARS
     WORD temp_y = 0;
-    col = 0; // tracks if there is a block left or right
+    col = WALL_COL_NONE; // tracks if there is a block left or right
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
     UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
     UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
@@ -665,7 +669,7 @@ void platform_update(void) BANKED
                             // distances
         UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
         UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
-        col = 0;
+        col = WALL_COL_NONE;
 
         // Right Dash Movement & Collision
         if (PLAYER.dir == DIR_RIGHT)
@@ -702,8 +706,8 @@ void platform_update(void) BANKED
                             // The landing space is the tile we collided on,
                             // but one to the left
                             new_x = PX_TO_SUBPX((TILE_TO_PX(tile_current))-PLAYER.bounds.right) - 1;
-                            col = 1;
-                            last_wall = 1;
+                            col = WALL_COL_RIGHT;
+                            last_wall = WALL_COL_RIGHT;
                             wc_val = plat_coyote_max;
                             dash_currentframe == 0;
                             goto endRcol;
@@ -759,8 +763,8 @@ void platform_update(void) BANKED
                         if (tile_at(tile_current, tile_start) & COLLISION_RIGHT)
                         {
                             new_x = PX_TO_SUBPX(TILE_TO_PX(tile_current + 1) - PLAYER.bounds.left) + 1;
-                            col = -1;
-                            last_wall = -1;
+                            col = WALL_COL_LEFT;
+                            last_wall = WALL_COL_LEFT;
                             dash_currentframe == 0;
                             wc_val = plat_coyote_max;
                             goto endLcol;
@@ -1171,8 +1175,8 @@ gotoXCol: {
                 // End New Slope Stuff P2
                 new_x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;
                 pl_vel_x = 0;
-                col = 1;
-                last_wall = 1;
+                col = WALL_COL_RIGHT;
+                last_wall = WALL_COL_RIGHT;
                 wc_val = plat_coyote_max + 1;
                 break;
             }
@@ -1237,8 +1241,8 @@ gotoXCol: {
                 }
                 new_x = PX_TO_SUBPX((TILE_TO_PX(tile_x + 1)) - PLAYER.bounds.left) + 1;
                 pl_vel_x = 0;
-                col = -1;
-                last_wall = -1;
+                col = WALL_COL_LEFT;
+                last_wall = WALL_COL_LEFT;
                 wc_val = plat_coyote_max + 1;
                 break;
             }
@@ -1493,8 +1497,8 @@ gotoActorCol: {
                 {
                     deltaX =
                         (hit_actor->pos.x - PLAYER.pos.x) - PX_TO_SUBPX(PLAYER.bounds.right + -hit_actor->bounds.left);
-                    col = 1;
-                    last_wall = 1;
+                    col = WALL_COL_RIGHT;
+                    last_wall = WALL_COL_RIGHT;
                     wc_val = plat_coyote_max + 1;
                     if (!INPUT_RIGHT)
                     {
@@ -1509,8 +1513,8 @@ gotoActorCol: {
                 {
                     deltaX = (hit_actor->pos.x - PLAYER.pos.x) +
                              PX_TO_SUBPX(-PLAYER.bounds.left + hit_actor->bounds.right) + 16;
-                    col = -1;
-                    last_wall = -1;
+                    col = WALL_COL_LEFT;
+                    last_wall = WALL_COL_LEFT;
                     wc_val = plat_coyote_max + 1;
                     if (!INPUT_LEFT)
                     {
@@ -1578,7 +1582,8 @@ gotoSwitch2:
         {
             if (plat_dash_style != 0)
             {
-                if (col == 0 || (col == 1 && !INPUT_RIGHT) || (col == -1 && !INPUT_LEFT))
+                if (col == WALL_COL_NONE || (col == WALL_COL_RIGHT && !INPUT_RIGHT) ||
+                    (col == WALL_COL_LEFT && !INPUT_LEFT))
                 {
                     que_state = DASH_STATE;
                     break;
@@ -1656,7 +1661,7 @@ gotoSwitch2:
         }
         // Counting down Wall Coyote Time
         //  Set in collisions and checked in fall state
-        if (wc_val != 0 && col == 0)
+        if (wc_val != 0 && col == WALL_COL_NONE)
         {
             wc_val -= 1;
         }
@@ -1828,11 +1833,11 @@ gotoSwitch2:
     case WALL_STATE: {
         // ANIMATION ------------------------------------------------------
         // Face away from walls
-        if (col == 1)
+        if (col == WALL_COL_RIGHT)
         {
             actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
         }
-        else if (col == -1)
+        else if (col == WALL_COL_LEFT)
         {
             actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
         }
@@ -1846,7 +1851,7 @@ gotoSwitch2:
         // WALL -> DASH Check
         if (dash_press && plat_dash_style != 0 && dash_ready_val == 0)
         {
-            if ((col == 1 && !INPUT_RIGHT) || (col == -1 && !INPUT_LEFT))
+            if ((col = WALL_COL_RIGHT && !INPUT_RIGHT) || (col == WALL_COL_LEFT && !INPUT_LEFT))
             {
                 que_state = DASH_STATE;
                 plat_state = WALL_END;
