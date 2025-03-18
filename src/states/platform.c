@@ -490,15 +490,6 @@ void platform_update(void) BANKED {
             }
         } break;
             //================================================================================================================
-            // case GROUND_INIT:
-            //   que_state = GROUND_STATE;
-            //   pl_vel_y = 256;
-            //   jump_type = JUMP_TYPE_NONE;
-            //   wc_val = 0;
-            //   ct_val = plat_coyote_max;
-            //   dj_val = plat_extra_jumps;
-            //   wj_val = plat_wall_jump_max;
-            //   jump_reduction_val = 0;
 
         case GROUND_STATE: {
             // Add X & Y motion from moving platforms
@@ -561,19 +552,6 @@ void platform_update(void) BANKED {
 
         } break;
             //================================================================================================================
-        // case JUMP_INIT:
-        //   // Right now this has a limited use for triggered jumps because
-        //   many of the jump effects
-        //   // depend on testing INPUT_PLATFORM_JUMP But if the player switches
-        //   to this state without
-        //   // pressing jump, then these won't fire...
-        //   hold_jump_val = plat_hold_jump_max;
-        //   actor_attached = FALSE;
-        //   pl_vel_y = -plat_jump_min;
-        //   jb_val = 0;
-        //   ct_val = 0;
-        //   wc_val = 0;
-        //   que_state = JUMP_STATE;
         case JUMP_STATE: {
             // Vertical
             // Movement-------------------------------------------------------------------------------------------
@@ -624,14 +602,6 @@ void platform_update(void) BANKED {
             }
         } break;
             //================================================================================================================
-        // case DASH_INIT: {
-        //   dash_init_switch();
-        // }
-        //   goto gotoCounters;  // Dash Init has a return, unlike other
-        //   initialization phases, because its
-        //                       // calculations are time consuming and we don't
-        //                       want to deal with
-        //                       // collision in the same frame.
         case DASH_STATE: {
             // Movement & Collision
             // Combined----------------------------------------------------------------------------------
@@ -870,19 +840,10 @@ void platform_update(void) BANKED {
                 goto gotoSwitch2;
             }
             goto gotoActorCol;
-            //================================================================================================================
-        // case LADDER_INIT:
-        //   que_state = LADDER_STATE;
-        //   jump_type = JUMP_TYPE_NONE;
         case LADDER_STATE: {
             ladder_switch();
         }
             goto gotoActorCol;
-            //================================================================================================================
-        // case WALL_INIT:
-        //   que_state = WALL_STATE;
-        //   jump_type = JUMP_TYPE_NONE;
-        //   run_stage = 0;
         case WALL_STATE: {
             // Vertical
             // Movement------------------------------------------------------------------------------------------
@@ -908,10 +869,6 @@ void platform_update(void) BANKED {
             temp_y = PLAYER.pos.y;
         } break;
             //================================================================================================================
-        // case KNOCKBACK_INIT:
-        //   run_stage = 0;
-        //   jump_type = JUMP_TYPE_NONE;
-        //   que_state = KNOCKBACK_STATE;
         case KNOCKBACK_STATE: {
             // Horizontal
             // Movement----------------------------------------------------------------------------------------
@@ -941,12 +898,6 @@ void platform_update(void) BANKED {
         }
             goto gotoXCol;
             //================================================================================================================
-        // case BLANK_INIT:
-        //   que_state = BLANK_STATE;
-        //   pl_vel_x = 0;
-        //   pl_vel_y = 0;
-        //   run_stage = 0;
-        //   jump_type = JUMP_TYPE_NONE;
         case BLANK_STATE:
             goto gotoActorCol;
     }
@@ -1820,13 +1771,6 @@ gotoCounters:
     }
 
     // State-Based Events
-
-    // script_execute(BANK(test_symbol0), test_symbol0, 0, 0);
-    // script_event_t * event = &state_events[plat_state];
-    /*if(event->script_bank == test){
-        PLAYER.pos.x += 100;
-        //
-    }*/
 
     if (state_events[plat_state].script_addr != 0) {
         script_execute(state_events[plat_state].script_bank,
