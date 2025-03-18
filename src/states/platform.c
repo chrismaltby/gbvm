@@ -1285,35 +1285,34 @@ gotoYCol: {
             UWORD slope_y_coord = 0;
             if (IS_ON_SLOPE(col))
             {
+                slope_y_coord = TILE_TO_SUBPX(tile_y);
+                // Slope right
                 if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_RIGHT)
                 {
-                    slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (8 - x_offset) - PLAYER.bounds.bottom) - 1;
+                    slope_y_coord += PX_TO_SUBPX((8 - x_offset) - PLAYER.bounds.bottom) - 1;
                 }
                 else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_BOT)
                 {
-                    slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (8 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
+                    slope_y_coord += PX_TO_SUBPX((8 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
                 }
                 else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_TOP)
                 {
-                    slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (4 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
+                    slope_y_coord += PX_TO_SUBPX((4 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
                 }
-
+                // Slope left
                 else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_LEFT)
                 {
-                    slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + (x_offset)-PLAYER.bounds.bottom) - 1;
+                    slope_y_coord += PX_TO_SUBPX((x_offset)-PLAYER.bounds.bottom) - 1;
                 }
                 else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_BOT)
                 {
-                    slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + DIV_2(x_offset) - PLAYER.bounds.bottom + 4) - 1;
+                    slope_y_coord += PX_TO_SUBPX(DIV_2(x_offset) - PLAYER.bounds.bottom + 4) - 1;
                 }
                 else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_TOP)
                 {
-                    slope_y_coord = PX_TO_SUBPX(TILE_TO_PX(tile_y) + DIV_2(x_offset) - PLAYER.bounds.bottom) - 1;
+                    slope_y_coord += PX_TO_SUBPX(DIV_2(x_offset) - PLAYER.bounds.bottom) - 1;
                 }
-            }
 
-            if (slope_y_coord)
-            {
                 // If going downwards into a slope, don't snap to it unless
                 // we've actually collided
                 if (!prev_grounded && slope_y_coord > new_y)
