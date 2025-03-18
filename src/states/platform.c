@@ -883,12 +883,6 @@ void platform_update(void) BANKED
         // JUMP -> LADDER check
         ladder_check();
 
-        // Check for final frame
-        if (que_state != JUMP_STATE)
-        {
-            plat_state = JUMP_END;
-        }
-
         // Counting down No Control frames
         // Set in Wall and Fall states, checked in Fall and Jump states
         if (nocontrol_h != 0)
@@ -1136,12 +1130,6 @@ void platform_update(void) BANKED
             dash_currentframe -= 1;
         }
 
-        // Check for final frame
-        if (que_state != DASH_STATE)
-        {
-            plat_state = DASH_END;
-        }
-
         // @TODO Determine why this check is here and how to account for it
         // with refactor
         // if (plat_dash_through >= DASH_THRU_ACTORS_TRIGGERS)
@@ -1225,11 +1213,6 @@ void platform_update(void) BANKED
         {
             que_state = FALL_STATE;
         }
-        // Check for final frame
-        if (que_state != LADDER_STATE)
-        {
-            plat_state = LADDER_END;
-        }
 
         apply_collisions(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
         break;
@@ -1290,7 +1273,6 @@ void platform_update(void) BANKED
             if ((col == WALL_COL_RIGHT && !INPUT_RIGHT) || (col == WALL_COL_LEFT && !INPUT_LEFT))
             {
                 que_state = DASH_STATE;
-                plat_state = WALL_END;
                 break;
             }
         }
@@ -1304,18 +1286,11 @@ void platform_update(void) BANKED
             pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
             jump_type = JUMP_TYPE_WALL;
             que_state = JUMP_STATE;
-            plat_state = WALL_END;
             break;
         }
 
         // WALL -> LADDER Check
         ladder_check();
-
-        // Check for final frame
-        if (que_state != WALL_STATE)
-        {
-            plat_state = WALL_END;
-        }
 
         // COUNTERS
         //  Counting down the drop-through floor frames
