@@ -171,33 +171,33 @@ WORD plat_max_fall_vel;
 
 // PLATFORMER PLUS ENGINE VARIABLES
 // All engine fields are prefixed with plat_
+
 BYTE plat_camera_deadzone_x;  // Camera deadzone
-UBYTE plat_camera_block;   // Limit the player's movement to the camera's edges
-UBYTE plat_drop_through;   // Drop-through control
-UBYTE plat_mp_group;       // Collision group for platform actors
-UBYTE plat_solid_group;    // Collision group for solid actors
-WORD plat_jump_min;        // Jump amount applied on the first frame of jumping
-UBYTE plat_hold_jump_max;  // Maximum number for frames for continuous input
-UBYTE plat_extra_jumps;    // Number of jumps while in the air
-WORD plat_jump_reduction;  // Reduce height each double jump
-UBYTE plat_coyote_max;     // Coyote Time maximum frames
-UBYTE plat_buffer_max;     // Jump Buffer maximum frames
-UBYTE plat_wall_jump_max;  // Number of wall jumps in a row
-UBYTE plat_wall_slide;     // Enables/Disables wall sliding
-WORD plat_wall_grav;       // Gravity while clinging to the wall
-WORD plat_wall_kick;       // Horizontal force for pushing off the wall
-UBYTE plat_float_input;    // Input type for float (hold up or hold jump)
-WORD plat_float_grav;      // Speed of fall descent while floating
-UBYTE plat_air_control;    // Enables/Disables air control
-UBYTE plat_turn_control;   // Controls the amount of slippage when the player
-                           // turns while running.
-WORD plat_air_dec;         // air deceleration rate
-UBYTE plat_run_type;       // Chooses type of acceleration for jumping
-WORD plat_turn_acc;        // Speed with which a character turns
-UBYTE
-plat_run_boost;   // Additional jump height based on player horizontal speed
-UBYTE plat_dash;  // Choice of input for dashing: double-tap, interact, or down
-                  // and interact
+UBYTE plat_camera_block;    // Limit the player's movement to the camera's edges
+UBYTE plat_drop_through;    // Drop-through control
+UBYTE plat_mp_group;        // Collision group for platform actors
+UBYTE plat_solid_group;     // Collision group for solid actors
+WORD plat_jump_min;         // Jump amount applied on the first frame of jumping
+UBYTE plat_hold_jump_max;   // Maximum number for frames for continuous input
+UBYTE plat_extra_jumps;     // Number of jumps while in the air
+WORD plat_jump_reduction;   // Reduce height each double jump
+UBYTE plat_coyote_max;      // Coyote Time maximum frames
+UBYTE plat_buffer_max;      // Jump Buffer maximum frames
+UBYTE plat_wall_jump_max;   // Number of wall jumps in a row
+UBYTE plat_wall_slide;      // Enables/Disables wall sliding
+WORD plat_wall_grav;        // Gravity while clinging to the wall
+WORD plat_wall_kick;        // Horizontal force for pushing off the wall
+UBYTE plat_float_input;     // Input type for float (hold up or hold jump)
+WORD plat_float_grav;       // Speed of fall descent while floating
+UBYTE plat_air_control;     // Enables/Disables air control
+UBYTE plat_turn_control;    // Controls the amount of slippage when the player
+                            // turns while running.
+WORD plat_air_dec;          // air deceleration rate
+UBYTE plat_run_type;        // Chooses type of acceleration for jumping
+WORD plat_turn_acc;         // Speed with which a character turns
+UBYTE plat_run_boost;       // Additional jump height based on horizontal speed
+UBYTE plat_dash;            // Choice of input for dashing:
+                            // double-tap, interact, or down and interact
 UBYTE plat_dash_style;      // Ground, air, or both
 UBYTE plat_dash_momentum;   // Applies horizontal momentum or vertical momentum,
                             // neither or both
@@ -404,8 +404,7 @@ void platform_update(void) BANKED {
     UBYTE prev_on_slope = 0;
     UBYTE old_x = 0;
 
-    // A. INPUT
-    // CHECK=================================================================================================
+    // A. INPUT CHECK =========================================================
     // Dash Input Check
     UBYTE dash_press = FALSE;
     switch (plat_dash) {
@@ -440,8 +439,7 @@ void platform_update(void) BANKED {
             break;
     }
 
-    // B. STATE
-    // MACHINE==================================================================================================
+    // B. STATE MACHINE =======================================================
     // SWITCH that includes state initialization, calculation of horizontal
     // motion and vertical Motion
     plat_state = que_state;
@@ -453,8 +451,7 @@ void platform_update(void) BANKED {
             // we can easily track float as a jump type
             jump_type = JUMP_TYPE_NONE;
 
-            // Vertical
-            // Movement--------------------------------------------------------------------------------------------
+            // Vertical Movement ----------------------------------------------
             // FLOAT INPUT
             if (((plat_float_input == 1 && INPUT_PLATFORM_JUMP) ||
                  (plat_float_input == 2 && INPUT_UP)) &&
@@ -475,21 +472,19 @@ void platform_update(void) BANKED {
                 pl_vel_y = MIN(pl_vel_y, plat_max_fall_vel);
             }
 
-            // Collision
-            // ---------------------------------------------------------------------------------------------------
+            // Collision ------------------------------------------------------
             // Vertical Collision Checks
             deltaY += VEL_TO_SUBPX(pl_vel_y);
             temp_y = PLAYER.pos.y;
 
-            // Horizontal
-            // Movement----------------------------------------------------------------------------------------
+            // Horizontal Movement --------------------------------------------
             if (nocontrol_h != 0 || plat_air_control == 0) {
                 // No horizontal input
                 deltaX += VEL_TO_SUBPX(pl_vel_x);
                 goto gotoXCol;
             }
         } break;
-            //================================================================================================================
+            // ================================================================
 
         case GROUND_STATE: {
             // Add X & Y motion from moving platforms
@@ -551,10 +546,9 @@ void platform_update(void) BANKED {
             deltaY += VEL_TO_SUBPX(pl_vel_y);
 
         } break;
-            //================================================================================================================
+            //=================================================================
         case JUMP_STATE: {
-            // Vertical
-            // Movement-------------------------------------------------------------------------------------------
+            // Vertical Movement ----------------------------------------------
             // Add jump force during each jump frame
             if (hold_jump_val != 0 && INPUT_PLATFORM_JUMP) {
                 // Add the boost per frame amount.
@@ -592,8 +586,7 @@ void platform_update(void) BANKED {
             // Start DeltaX with Actor offsets
             deltaY += VEL_TO_SUBPX(pl_vel_y);
 
-            // Horizontal
-            // Movement-----------------------------------------------------------------------------------------
+            // Horizontal Movement --------------------------------------------
             if (nocontrol_h != 0 || plat_air_control == 0) {
                 // If the player doesn't have control of their horizontal
                 // movement, skip acceleration phase
@@ -601,10 +594,9 @@ void platform_update(void) BANKED {
                 goto gotoXCol;
             }
         } break;
-            //================================================================================================================
+            // ================================================================
         case DASH_STATE: {
-            // Movement & Collision
-            // Combined----------------------------------------------------------------------------------
+            // Movement & Collision Combined ----------------------------------
             // Dashing uses much of the basic collision code. Comments here
             // focus on the differences.
             UBYTE tile_current;  // For tracking collisions across longer
@@ -751,8 +743,7 @@ void platform_update(void) BANKED {
                 PLAYER.pos.x = MAX(0, new_x);
             }
 
-            // Vertical Movement &
-            // Collision-------------------------------------------------------------------------
+            // Vertical Movement & Collision ----------------------------------
             if (plat_dash_momentum >= 2) {
                 // If we're using vertical momentum, add gravity as normal
                 // (otherwise, vel_y = 0)
@@ -835,7 +826,7 @@ void platform_update(void) BANKED {
                 temp_y = PLAYER.pos.y;
             }
         }
-            // CHECKS-------------------------------------------------------------------------------------------------------
+            // CHECKS ---------------------------------------------------------
             if (plat_dash_through >= 1) {
                 goto gotoSwitch2;
             }
@@ -845,8 +836,7 @@ void platform_update(void) BANKED {
         }
             goto gotoActorCol;
         case WALL_STATE: {
-            // Vertical
-            // Movement------------------------------------------------------------------------------------------
+            // Vertical Movement ----------------------------------------------
             // WALL SLIDE
             if (nocollide != 0) {
                 pl_vel_y +=
@@ -863,15 +853,14 @@ void platform_update(void) BANKED {
                 pl_vel_y += plat_grav;
             }
 
-            // Collision--------------------------------------------------------------------------------------------------
+            // Collision ------------------------------------------------------
             // Vertical Collision Checks
             deltaY += VEL_TO_SUBPX(pl_vel_y);
             temp_y = PLAYER.pos.y;
         } break;
-            //================================================================================================================
+            // ================================================================
         case KNOCKBACK_STATE: {
-            // Horizontal
-            // Movement----------------------------------------------------------------------------------------
+            // Horizontal Movement --------------------------------------------
             if (pl_vel_x < 0) {
                 pl_vel_x += plat_air_dec;
                 pl_vel_x = MIN(pl_vel_x, 0);
@@ -881,14 +870,12 @@ void platform_update(void) BANKED {
             }
             deltaX += VEL_TO_SUBPX(pl_vel_x);
 
-            // Vertical
-            // Movement--------------------------------------------------------------------------------------------
+            // Vertical Movement ----------------------------------------------
             // Normal gravity
             pl_vel_y += plat_grav;
             pl_vel_y = MIN(pl_vel_y, plat_max_fall_vel);
 
-            // Collision
-            // ---------------------------------------------------------------------------------------------------
+            // Collision ------------------------------------------------------
 
             // Vertical Collision Checks
             deltaY += VEL_TO_SUBPX(pl_vel_y);
@@ -897,7 +884,7 @@ void platform_update(void) BANKED {
             nocollide = 0;
         }
             goto gotoXCol;
-            //================================================================================================================
+            // ================================================================
         case BLANK_STATE:
             goto gotoActorCol;
     }
@@ -1463,15 +1450,13 @@ gotoActorCol: {
 }
 
 gotoSwitch2:
-    // SWITCH for Animation and State
-    // Change==========================================================================
+    // SWITCH for Animation and State Change ==================================
     switch (plat_state) {
         case FALL_STATE: {
-            // ANIMATION--------------------------------------------------------------------------------------------------
+            // ANIMATION ------------------------------------------------------
             basic_anim();
 
-            // STATE
-            // CHANGE------------------------------------------------------------------------------------------------
+            // STATE CHANGE ---------------------------------------------------
             // Above: FALL -> GROUND in basic_y_col()
 
             // FALL -> WALL check
@@ -1554,9 +1539,9 @@ gotoSwitch2:
                 nocollide -= 1;
             }
         } break;
-            //================================================================================================================
+            // ================================================================
         case GROUND_STATE: {
-            // ANIMATION---------------------------------------------------------------------------------------------------
+            // ANIMATION ------------------------------------------------------
             // Button direction overrides velocity, for slippery run reasons
             if (INPUT_LEFT) {
                 actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
@@ -1600,13 +1585,12 @@ gotoSwitch2:
                 nocollide -= 1;
             }
         } break;
-            //================================================================================================================
+            // ================================================================
         case JUMP_STATE: {
-            // ANIMATION---------------------------------------------------------------------------------------------------
+            // ANIMATION ------------------------------------------------------
             basic_anim();
 
-            // STATE
-            // CHANGE------------------------------------------------------------------------------------------------
+            // STATE CHANGE ---------------------------------------------------
             // Above: JUMP-> NEUTRAL when a) player starts descending, b) player
             // hits roof, c) player stops pressing, d)jump frames run out. JUMP
             // -> WALL check
@@ -1655,15 +1639,14 @@ gotoSwitch2:
                 nocontrol_h -= 1;
             }
         } break;
-            //================================================================================================================
+            // ================================================================
         case DASH_STATE: {
-            // ANIMATION-------------------------------------------------------------------------------------------------------
+            // ANIMATION ------------------------------------------------------
             // Currently this animation uses the 'jump' animation is it's
             // default.
             basic_anim();
 
-            // STATE CHANGE: No exits
-            // above.------------------------------------------------------------------------------------
+            // STATE CHANGE: No exits above. ----------------------------------
             // DASH -> NEUTRAL Check
             // Colliding with a wall sets the currentframe to 0 above.
             if (dash_currentframe == 0) {
@@ -1682,9 +1665,9 @@ gotoSwitch2:
             }
 
         } break;
-            //================================================================================================================
+            // ================================================================
         case WALL_STATE: {
-            // ANIMATION---------------------------------------------------------------------------------------------------
+            // ANIMATION ------------------------------------------------------
             // Face away from walls
             if (col == 1) {
                 actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
@@ -1692,8 +1675,7 @@ gotoSwitch2:
                 actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
             }
 
-            // STATE
-            // CHANGE------------------------------------------------------------------------------------------------
+            // STATE CHANGE ---------------------------------------------------
             // Above, basic_y_col can cause WALL -> GROUNDED.
             // Exit state as baseline
             // WALL CHECK
@@ -1737,7 +1719,7 @@ gotoSwitch2:
                 nocollide -= 1;
             }
         } break;
-            //================================================================================================================
+            // ================================================================
         case KNOCKBACK_STATE:
             if (que_state == GROUND_STATE) {
                 pl_vel_y = 256;
@@ -1751,7 +1733,7 @@ gotoTriggerCol:
                                      INPUT_UP_PRESSED);
 
 gotoCounters:
-    // COUNTERS===============================================================
+    // COUNTERS================================================================
     //  Counting down until dashing is ready again
     //  XX Set in dash Init and checked in wall, fall, ground, and jump states
     if (dash_ready_val != 0) {
@@ -1981,14 +1963,13 @@ void ladder_switch(void) BANKED {
     }
     PLAYER.pos.y += VEL_TO_SUBPX(pl_vel_y);
 
-    // Animation----------------------------------------------------------------------------------------------------
+    // Animation---------------------------------------------------------------
     actor_set_anim(&PLAYER, ANIM_CLIMB);
     if (pl_vel_y == 0) {
         actor_stop_anim(&PLAYER);
     }
 
-    // State
-    // Change-------------------------------------------------------------------------------------------------
+    // State Change------------------------------------------------------------
     // Collision logic provides options for exiting to Neutral
 
     // Above is the default GBStudio setup. However it seems worth adding a
