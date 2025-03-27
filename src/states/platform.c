@@ -2105,17 +2105,9 @@ void apply_collisions(UBYTE mask) BANKED
                     grounded = TRUE;
                     if (plat_state == GROUND_STATE)
                     {
-                        que_state = GROUND_STATE;
                         pl_vel_y = 256;
                     }
-                    else if (plat_state == GROUND_INIT)
-                    {
-                        que_state = GROUND_STATE;
-                    }
-                    else
-                    {
-                        que_state = GROUND_STATE;
-                    }
+                    que_state = GROUND_STATE;
                     on_slope = col;
                     slope_y = tile_y;
                     goto gotoActorCol;
@@ -2161,17 +2153,9 @@ void apply_collisions(UBYTE mask) BANKED
                         // velocity when the player hits the ground.
                         if (plat_state == GROUND_STATE)
                         {
-                            que_state = GROUND_STATE;
                             pl_vel_y = 256;
                         }
-                        else if (plat_state == GROUND_INIT)
-                        {
-                            que_state = GROUND_STATE;
-                        }
-                        else
-                        {
-                            que_state = GROUND_STATE;
-                        }
+                        que_state = GROUND_STATE;
                         break;
                     }
                     tile_start++;
