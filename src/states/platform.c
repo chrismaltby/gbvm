@@ -102,6 +102,19 @@ caught mid-way on the next one.
 #include "trigger.h"
 #include "vm.h"
 
+// #define FEAT_PLATFORM_BLANK
+// #define FEAT_PLATFORM_COYOTE_TIME
+// #define FEAT_PLATFORM_DASH
+// #define FEAT_PLATFORM_DOUBLE_JUMP
+// #define FEAT_PLATFORM_DROP_THROUGH
+// #define FEAT_PLATFORM_JUMP
+// #define FEAT_PLATFORM_FLOAT
+// #define FEAT_PLATFORM_KNOCKBACK
+// #define FEAT_PLATFORM_LADDERS
+// #define FEAT_PLATFORM_SLOPES
+// #define FEAT_PLATFORM_SOLID_ACTORS
+// #define FEAT_PLATFORM_WALL_JUMP
+
 #ifndef INPUT_PLATFORM_JUMP
 #define INPUT_PLATFORM_JUMP INPUT_A
 #endif
@@ -395,14 +408,20 @@ void platform_init(void) BANKED
                                                                   // frame in the JUMP_STATE
     jump_reduction = plat_jump_reduction / plat_hold_jump_max;    // Amount to reduce subequent jumps
                                                                   // per frame in JUMP_STATE
-    dash_dist = plat_dash_dist / plat_dash_frames;                // Dash distance per frame in the DASH_STATE
-    boost_val = plat_run_boost / plat_hold_jump_max;              // Vertical boost from horizontal
-                                                                  // speed per frame in JUMP STATE
+#ifdef FEAT_PLATFORM_DASH
+    dash_dist = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
+#endif
+
+    boost_val = plat_run_boost / plat_hold_jump_max; // Vertical boost from horizontal
+                                                     // speed per frame in JUMP STATE
 
     // Initialize State
     plat_state = GROUND_STATE;
     que_state = GROUND_STATE;
+
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
     actor_attached = FALSE;
+#endif
     run_stage = 0;
     nocontrol_h = 0;
     nocollide = 0;
@@ -418,7 +437,9 @@ void platform_init(void) BANKED
                                // into a scene
     last_wall = WALL_COL_NONE; // This could be 1 bit
     hold_jump_val = plat_hold_jump_max;
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
     dj_val = 0;
+#endif
     wj_val = plat_wall_jump_max;
     dash_end_clear = FALSE; // could also be mixed into the collision bitmask
     jump_type = JUMP_TYPE_NONE;
@@ -433,6 +454,8 @@ void platform_update(void) BANKED
     col = WALL_COL_NONE; // tracks if there is a block left or right
 
     // A. INPUT CHECK =========================================================
+
+#ifdef FEAT_PLATFORM_DASH
 
     // Dash Input Check
     UBYTE dash_press = FALSE;
@@ -478,6 +501,7 @@ void platform_update(void) BANKED
         }
         break;
     }
+#endif
 
     // B. STATE MACHINE =======================================================
 
@@ -490,17 +514,20 @@ void platform_update(void) BANKED
         jump_type = JUMP_TYPE_NONE;
 
         // Vertical Movement ----------------------------------------------
-        if (IS_FLOAT_INPUT_PRESSED && pl_vel_y >= 0)
-        {
-            jump_type = JUMP_TYPE_FLOATING;
-            pl_vel_y = plat_float_grav;
-        }
-        else if (nocollide != 0)
+
+        if (nocollide != 0)
         {
             // magic number, rough minimum for actually having the player
             // descend through a platform
             pl_vel_y = 7000;
         }
+#ifdef FEAT_PLATFORM_FLOAT
+        else if (IS_FLOAT_INPUT_PRESSED && pl_vel_y >= 0)
+        {
+            jump_type = JUMP_TYPE_FLOATING;
+            pl_vel_y = plat_float_grav;
+        }
+#endif
         else if (INPUT_PLATFORM_JUMP && pl_vel_y < 0)
         {
             // Gravity while holding jump
@@ -538,9 +565,12 @@ void platform_update(void) BANKED
         // STATE CHANGE ---------------------------------------------------
         // Above: FALL -> GROUND in basic_y_col()
 
+#ifdef FEAT_PLATFORM_WALL_JUMP
         // FALL -> WALL check
         wall_check();
+#endif
 
+#ifdef FEAT_PLATFORM_DASH
         // FALL -> DASH check
         if (dash_press && dash_ready_val == 0)
         {
@@ -559,10 +589,13 @@ void platform_update(void) BANKED
                 break;
             }
         }
+#endif
 
+#ifdef FEAT_PLATFORM_JUMP
         // FALL -> JUMP check
         if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
         {
+#ifdef FEAT_PLATFORM_WALL_JUMP
             // Wall Jump
             if (wc_val != 0 && wj_val != 0)
             {
@@ -573,14 +606,18 @@ void platform_update(void) BANKED
                 que_state = JUMP_STATE;
                 break;
             }
-            else if (ct_val != 0)
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+            if (ct_val != 0)
             {
                 // Coyote Time Jump
                 jump_type = JUMP_TYPE_GROUND;
                 que_state = JUMP_STATE;
                 break;
             }
-            else if (dj_val != 0)
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+            if (dj_val != 0)
             {
                 // Double Jump
                 jump_type = JUMP_TYPE_DOUBLE;
@@ -592,15 +629,18 @@ void platform_update(void) BANKED
                 que_state = JUMP_STATE;
                 break;
             }
-            else
-            {
-                // Setting the Jump Buffer when jump is pressed while not on
-                // the ground
-                jb_val = plat_buffer_max;
-            }
+#endif
+
+            // Setting the Jump Buffer when jump is pressed while not on
+            // the ground
+            jb_val = plat_buffer_max;
         }
         // NEUTRAL -> LADDER check
+#endif
+
+#ifdef FEAT_PLATFORM_LADDERS
         ladder_check();
+#endif
 
         // COUNTERS
         //  Counting down Jump Buffer Window
@@ -617,18 +657,22 @@ void platform_update(void) BANKED
             nocontrol_h -= 1;
         }
 
+#ifdef FEAT_PLATFORM_COYOTE_TIME
         // Counting down Coyote Time Window
         // Set in ground and checked in fall state
         if (ct_val != 0 && que_state != GROUND_STATE)
         {
             ct_val -= 1;
         }
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
         // Counting down Wall Coyote Time
         //  Set in collisions and checked in fall state
         if (wc_val != 0 && col == WALL_COL_NONE)
         {
             wc_val -= 1;
         }
+#endif
         // Counting down the drop-through floor frames
         // XX Checked in Fall, Wall, Ground, and basic_y_col, set in
         // basic_y_col
@@ -645,6 +689,8 @@ void platform_update(void) BANKED
         // Transform velocity into positional data, to keep the precision of
         // the platform's movement
         grounded = true;
+
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
         if (actor_attached)
         {
             // If the platform has been disabled, detach the player
@@ -689,7 +735,9 @@ void platform_update(void) BANKED
             mp_last_y = last_actor->pos.y;
             temp_y = last_actor->pos.y;
         }
-        else if (nocollide != 0)
+        else
+#endif
+            if (nocollide != 0)
         {
             // If we're dropping through a platform
             pl_vel_y = 7000; // magic number, rough minimum for actually having
@@ -733,6 +781,7 @@ void platform_update(void) BANKED
             actor_set_anim_idle(&PLAYER);
         }
 
+#ifdef FEAT_PLATFORM_DASH
         // STATE CHANGE: Above, basic_y_col can shift to
         // FALL_STATE.--------------------------------------------------
         // GROUND -> DASH Check
@@ -741,8 +790,10 @@ void platform_update(void) BANKED
             que_state = DASH_STATE;
             break;
         }
-        // GROUND -> JUMP Check
+#endif
 
+#ifdef FEAT_PLATFORM_JUMP
+        // GROUND -> JUMP Check
         if (INPUT_PRESSED(INPUT_PLATFORM_JUMP) || jb_val != 0)
         {
             if (nocollide == 0)
@@ -754,10 +805,12 @@ void platform_update(void) BANKED
             }
         }
         jb_val = 0;
+#endif
 
+#ifdef FEAT_PLATFORM_LADDERS
         // GROUND -> LADDER Check
         ladder_check();
-
+#endif
         // COUNTERS
         //  Counting down the drop-through floor frames
         // XX Checked in Fall, Wall, Ground, and basic_y_col, set in
@@ -770,6 +823,7 @@ void platform_update(void) BANKED
         break;
     }
 
+#ifdef FEAT_PLATFORM_JUMP
     case JUMP_STATE: {
         // Vertical Movement ----------------------------------------------
         // hold_jump_valump force during each jump frame
@@ -841,23 +895,33 @@ void platform_update(void) BANKED
 
         // STATE CHANGE ---------------------------------------------------
         // Above: JUMP-> NEUTRAL when a) player starts descending, b) player
-        // hits roof, c) player stops pressing, d)jump frames run out. JUMP
-        // -> WALL check
-        wall_check();
+        // hits roof, c) player stops pressing, d)jump frames run out.
 
+#ifdef FEAT_PLATFORM_WALL_JUMP
+        // JUMP -> WALL check
+        wall_check();
+#endif
+
+#ifdef FEAT_PLATFORM_DASH
         // JUMP -> DASH check
         if (dash_press && dash_ready_val == 0)
         {
+#ifdef FEAT_PLATFORM_COYOTE_TIME
             if (plat_dash_style != 0 || ct_val != 0)
+#else
+            if (plat_dash_style != 0)
+#endif
             {
                 que_state = DASH_STATE;
                 break;
             }
         }
+#endif
 
         // JUMP -> JUMP check
         if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
         {
+#ifdef FEAT_PLATFORM_WALL_JUMP
             // Wall Jump
             if (wc_val != 0 && wj_val != 0)
             {
@@ -867,6 +931,8 @@ void platform_update(void) BANKED
                 pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
                 que_state = JUMP_STATE;
             }
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
             else if (dj_val != 0)
             {
                 // Double Jump
@@ -878,11 +944,14 @@ void platform_update(void) BANKED
                 jump_reduction_val += jump_reduction;
                 que_state = JUMP_STATE;
             }
+#endif
             break;
         }
 
+#ifdef FEAT_PLATFORM_LADDERS
         // JUMP -> LADDER check
         ladder_check();
+#endif
 
         // Counting down No Control frames
         // Set in Wall and Fall states, checked in Fall and Jump states
@@ -893,7 +962,9 @@ void platform_update(void) BANKED
 
         break;
     }
+#endif
 
+#ifdef FEAT_PLATFORM_DASH
     case DASH_STATE: {
         // Movement & Collision Combined ----------------------------------
         // Dashing uses much of the basic collision code. Comments here
@@ -941,7 +1012,9 @@ void platform_update(void) BANKED
                             new_x = PX_TO_SUBPX((TILE_TO_PX(tile_current))-PLAYER.bounds.right) - 1;
                             col = WALL_COL_RIGHT;
                             last_wall = WALL_COL_RIGHT;
+#ifdef FEAT_PLATFORM_WALL_JUMP
                             wc_val = plat_coyote_max;
+#endif
                             dash_currentframe == 0;
                             goto endRcol;
                         }
@@ -999,7 +1072,9 @@ void platform_update(void) BANKED
                             col = WALL_COL_LEFT;
                             last_wall = WALL_COL_LEFT;
                             dash_currentframe == 0;
+#ifdef FEAT_PLATFORM_WALL_JUMP
                             wc_val = plat_coyote_max;
+#endif
                             goto endLcol;
                         }
                     }
@@ -1028,25 +1103,34 @@ void platform_update(void) BANKED
             // (otherwise, vel_y = 0)
             pl_vel_y += plat_hold_grav;
 
+#if defined(FEAT_PLATFORM_COYOTE_TIME) || defined(FEAT_PLATFORM_DOUBLE_JUMP)
             // Add Jump force
             if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
             {
+#ifdef FEAT_PLATFORM_COYOTE_TIME
                 // Coyote Time (CT) functions here as a proxy for being
                 // grounded.
                 if (ct_val != 0)
                 {
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
                     actor_attached = FALSE;
+#endif
                     pl_vel_y = -(plat_jump_min + (plat_jump_vel / 2));
                     jb_val = 0;
                     ct_val = 0;
                     jump_type = JUMP_TYPE_GROUND;
+                    goto dash_jumped; // Skip double jump check if feature enabled
                 }
-                else if (dj_val != 0)
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+                if (dj_val != 0)
                 {
                     // If the player is in the air, and can double jump
                     dj_val -= 1;
                     jump_reduction_val += jump_reduction;
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
                     actor_attached = FALSE;
+#endif
                     // We can't switch states for jump frames, so
                     // approximate the height. Engine val limits ensure this
                     // doesn't overflow.
@@ -1055,7 +1139,10 @@ void platform_update(void) BANKED
                     ct_val = 0;
                     jump_type = JUMP_TYPE_DOUBLE;
                 }
+#endif
+            dash_jumped:
             }
+#endif
 
             // Vertical Collisions
             temp_y = PLAYER.pos.y;
@@ -1074,8 +1161,10 @@ void platform_update(void) BANKED
                     {
                         // Land on Floor
                         new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
                         actor_attached = FALSE; // Detach when MP moves
-                                                // through a solid tile.
+// through a solid tile.
+#endif
                         pl_vel_y = 256;
                         break;
                     }
@@ -1140,7 +1229,9 @@ void platform_update(void) BANKED
 
         break;
     }
+#endif
 
+#ifdef FEAT_PLATFORM_LADDERS
     case LADDER_STATE: {
         // For positioning the player in the middle of the ladder
         UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
@@ -1221,7 +1312,9 @@ void platform_update(void) BANKED
 
         break;
     }
+#endif
 
+#ifdef FEAT_PLATFORM_WALL_JUMP
     case WALL_STATE: {
         // Vertical Movement ----------------------------------------------
         // WALL SLIDE
@@ -1271,6 +1364,7 @@ void platform_update(void) BANKED
         // WALL CHECK
         wall_check();
 
+#ifdef FEAT_PLATFORM_DASH
         // WALL -> DASH Check
         if (dash_press && plat_dash_style != 0 && dash_ready_val == 0)
         {
@@ -1280,7 +1374,9 @@ void platform_update(void) BANKED
                 break;
             }
         }
+#endif
 
+#ifdef FEAT_PLATFORM_JUMP
         // WALL -> JUMP Check
         if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || jb_val != 0) && wj_val != 0)
         {
@@ -1292,9 +1388,12 @@ void platform_update(void) BANKED
             que_state = JUMP_STATE;
             break;
         }
+#endif
 
+#ifdef FEAT_PLATFORM_LADDERS
         // WALL -> LADDER Check
         ladder_check();
+#endif
 
         // COUNTERS
         //  Counting down the drop-through floor frames
@@ -1307,7 +1406,9 @@ void platform_update(void) BANKED
 
         break;
     }
+#endif
 
+#ifdef FEAT_PLATFORM_KNOCKBACK
     case KNOCKBACK_STATE: {
         // Horizontal Movement --------------------------------------------
         if (pl_vel_x < 0)
@@ -1345,13 +1446,17 @@ void platform_update(void) BANKED
 
         break;
     }
+#endif
 
+#ifdef FEAT_PLATFORM_BLANK
     case BLANK_STATE: {
         apply_collisions(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
         break;
     }
+#endif
     }
 
+#ifdef FEAT_PLATFORM_DASH
     // COUNTERS================================================================
     //  Counting down until dashing is ready again
     //  XX Set in dash Init and checked in wall, fall, ground, and jump states
@@ -1359,6 +1464,7 @@ void platform_update(void) BANKED
     {
         dash_ready_val -= 1;
     }
+#endif
 
     // Counting down from the max double-tap time (left is -15, right is +15)
     if (tap_val > 0)
@@ -1403,18 +1509,24 @@ void platform_update(void) BANKED
             state_events_execute(GROUND_END);
             break;
         }
+#ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
             state_events_execute(LADDER_END);
             break;
         }
+#endif
+#ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
             state_events_execute(DASH_END);
             break;
         }
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
             state_events_execute(WALL_END);
             break;
         }
+#endif
         }
 
         plat_state = que_state;
@@ -1424,7 +1536,9 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
             actor_attached = FALSE;
+#endif
             state_events_execute(FALL_INIT);
             break;
         }
@@ -1434,47 +1548,68 @@ void platform_update(void) BANKED
             // INPUT_PLATFORM_JUMP But if the player switches to this state
             // without pressing jump, then these won't fire...
             hold_jump_val = plat_hold_jump_max;
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
             actor_attached = FALSE;
+#endif
             pl_vel_y = -plat_jump_min;
             jb_val = 0;
+#ifdef FEAT_PLATFORM_COYOTE_TIME
             ct_val = 0;
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
             wc_val = 0;
+#endif
             state_events_execute(JUMP_INIT);
             break;
         }
         case GROUND_STATE: {
             pl_vel_y = 256;
             jump_type = JUMP_TYPE_NONE;
+#ifdef FEAT_PLATFORM_WALL_JUMP
             wc_val = 0;
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
             ct_val = plat_coyote_max;
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
             dj_val = plat_extra_jumps;
+#endif
             wj_val = plat_wall_jump_max;
             jump_reduction_val = 0;
             state_events_execute(GROUND_INIT);
             break;
         }
+#ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
             jump_type = JUMP_TYPE_NONE;
             state_events_execute(LADDER_INIT);
             break;
         }
+#endif
+#ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
             dash_init_switch();
             state_events_execute(DASH_INIT);
             break;
         }
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
             jump_type = JUMP_TYPE_NONE;
             run_stage = 0;
             state_events_execute(WALL_INIT);
             break;
         }
+#endif
+#ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
             run_stage = 0;
             jump_type = JUMP_TYPE_NONE;
             state_events_execute(KNOCKBACK_INIT);
             break;
         }
+#endif
+#ifdef FEAT_PLATFORM_BLANK
         case BLANK_STATE: {
             pl_vel_x = 0;
             pl_vel_y = 0;
@@ -1483,6 +1618,7 @@ void platform_update(void) BANKED
             state_events_execute(BLANK_INIT);
             break;
         }
+#endif
         }
     }
 }
@@ -1522,6 +1658,7 @@ void basic_anim(void) BANKED
     }
 }
 
+#ifdef FEAT_PLATFORM_WALL_JUMP
 void wall_check(void) BANKED
 {
     if (col != 0 && pl_vel_y >= 0 && plat_wall_slide)
@@ -1536,7 +1673,9 @@ void wall_check(void) BANKED
         que_state = FALL_STATE;
     }
 }
+#endif
 
+#ifdef FEAT_PLATFORM_LADDERS
 void ladder_check(void) BANKED
 {
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
@@ -1553,7 +1692,9 @@ void ladder_check(void) BANKED
         }
     }
 }
+#endif
 
+#ifdef FEAT_PLATFORM_DASH
 void dash_init_switch(void) BANKED
 {
     WORD new_x;
@@ -1653,7 +1794,9 @@ void dash_init_switch(void) BANKED
         }
     }
 initDash:
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
     actor_attached = FALSE;
+#endif
     camera_deadzone_x = plat_dash_deadzone;
     dash_ready_val = plat_dash_ready_max + plat_dash_frames;
     if (plat_dash_momentum < 2)
@@ -1666,7 +1809,9 @@ initDash:
     run_stage = 0;
     que_state = DASH_STATE;
 }
+#endif
 
+#ifdef FEAT_PLATFORM_DROP_THROUGH
 UBYTE drop_press(void) BANKED
 {
     switch (plat_drop_through)
@@ -1698,6 +1843,7 @@ UBYTE drop_press(void) BANKED
     }
     return 0;
 }
+#endif
 
 void apply_movement(void) BANKED
 {
@@ -1826,15 +1972,20 @@ void apply_collisions(UBYTE mask) BANKED
 {
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
     UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
-    UBYTE prev_on_slope = 0;
     UBYTE old_x = 0;
+#ifdef FEAT_PLATFORM_SLOPES
+    UBYTE prev_on_slope = 0;
+#endif
 
     if (mask & COL_CHECK_X)
     {
         deltaX = CLAMP(deltaX, -127, 127);
+#ifdef FEAT_PLATFORM_SLOPES
         prev_on_slope = on_slope;
-        old_x = PLAYER.pos.x;
         on_slope = FALSE;
+#endif
+        old_x = PLAYER.pos.x;
+
         UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
         UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
         UWORD new_x = PLAYER.pos.x + deltaX;
@@ -1883,24 +2034,29 @@ void apply_collisions(UBYTE mask) BANKED
             tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom);
             UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(new_x) + PLAYER.bounds.left + p_half_width + 1);
             col_mid = tile_at(tile_x_mid, tile_y);
+#ifdef FEAT_PLATFORM_SLOPES
             if (IS_ON_SLOPE(col_mid))
             {
                 on_slope = col_mid;
                 slope_y = tile_y;
             }
             UBYTE slope_on_y = FALSE;
+#endif
             // New Slope Stuff P1 End
 
             while (tile_start != tile_end)
             {
                 // New Slope Stuff P2
                 col = tile_at(tile_x, tile_start);
+#ifdef FEAT_PLATFORM_SLOPES
                 if (IS_ON_SLOPE(col))
                 {
                     slope_on_y = TRUE;
                 }
+#endif
                 if (col & COLLISION_LEFT)
                 {
+#ifdef FEAT_PLATFORM_SLOPES
                     // only ignore collisions if there is a slope on this y column
                     // somewhere
                     if (slope_on_y || tile_start == slope_y)
@@ -1930,11 +2086,14 @@ void apply_collisions(UBYTE mask) BANKED
                         }
                     }
                     // End New Slope Stuff P2
+#endif
                     new_x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;
                     pl_vel_x = 0;
                     col = WALL_COL_RIGHT;
                     last_wall = WALL_COL_RIGHT;
+#ifdef FEAT_PLATFORM_WALL_JUMP
                     wc_val = plat_coyote_max + 1;
+#endif
                     break;
                 }
                 tile_start++;
@@ -1947,27 +2106,34 @@ void apply_collisions(UBYTE mask) BANKED
             tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom);
             UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(new_x) + PLAYER.bounds.left + p_half_width + 1);
             col_mid = tile_at(tile_x_mid, tile_y);
+
+#ifdef FEAT_PLATFORM_SLOPES
             if (IS_ON_SLOPE(col_mid))
             {
                 on_slope = col_mid;
                 slope_y = tile_y;
             }
+            UBYTE slope_on_y = FALSE;
+#endif
 
             tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            UBYTE slope_on_y = FALSE;
             // End New Slope 3
 
             while (tile_start != tile_end)
             {
                 // New Slope 4
                 col = tile_at(tile_x, tile_start);
+
+#ifdef FEAT_PLATFORM_SLOPES
                 if (IS_ON_SLOPE(col))
                 {
                     slope_on_y = TRUE;
                 }
+#endif
 
                 if (col & COLLISION_RIGHT)
                 {
+#ifdef FEAT_PLATFORM_SLOPES
                     // only ignore collisions if there is a slope on this y column
                     // somewhere
                     if (slope_on_y || tile_start == slope_y)
@@ -1996,11 +2162,14 @@ void apply_collisions(UBYTE mask) BANKED
                             }
                         }
                     }
+#endif
                     new_x = PX_TO_SUBPX((TILE_TO_PX(tile_x + 1)) - PLAYER.bounds.left) + 1;
                     pl_vel_x = 0;
                     col = WALL_COL_LEFT;
                     last_wall = WALL_COL_LEFT;
+#ifdef FEAT_PLATFORM_WALL_JUMP
                     wc_val = plat_coyote_max + 1;
+#endif
                     break;
                 }
                 tile_start++;
@@ -2018,10 +2187,13 @@ void apply_collisions(UBYTE mask) BANKED
         UBYTE prev_grounded = grounded;
         UWORD old_y = PLAYER.pos.y;
         grounded = FALSE;
+
+#ifdef FEAT_PLATFORM_SLOPES
         // 1 frame leniency of grounded state if we were on a slope last frame
         if (prev_on_slope)
             grounded = TRUE;
-        // End New Y Slopes 1
+// End New Y Slopes 1
+#endif
 
         UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
         UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
@@ -2030,6 +2202,7 @@ void apply_collisions(UBYTE mask) BANKED
             // Moving Downward
             WORD new_y = PLAYER.pos.y + deltaY;
 
+#ifdef FEAT_PLATFORM_SLOPES
             // New Slope Y 2
             UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) - 1;
             UBYTE new_tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.bottom);
@@ -2044,6 +2217,7 @@ void apply_collisions(UBYTE mask) BANKED
                 UBYTE col = tile_at(PX_TO_TILE(x_mid_coord), tile_y);
                 UWORD tile_x_coord = PX_SNAP_TILE(x_mid_coord);
                 UWORD x_offset = x_mid_coord - tile_x_coord;
+
                 UWORD slope_y_coord = 0;
                 if (IS_ON_SLOPE(col))
                 {
@@ -2114,11 +2288,13 @@ void apply_collisions(UBYTE mask) BANKED
                 }
                 tile_y++;
             }
+            // End New Slope Y 2
+
+#endif
 
             tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
             tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
             tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.bottom);
-            // End New Slope Y 2
 
             if (nocollide == 0)
             {
@@ -2127,6 +2303,7 @@ void apply_collisions(UBYTE mask) BANKED
                 {
                     if (tile_at(tile_start, tile_y) & COLLISION_TOP)
                     {
+#ifdef FEAT_PLATFORM_DROP_THROUGH
                         // Drop-Through Floor Check
                         if (drop_press())
                         {
@@ -2145,10 +2322,13 @@ void apply_collisions(UBYTE mask) BANKED
                             pl_vel_y += plat_grav;
                             break;
                         }
+#endif
                     // Land on Floor
                     land:
                         new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
                         actor_attached = FALSE; // Detach when MP moves through a solid tile.
+#endif
                         // The distinction here is used so that we can check the
                         // velocity when the player hits the ground.
                         if (plat_state == GROUND_STATE)
@@ -2176,6 +2356,7 @@ void apply_collisions(UBYTE mask) BANKED
                     pl_vel_y = 0;
                     // MP Test: Attempting stuff to stop the player from continuing
                     // upward
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
                     if (actor_attached)
                     {
                         temp_y = last_actor->pos.y;
@@ -2185,7 +2366,10 @@ void apply_collisions(UBYTE mask) BANKED
                         }
                         new_y = temp_y;
                     }
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
                     ct_val = 0;
+#endif
                     que_state = FALL_STATE;
                     break;
                 }
@@ -2205,6 +2389,7 @@ gotoActorCol:
         if (hit_actor != NULL && hit_actor->collision_group)
         {
             // Solid Actors
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
             if (hit_actor->collision_group == plat_solid_group)
             {
                 if (!actor_attached || hit_actor != last_actor)
@@ -2246,10 +2431,12 @@ gotoActorCol:
                         {
                             pl_vel_x = 0;
                         }
+#ifdef FEAT_PLATFORM_DASH
                         if (que_state == DASH_STATE)
                         {
                             que_state = FALL_STATE;
                         }
+#endif
                     }
                     else if (PLAYER.pos.x > hit_actor->pos.x)
                     {
@@ -2262,10 +2449,12 @@ gotoActorCol:
                         {
                             pl_vel_x = 0;
                         }
+#ifdef FEAT_PLATFORM_DASH
                         if (que_state == DASH_STATE)
                         {
                             que_state = FALL_STATE;
                         }
+#endif
                     }
                 }
             }
@@ -2289,6 +2478,7 @@ gotoActorCol:
                     }
                 }
             }
+#endif
             // All Other Collisions
             player_register_collision_with(hit_actor);
         }
