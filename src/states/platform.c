@@ -245,29 +245,35 @@ UBYTE plat_dash_deadzone;
 
 enum pStates
 { // Datatype for tracking states
-    FALL_INIT = 0,
-    FALL_STATE,
-    FALL_END,
-    GROUND_INIT,
+    FALL_STATE = 0,
     GROUND_STATE,
-    GROUND_END,
-    JUMP_INIT,
     JUMP_STATE,
-    JUMP_END,
-    DASH_INIT,
     DASH_STATE,
-    DASH_END,
-    LADDER_INIT,
     LADDER_STATE,
-    LADDER_END,
-    WALL_INIT,
     WALL_STATE,
-    WALL_END,
-    KNOCKBACK_INIT,
     KNOCKBACK_STATE,
-    BLANK_INIT,
     BLANK_STATE
 };
+enum cStates
+{ // Datatype for state callbacks
+    FALL_INIT = 0,
+    FALL_END,
+    GROUND_INIT,
+    GROUND_END,
+    JUMP_INIT,
+    JUMP_END,
+    DASH_INIT,
+    DASH_END,
+    LADDER_INIT,
+    LADDER_END,
+    WALL_INIT,
+    WALL_END,
+    KNOCKBACK_INIT,
+    KNOCKBACK_END,
+    BLANK_INIT,
+    BLANK_END
+};
+
 enum pStates plat_state; // Current platformer state
 enum pStates que_state;
 UBYTE
@@ -449,6 +455,139 @@ void platform_init(void) BANKED
 
 void platform_update(void) BANKED
 {
+    // State transitions
+
+    if (plat_state != que_state)
+    {
+        // Exit state
+
+        switch (plat_state)
+        {
+        case FALL_STATE: {
+            state_events_execute(FALL_END);
+            break;
+        }
+        case JUMP_STATE: {
+            state_events_execute(JUMP_END);
+            break;
+        }
+        case GROUND_STATE: {
+            state_events_execute(GROUND_END);
+            break;
+        }
+#ifdef FEAT_PLATFORM_LADDERS
+        case LADDER_STATE: {
+            state_events_execute(LADDER_END);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_DASH
+        case DASH_STATE: {
+            state_events_execute(DASH_END);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
+        case WALL_STATE: {
+            state_events_execute(WALL_END);
+            break;
+        }
+#endif
+        }
+
+        plat_state = que_state;
+
+        // Enter state
+
+        switch (plat_state)
+        {
+        case FALL_STATE: {
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
+            actor_attached = FALSE;
+#endif
+            state_events_execute(FALL_INIT);
+            break;
+        }
+        case JUMP_STATE: {
+            // Right now this has a limited use for triggered jumps because
+            // many of the jump effects depend on testing
+            // INPUT_PLATFORM_JUMP But if the player switches to this state
+            // without pressing jump, then these won't fire...
+            hold_jump_val = plat_hold_jump_max;
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
+            actor_attached = FALSE;
+#endif
+            pl_vel_y = -plat_jump_min;
+            jb_val = 0;
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+            ct_val = 0;
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
+            wc_val = 0;
+#endif
+            state_events_execute(JUMP_INIT);
+            break;
+        }
+        case GROUND_STATE: {
+            pl_vel_y = 256;
+            jump_type = JUMP_TYPE_NONE;
+#ifdef FEAT_PLATFORM_WALL_JUMP
+            wc_val = 0;
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+            ct_val = plat_coyote_max;
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+            dj_val = plat_extra_jumps;
+#endif
+            wj_val = plat_wall_jump_max;
+            jump_reduction_val = 0;
+            state_events_execute(GROUND_INIT);
+            break;
+        }
+#ifdef FEAT_PLATFORM_LADDERS
+        case LADDER_STATE: {
+            jump_type = JUMP_TYPE_NONE;
+            state_events_execute(LADDER_INIT);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_DASH
+        case DASH_STATE: {
+            dash_init_switch();
+            state_events_execute(DASH_INIT);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
+        case WALL_STATE: {
+            jump_type = JUMP_TYPE_NONE;
+            run_stage = 0;
+            state_events_execute(WALL_INIT);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_KNOCKBACK
+        case KNOCKBACK_STATE: {
+            run_stage = 0;
+            jump_type = JUMP_TYPE_NONE;
+            state_events_execute(KNOCKBACK_INIT);
+            break;
+        }
+#endif
+#ifdef FEAT_PLATFORM_BLANK
+        case BLANK_STATE: {
+            pl_vel_x = 0;
+            pl_vel_y = 0;
+            run_stage = 0;
+            jump_type = JUMP_TYPE_NONE;
+            state_events_execute(BLANK_INIT);
+            break;
+        }
+#endif
+        }
+    }
+
     // INITIALIZE VARS
 
     col = WALL_COL_NONE; // tracks if there is a block left or right
@@ -1480,146 +1619,6 @@ void platform_update(void) BANKED
     if (camera_deadzone_x > plat_camera_deadzone_x)
     {
         camera_deadzone_x -= 1;
-    }
-
-    // State-Based Events
-
-    if (state_events[plat_state].script_addr != 0)
-    {
-        script_execute(state_events[plat_state].script_bank, state_events[plat_state].script_addr, 0, 0);
-    }
-
-    // State transitions
-
-    if (plat_state != que_state)
-    {
-        // Exit state
-
-        switch (plat_state)
-        {
-        case FALL_STATE: {
-            state_events_execute(FALL_END);
-            break;
-        }
-        case JUMP_STATE: {
-            state_events_execute(JUMP_END);
-            break;
-        }
-        case GROUND_STATE: {
-            state_events_execute(GROUND_END);
-            break;
-        }
-#ifdef FEAT_PLATFORM_LADDERS
-        case LADDER_STATE: {
-            state_events_execute(LADDER_END);
-            break;
-        }
-#endif
-#ifdef FEAT_PLATFORM_DASH
-        case DASH_STATE: {
-            state_events_execute(DASH_END);
-            break;
-        }
-#endif
-#ifdef FEAT_PLATFORM_WALL_JUMP
-        case WALL_STATE: {
-            state_events_execute(WALL_END);
-            break;
-        }
-#endif
-        }
-
-        plat_state = que_state;
-
-        // Enter state
-
-        switch (plat_state)
-        {
-        case FALL_STATE: {
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
-            actor_attached = FALSE;
-#endif
-            state_events_execute(FALL_INIT);
-            break;
-        }
-        case JUMP_STATE: {
-            // Right now this has a limited use for triggered jumps because
-            // many of the jump effects depend on testing
-            // INPUT_PLATFORM_JUMP But if the player switches to this state
-            // without pressing jump, then these won't fire...
-            hold_jump_val = plat_hold_jump_max;
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
-            actor_attached = FALSE;
-#endif
-            pl_vel_y = -plat_jump_min;
-            jb_val = 0;
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            ct_val = 0;
-#endif
-#ifdef FEAT_PLATFORM_WALL_JUMP
-            wc_val = 0;
-#endif
-            state_events_execute(JUMP_INIT);
-            break;
-        }
-        case GROUND_STATE: {
-            pl_vel_y = 256;
-            jump_type = JUMP_TYPE_NONE;
-#ifdef FEAT_PLATFORM_WALL_JUMP
-            wc_val = 0;
-#endif
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            ct_val = plat_coyote_max;
-#endif
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            dj_val = plat_extra_jumps;
-#endif
-            wj_val = plat_wall_jump_max;
-            jump_reduction_val = 0;
-            state_events_execute(GROUND_INIT);
-            break;
-        }
-#ifdef FEAT_PLATFORM_LADDERS
-        case LADDER_STATE: {
-            jump_type = JUMP_TYPE_NONE;
-            state_events_execute(LADDER_INIT);
-            break;
-        }
-#endif
-#ifdef FEAT_PLATFORM_DASH
-        case DASH_STATE: {
-            dash_init_switch();
-            state_events_execute(DASH_INIT);
-            break;
-        }
-#endif
-#ifdef FEAT_PLATFORM_WALL_JUMP
-        case WALL_STATE: {
-            jump_type = JUMP_TYPE_NONE;
-            run_stage = 0;
-            state_events_execute(WALL_INIT);
-            break;
-        }
-#endif
-#ifdef FEAT_PLATFORM_KNOCKBACK
-        case KNOCKBACK_STATE: {
-            run_stage = 0;
-            jump_type = JUMP_TYPE_NONE;
-            state_events_execute(KNOCKBACK_INIT);
-            break;
-        }
-#endif
-#ifdef FEAT_PLATFORM_BLANK
-        case BLANK_STATE: {
-            pl_vel_x = 0;
-            pl_vel_y = 0;
-            run_stage = 0;
-            jump_type = JUMP_TYPE_NONE;
-            state_events_execute(BLANK_INIT);
-            break;
-        }
-#endif
-        }
     }
 }
 
