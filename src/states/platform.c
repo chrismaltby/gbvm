@@ -108,12 +108,14 @@ caught mid-way on the next one.
 // #define FEAT_PLATFORM_DOUBLE_JUMP
 // #define FEAT_PLATFORM_DROP_THROUGH
 // #define FEAT_PLATFORM_JUMP
+// #define FEAT_PLATFORM_RUN
 // #define FEAT_PLATFORM_FLOAT
 // #define FEAT_PLATFORM_KNOCKBACK
 // #define FEAT_PLATFORM_LADDERS
 // #define FEAT_PLATFORM_SLOPES
 // #define FEAT_PLATFORM_SOLID_ACTORS
 // #define FEAT_PLATFORM_WALL_JUMP
+// #define FEAT_PLATFORM_EDGE_LOCKING
 
 #ifndef INPUT_PLATFORM_JUMP
 #define INPUT_PLATFORM_JUMP INPUT_A
@@ -371,6 +373,7 @@ void platform_init(void) BANKED
     }
 
     // Initialize Camera Bounds
+#ifdef FEAT_PLATFORM_EDGE_LOCKING
     mod_image_right = image_width - SCREEN_WIDTH;
     mod_image_left = 0;
     if (plat_camera_block & 1)
@@ -390,6 +393,7 @@ void platform_init(void) BANKED
     {
         edge_right = &image_width;
     }
+#endif
 
     // Make sure jumping doesn't overflow variables
     // First, check for jumping based on Frames and Initial Jump Min
@@ -1855,8 +1859,10 @@ void apply_movement(void) BANKED
             pl_vel_x = -pl_vel_x;
         }
 
+#ifdef FEAT_PLATFORM_RUN
         if (INPUT_PLATFORM_RUN)
         {
+
             switch (plat_run_type)
             {
             case 0:
@@ -1913,6 +1919,7 @@ void apply_movement(void) BANKED
         }
         else
         {
+#endif
             // Ordinay Walk
             if (pl_vel_x < 0 && plat_turn_acc != 0)
             {
@@ -1927,7 +1934,9 @@ void apply_movement(void) BANKED
             }
             pl_vel_x *= dir;
             deltaX += VEL_TO_SUBPX(pl_vel_x);
+#ifdef FEAT_PLATFORM_RUN
         }
+#endif
     }
     else
     {
@@ -1992,6 +2001,7 @@ void apply_collisions(UBYTE mask) BANKED
         UBYTE tile_x = 0;
         UBYTE col_mid = 0;
 
+#ifdef FEAT_PLATFORM_EDGE_LOCKING
         // Edge Locking
         // If the player is past the right edge (camera or screen)
         if (new_x > PX_TO_SUBPX(*edge_right + SCREEN_WIDTH - 16))
@@ -2022,6 +2032,7 @@ void apply_collisions(UBYTE mask) BANKED
                 new_x = PLAYER.pos.x + MIN(PX_TO_SUBPX(*edge_left + 8) - PLAYER.pos.x, 16);
             }
         }
+#endif
 
         // Step-Check for collisions one tile left or right for each avatar height
         // tile
