@@ -1074,9 +1074,12 @@ void platform_update(void) BANKED
                 pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
                 que_state = JUMP_STATE;
             }
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+            else
+#endif
 #endif
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            else if (dj_val != 0)
+                if (dj_val != 0)
             {
                 // Double Jump
                 jump_type = JUMP_TYPE_DOUBLE;
