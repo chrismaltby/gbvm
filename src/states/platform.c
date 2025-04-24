@@ -153,6 +153,10 @@ caught mid-way on the next one.
 #define WALL_COL_LEFT -1
 #define WALL_COL_RIGHT 1
 
+#define RUN_STYLE_DEFAULT 0
+#define RUN_STYLE_SMOOTH 1
+#define RUN_STYLE_INSTANT 2
+
 #define COL_CHECK_X 0x1
 #define COL_CHECK_Y 0x2
 #define COL_CHECK_ACTORS 0x4
@@ -230,7 +234,6 @@ UBYTE plat_air_control;      // Enables/Disables air control
 UBYTE plat_turn_control;     // Controls the amount of slippage when the player
                              // turns while running.
 WORD plat_air_dec;           // air deceleration rate
-UBYTE plat_run_type;         // Chooses type of acceleration for jumping
 WORD plat_turn_acc;          // Speed with which a character turns
 UBYTE plat_run_boost;        // Additional jump height based on horizontal speed
 UBYTE plat_dash;             // Choice of input for dashing:
@@ -1865,60 +1868,37 @@ void apply_movement(void) BANKED
 #ifdef FEAT_PLATFORM_RUN
         if (INPUT_PLATFORM_RUN)
         {
-
-            switch (plat_run_type)
+#if PLATFORM_RUN_STYLE == RUN_STYLE_SMOOTH
+            // Type 2: Enhanced Smooth Acceleration
+            if (pl_vel_x < 0)
             {
-            case 0:
-                // Ordinay Walk (same as below). I can't think of a way to
-                // collapse these two uses.
-                if (pl_vel_x < 0 && plat_turn_acc != 0)
-                {
-                    pl_vel_x += plat_turn_acc;
-                    run_stage = -1;
-                }
-                else
-                {
-                    run_stage = 0;
-                    pl_vel_x = CLAMP(pl_vel_x + plat_walk_acc, plat_min_vel, plat_walk_vel);
-                }
-                pl_vel_x *= dir;
-                deltaX += VEL_TO_SUBPX(pl_vel_x);
-
-                break;
-            case 1:
-                // Type 1: Smooth Acceleration as the Default in GBStudio
-                pl_vel_x = CLAMP(pl_vel_x + plat_run_acc, plat_min_vel, plat_run_vel);
-                pl_vel_x *= dir;
-                deltaX += VEL_TO_SUBPX(pl_vel_x);
-                run_stage = 1;
-                break;
-            case 2:
-                // Type 2: Enhanced Smooth Acceleration
-                if (pl_vel_x < 0)
-                {
-                    pl_vel_x += plat_turn_acc;
-                    run_stage = -1;
-                }
-                else if (pl_vel_x < plat_walk_vel)
-                {
-                    pl_vel_x = MAX(pl_vel_x + plat_walk_acc, plat_min_vel);
-                    run_stage = 1;
-                }
-                else
-                {
-                    pl_vel_x = MIN(pl_vel_x + plat_run_acc, plat_run_vel);
-                    run_stage = 2;
-                }
-                pl_vel_x *= dir;
-                deltaX += VEL_TO_SUBPX(pl_vel_x);
-                break;
-            case 3:
-                // Type 3: Instant acceleration to full speed
-                run_stage = 1;
-                pl_vel_x = plat_run_vel * dir;
-                deltaX += VEL_TO_SUBPX(pl_vel_x);
-                break;
+                pl_vel_x += plat_turn_acc;
+                run_stage = -1;
             }
+            else if (pl_vel_x < plat_walk_vel)
+            {
+                pl_vel_x = MAX(pl_vel_x + plat_walk_acc, plat_min_vel);
+                run_stage = 1;
+            }
+            else
+            {
+                pl_vel_x = MIN(pl_vel_x + plat_run_acc, plat_run_vel);
+                run_stage = 2;
+            }
+            pl_vel_x *= dir;
+            deltaX += VEL_TO_SUBPX(pl_vel_x);
+#elif PLATFORM_RUN_STYLE == RUN_STYLE_INSTANT
+            // Type 3: Instant acceleration to full speed
+            run_stage = 1;
+            pl_vel_x = plat_run_vel * dir;
+            deltaX += VEL_TO_SUBPX(pl_vel_x);
+#else
+            // Type 1: Smooth Acceleration as the Default in GBStudio
+            pl_vel_x = CLAMP(pl_vel_x + plat_run_acc, plat_min_vel, plat_run_vel);
+            pl_vel_x *= dir;
+            deltaX += VEL_TO_SUBPX(pl_vel_x);
+            run_stage = 1;
+#endif
         }
         else
         {
