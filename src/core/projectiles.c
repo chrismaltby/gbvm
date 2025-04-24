@@ -65,20 +65,13 @@ void projectiles_update(void) NONBANKED {
         projectile->pos.y -= projectile->delta_pos.y;
 
         if (IS_FRAME_EVEN) {
-            actor_t *hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL, FALSE);
-            if (hit_actor && (hit_actor->collision_group & projectile->def.collision_mask)) {
-                // Hit! - Fire collision script here
-                if ((hit_actor->script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
-                    script_execute(hit_actor->script.bank, hit_actor->script.ptr, &(hit_actor->hscript_hit), 1, (UWORD)(projectile->def.collision_group));
-                }
-                if (!projectile->def.strong) {
-                    // Remove projectile
-                    next = projectile->next;
-                    LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
-                    LL_PUSH_HEAD(projectiles_inactive_head, projectile);
-                    projectile = next;
-                    continue;
-                }
+            if (projectiles_collision(projectile)) {
+                // Remove projectile
+                next = projectile->next;
+                LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
+                LL_PUSH_HEAD(projectiles_inactive_head, projectile);
+                projectile = next;
+                continue;
             }
         }
 
@@ -110,6 +103,34 @@ void projectiles_update(void) NONBANKED {
     }
 
     SWITCH_ROM(_save_bank);
+}
+
+UBYTE projectiles_collision(projectile_t *projectile) BANKED {
+    actor_t *hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL, FALSE);
+    if (hit_actor && (hit_actor->collision_group & projectile->def.collision_mask)) {
+        // Hit! - Fire collision script here
+        if ((hit_actor->script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
+            script_execute(hit_actor->script.bank, hit_actor->script.ptr, &(hit_actor->hscript_hit), 1, (UWORD)(projectile->def.collision_group));
+        }
+        if (!projectile->def.strong) {
+            return TRUE;
+        }
+    }
+    if (!projectile->def.strong)
+    {
+        UBYTE tile_x_start = PX_TO_TILE(SUBPX_TO_PX(projectile->pos.x) + projectile->def.bounds.left);
+        UBYTE tile_x_end = PX_TO_TILE(SUBPX_TO_PX(projectile->pos.x) + projectile->def.bounds.right)+1;
+        UBYTE tile_y_start = PX_TO_TILE(SUBPX_TO_PX(projectile->pos.y) + projectile->def.bounds.top);
+        UBYTE tile_y_end = PX_TO_TILE(SUBPX_TO_PX(projectile->pos.y) + projectile->def.bounds.bottom)+1;
+        for (UBYTE tile_x = tile_x_start; tile_x != tile_x_end; tile_x++) {
+            for (UBYTE tile_y = tile_y_start; tile_y != tile_y_end; tile_y++) {
+                if (tile_at(tile_x, tile_y)) {
+                    return TRUE;
+                }
+            }
+        }
+    }    
+    return FALSE;
 }
 
 void projectiles_render(void) NONBANKED {
