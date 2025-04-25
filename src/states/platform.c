@@ -1044,8 +1044,13 @@ void platform_update(void) BANKED
         // hits roof, c) player stops pressing, d)jump frames run out.
 
 #ifdef FEAT_PLATFORM_WALL_JUMP
-        // JUMP -> WALL check
-        wall_check();
+        if (!plat_air_control)
+        {
+            // If air control is disabled collisions with a wall while jumping
+            // will prevent wall_check() from registering in FALL_STATE so instead
+            // need to check here and switch to WALL_STATE if hit
+            wall_check();
+        }
 #endif
 
 #ifdef FEAT_PLATFORM_DASH
@@ -1670,12 +1675,9 @@ void basic_anim(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
 void wall_check(void) BANKED
 {
-    if (col != 0 && pl_vel_y >= 0 && plat_wall_slide)
+    if (col != 0 && plat_wall_slide)
     {
-        if (que_state != WALL_STATE)
-        {
-            que_state = WALL_STATE;
-        }
+        que_state = WALL_STATE;
     }
     else if (que_state == WALL_STATE)
     {
