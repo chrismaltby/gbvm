@@ -2375,10 +2375,11 @@ void apply_collisions(UBYTE mask) BANKED
     }
 
 gotoActorCol:
+    deltaX = 0;
+    deltaY = 0;
+
     if (mask & COL_CHECK_ACTORS)
     {
-        deltaX = 0;
-        deltaY = 0;
         actor_t *hit_actor;
         hit_actor = actor_overlapping_player(FALSE);
         if (hit_actor != NULL && hit_actor->collision_group)
