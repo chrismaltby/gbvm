@@ -80,9 +80,9 @@
 #define TILE_TO_SUBPX(a)    ((a) << 7)
 #define TILE_TO_PX(a)       ((a) << 3)
 #define TILE16_TO_SUBPX(a)  ((a) << 8)
-#define SUBX_SNAP_PX(a)     ((a) & 0xFFF0)
-#define SUBX_SNAP_TILE(a)   ((a) & 0xFF80)
-#define SUBX_SNAP_TILE16(a) ((a) & 0xFF00)
+#define SUBPX_SNAP_PX(a)     ((a) & 0xFFF0)
+#define SUBPX_SNAP_TILE(a)   ((a) & 0xFF80)
+#define SUBPX_SNAP_TILE16(a) ((a) & 0xFF00)
 #define PX_SNAP_TILE(a)     ((a) & 0xFFF8)
 
 typedef struct upoint16_t {
