@@ -27,7 +27,9 @@ void vm_camera_move_to(SCRIPT_CTX * THIS, INT16 idx, UBYTE speed, UBYTE after_lo
 
     // Actor reached destination
     if ((camera_x == params->X) && (camera_y == params->Y)) {
-        camera_settings |= (after_lock_camera & CAMERA_LOCK_FLAG);
+        camera_settings |= after_lock_camera;
+        camera_clamp_x = camera_x;
+        camera_clamp_y = camera_y;
         return;
     }
 
@@ -77,6 +79,8 @@ void vm_camera_set_pos(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     camera_position_t * params = VM_REF_TO_PTR(idx);
     camera_x = params->X;
     camera_y = params->Y;
+    camera_clamp_x = camera_x;
+    camera_clamp_y = camera_y;
 
     // Disable camera lock
     camera_settings &= ~(CAMERA_LOCK_FLAG);
