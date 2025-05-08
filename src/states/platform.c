@@ -1145,6 +1145,7 @@ void platform_update(void) BANKED
             // there are enough spaces in a row
             while (tile_current != tile_x)
             {
+#ifdef FEAT_PLATFORM_EDGE_LOCKING                
                 // Don't go past camera bounds
                 if ((plat_camera_block & 2) && tile_current > PX_TO_TILE(camera_x + SCREEN_WIDTH_HALF - 16))
                 {
@@ -1152,6 +1153,7 @@ void platform_update(void) BANKED
                     dash_currentframe == 0;
                     goto endRcol;
                 }
+#endif
                 // CHECK TOP AND BOTTOM
                 while (tile_start != tile_end)
                 {
@@ -1207,6 +1209,7 @@ void platform_update(void) BANKED
             // CHECK EACH SPACE FROM START TO END
             while (tile_current != tile_x)
             {
+#ifdef FEAT_PLATFORM_EDGE_LOCKING                
                 // Camera lock check
                 if ((plat_camera_block & 1) && tile_current < PX_TO_TILE(camera_x - SCREEN_WIDTH_HALF))
                 {
@@ -1214,6 +1217,7 @@ void platform_update(void) BANKED
                     dash_currentframe == 0;
                     goto endLcol;
                 }
+#endif
                 // CHECK TOP AND BOTTOM
                 while (tile_start != tile_end)
                 {
