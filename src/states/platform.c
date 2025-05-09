@@ -157,6 +157,12 @@ caught mid-way on the next one.
 #define RUN_STYLE_SMOOTH 1
 #define RUN_STYLE_INSTANT 2
 
+#define RUN_STAGE_TURNING -1
+#define RUN_STAGE_NONE 0
+#define RUN_STAGE_WALK_ACC 1
+#define RUN_STAGE_RUN_ACC 2
+#define RUN_STAGE_RUN_MAX 3
+
 #define COL_CHECK_X 0x1
 #define COL_CHECK_Y 0x2
 #define COL_CHECK_ACTORS 0x4
@@ -435,7 +441,7 @@ void platform_init(void) BANKED
 #ifdef FEAT_PLATFORM_SOLID_ACTORS
     actor_attached = FALSE;
 #endif
-    run_stage = 0;
+    run_stage = RUN_STAGE_NONE;
     nocontrol_h = 0;
     nocollide = 0;
     if (PLAYER.dir == DIR_UP || PLAYER.dir == DIR_DOWN || PLAYER.dir == DIR_NONE)
@@ -569,14 +575,14 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
             jump_type = JUMP_TYPE_NONE;
-            run_stage = 0;
+            run_stage = RUN_STAGE_NONE;
             state_events_execute(WALL_INIT);
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
-            run_stage = 0;
+            run_stage = RUN_STAGE_NONE;
             jump_type = JUMP_TYPE_NONE;
             state_events_execute(KNOCKBACK_INIT);
             break;
@@ -586,7 +592,7 @@ void platform_update(void) BANKED
         case BLANK_STATE: {
             pl_vel_x = 0;
             pl_vel_y = 0;
-            run_stage = 0;
+            run_stage = RUN_STAGE_NONE;
             jump_type = JUMP_TYPE_NONE;
             state_events_execute(BLANK_INIT);
             break;
@@ -1821,7 +1827,7 @@ initDash:
     dash_currentframe = plat_dash_frames;
     tap_val = 0;
     jump_type = JUMP_TYPE_NONE;
-    run_stage = 0;
+    run_stage = RUN_STAGE_NONE;
     que_state = DASH_STATE;
 }
 #endif
@@ -1879,23 +1885,27 @@ void apply_movement(void) BANKED
             if (pl_vel_x < 0)
             {
                 pl_vel_x += plat_turn_acc;
-                run_stage = -1;
+                run_stage = RUN_STAGE_TURNING;
             }
             else if (pl_vel_x < plat_walk_vel)
             {
                 pl_vel_x = MAX(pl_vel_x + plat_walk_acc, plat_min_vel);
-                run_stage = 1;
+                run_stage = RUN_STAGE_WALK_ACC;
+            }
+            else if (pl_vel_x < plat_run_vel)
+            {
+                pl_vel_x = MIN(pl_vel_x + plat_run_acc, plat_run_vel);
+                run_stage = RUN_STAGE_RUN_ACC;
             }
             else
             {
-                pl_vel_x = MIN(pl_vel_x + plat_run_acc, plat_run_vel);
-                run_stage = 2;
+                run_stage = RUN_STAGE_RUN_MAX;
             }
             pl_vel_x *= dir;
             deltaX += VEL_TO_SUBPX(pl_vel_x);
 #elif PLATFORM_RUN_STYLE == RUN_STYLE_INSTANT
             // Type 3: Instant acceleration to full speed
-            run_stage = 1;
+            run_stage = RUN_STAGE_RUN_MAX;
             pl_vel_x = plat_run_vel * dir;
             deltaX += VEL_TO_SUBPX(pl_vel_x);
 #else
@@ -1903,7 +1913,7 @@ void apply_movement(void) BANKED
             pl_vel_x = CLAMP(pl_vel_x + plat_run_acc, plat_min_vel, plat_run_vel);
             pl_vel_x *= dir;
             deltaX += VEL_TO_SUBPX(pl_vel_x);
-            run_stage = 1;
+            run_stage = RUN_STAGE_RUN_MAX;
 #endif
         }
         else
@@ -1913,11 +1923,11 @@ void apply_movement(void) BANKED
             if (pl_vel_x < 0 && plat_turn_acc != 0)
             {
                 pl_vel_x += plat_turn_acc;
-                run_stage = -1;
+                run_stage = RUN_STAGE_TURNING;
             }
             else
             {
-                run_stage = 0;
+                run_stage = RUN_STAGE_NONE;
                 pl_vel_x += plat_walk_acc;
                 pl_vel_x = CLAMP(pl_vel_x, plat_min_vel, plat_walk_vel);
             }
@@ -1960,7 +1970,7 @@ void apply_movement(void) BANKED
                 pl_vel_x = 0;
             }
         }
-        run_stage = 0;
+        run_stage = RUN_STAGE_NONE;
         deltaX += VEL_TO_SUBPX(pl_vel_x);
     }
 }
