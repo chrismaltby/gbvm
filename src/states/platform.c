@@ -706,10 +706,10 @@ void platform_update(void) BANKED
         }
         else
         {
-            apply_movement();
+            handle_horizontal_input();
         }
 
-        apply_collisions(COL_CHECK_ALL);
+        move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
         basic_anim();
@@ -907,8 +907,8 @@ void platform_update(void) BANKED
         // Add Collision Offset from Moving Platforms
         deltaY += VEL_TO_SUBPX(pl_vel_y);
 
-        apply_movement();
-        apply_collisions(COL_CHECK_ALL);
+        handle_horizontal_input();
+        move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
         // Button direction overrides velocity, for slippery run reasons
@@ -1037,10 +1037,10 @@ void platform_update(void) BANKED
         }
         else
         {
-            apply_movement();
+            handle_horizontal_input();
         }
 
-        apply_collisions(COL_CHECK_ALL);
+        move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
         basic_anim();
@@ -1364,7 +1364,7 @@ void platform_update(void) BANKED
         // CHECKS ---------------------------------------------------------
         if (plat_dash_through == DASH_THRU_NONE)
         {
-            apply_collisions(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+            move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
         }
 
         // ANIMATION ------------------------------------------------------
@@ -1472,7 +1472,7 @@ void platform_update(void) BANKED
             que_state = FALL_STATE;
         }
 
-        apply_collisions(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+        move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
 
         break;
     }
@@ -1508,8 +1508,8 @@ void platform_update(void) BANKED
         deltaY += VEL_TO_SUBPX(pl_vel_y);
         temp_y = PLAYER.pos.y;
 
-        apply_movement();
-        apply_collisions(COL_CHECK_ALL);
+        handle_horizontal_input();
+        move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
         // Face away from walls
@@ -1600,7 +1600,7 @@ void platform_update(void) BANKED
 
         nocollide = 0;
 
-        apply_collisions(COL_CHECK_ALL);
+        move_and_collide(COL_CHECK_ALL);
 
         if (que_state == GROUND_STATE)
         {
@@ -1614,7 +1614,7 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_BLANK
     case BLANK_STATE: {
-        apply_collisions(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+        move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
         break;
     }
 #endif
@@ -1866,7 +1866,7 @@ UBYTE drop_press(void) BANKED
 }
 #endif
 
-void apply_movement(void) BANKED
+void handle_horizontal_input(void) BANKED
 {
     if (INPUT_LEFT || INPUT_RIGHT)
     {
@@ -1975,7 +1975,7 @@ void apply_movement(void) BANKED
     }
 }
 
-void apply_collisions(UBYTE mask) BANKED
+void move_and_collide(UBYTE mask) BANKED
 {
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
     UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);

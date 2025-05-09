@@ -10,8 +10,8 @@ void wall_check(void) BANKED;
 void ladder_check(void) BANKED;
 void dash_init_switch(void) BANKED;
 UBYTE drop_press(void) BANKED;
-void apply_movement(void) BANKED;
-void apply_collisions(UBYTE mask) BANKED;
+void handle_horizontal_input(void) BANKED;
+void move_and_collide(UBYTE mask) BANKED;
 
 extern WORD pl_vel_x;
 extern WORD pl_vel_y;
