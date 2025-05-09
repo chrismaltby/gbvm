@@ -1989,11 +1989,11 @@ void handle_horizontal_input(void) BANKED
 
 void move_and_collide(UBYTE mask) BANKED
 {
-    const WORD top_sp = (WORD)PLAYER.bounds.top << 4;
-    const WORD bottom_sp = (WORD)PLAYER.bounds.bottom << 4;
-    const WORD left_sp = (WORD)PLAYER.bounds.left << 4;
-    const WORD right_sp = (WORD)PLAYER.bounds.right << 4;
-    WORD sp_half_width = DIV_2(right_sp - left_sp);
+    const WORD sp_bounds_top = PX_TO_SUBPX(PLAYER.bounds.top);
+    const WORD sp_bounds_bottom = PX_TO_SUBPX(PLAYER.bounds.bottom);
+    const WORD sp_bounds_left = PX_TO_SUBPX(PLAYER.bounds.left);
+    const WORD sp_bounds_right = PX_TO_SUBPX(PLAYER.bounds.right);
+    WORD sp_half_width = DIV_2(sp_bounds_right - sp_bounds_left);
 
     UBYTE old_x = 0;
 #ifdef FEAT_PLATFORM_SLOPES
@@ -2009,8 +2009,8 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
         old_x = PLAYER.pos.x;
 
-        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + top_sp);
-        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + bottom_sp) + 1;
+        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
+        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) + 1;
         UWORD new_x = PLAYER.pos.x + deltaX;
 
         UBYTE tile_x = 0;
@@ -2053,11 +2053,11 @@ void move_and_collide(UBYTE mask) BANKED
         // tile
         if (new_x > PLAYER.pos.x)
         {
-            tile_x = SUBPX_TO_TILE(new_x + right_sp);
+            tile_x = SUBPX_TO_TILE(new_x + sp_bounds_right);
 
             // New Slope Stuff Part 1
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + bottom_sp);
-            UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + left_sp + sp_half_width + PX_TO_SUBPX(1));
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
+            UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
             col_mid = tile_at(tile_x_mid, tile_y);
 #ifdef FEAT_PLATFORM_SLOPES
             if (IS_ON_SLOPE(col_mid))
@@ -2127,9 +2127,9 @@ void move_and_collide(UBYTE mask) BANKED
         else if (new_x < PLAYER.pos.x)
         {
             // New Slope 3
-            tile_x = SUBPX_TO_TILE(new_x + left_sp);
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + bottom_sp);
-            UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + left_sp + sp_half_width + PX_TO_SUBPX(1));
+            tile_x = SUBPX_TO_TILE(new_x + sp_bounds_left);
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
+            UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
             col_mid = tile_at(tile_x_mid, tile_y);
 
 #ifdef FEAT_PLATFORM_SLOPES
@@ -2141,7 +2141,7 @@ void move_and_collide(UBYTE mask) BANKED
             UBYTE slope_on_y = FALSE;
 #endif
 
-            tile_start = SUBPX_TO_TILE(PLAYER.pos.y + top_sp);
+            tile_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
             // End New Slope 3
 
             while (tile_start != tile_end)
@@ -2220,8 +2220,8 @@ void move_and_collide(UBYTE mask) BANKED
 // End New Y Slopes 1
 #endif
 
-        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.x + left_sp);
-        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.x + right_sp) + 1;
+        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
+        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
         if (deltaY > 0)
         {
             // Moving Downward
@@ -2229,14 +2229,14 @@ void move_and_collide(UBYTE mask) BANKED
 
 #ifdef FEAT_PLATFORM_SLOPES
             // New Slope Y 2
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + bottom_sp) - 1;
-            UBYTE new_tile_y = SUBPX_TO_TILE(new_y + bottom_sp);
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
+            UBYTE new_tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
             // If previously grounded and gravity is not enough to pull us down to
             // the next tile, manually check it for the next slope This prevents the
             // "animation glitch" when going down slopes
             if (prev_grounded && new_tile_y == (tile_y + 1))
                 new_tile_y += 1;
-            UWORD x_mid_coord = SUBPX_TO_PX(PLAYER.pos.x + left_sp + sp_half_width) + 1;
+            UWORD x_mid_coord = SUBPX_TO_PX(PLAYER.pos.x + sp_bounds_left + sp_half_width) + 1;
 
             while (tile_y <= new_tile_y)
             {
@@ -2283,7 +2283,7 @@ void move_and_collide(UBYTE mask) BANKED
                         continue;
                     }
                     // If we are moving up a slope, check for top collision
-                    UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + top_sp);
+                    UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + sp_bounds_top);
                     while (tile_start != tile_end)
                     {
                         if (tile_at(tile_start, slope_top_tile_y) & COLLISION_BOTTOM)
@@ -2318,9 +2318,9 @@ void move_and_collide(UBYTE mask) BANKED
 
 #endif
 
-            tile_start = SUBPX_TO_TILE(PLAYER.pos.x + left_sp);
-            tile_end = SUBPX_TO_TILE(PLAYER.pos.x + right_sp) + 1;
-            tile_y = SUBPX_TO_TILE(new_y + bottom_sp);
+            tile_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
+            tile_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
+            tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
             if (nocollide == 0)
             {
@@ -2373,7 +2373,7 @@ void move_and_collide(UBYTE mask) BANKED
         {
             // Moving Upward
             WORD new_y = PLAYER.pos.y + deltaY;
-            UBYTE tile_y = SUBPX_TO_TILE(new_y + top_sp);
+            UBYTE tile_y = SUBPX_TO_TILE(new_y + sp_bounds_top);
             while (tile_start != tile_end)
             {
                 if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM)
