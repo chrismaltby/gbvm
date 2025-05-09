@@ -2009,8 +2009,8 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
         old_x = PLAYER.pos.x;
 
-        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
-        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) + 1;
+        UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
+        UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) + 1;
         UWORD new_x = PLAYER.pos.x + deltaX;
 
         UBYTE tile_x = 0;
@@ -2069,10 +2069,10 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
             // New Slope Stuff P1 End
 
-            while (tile_start != tile_end)
+            while (tile_y_start != tile_y_end)
             {
                 // New Slope Stuff P2
-                col = tile_at(tile_x, tile_start);
+                col = tile_at(tile_x, tile_y_start);
 #ifdef FEAT_PLATFORM_SLOPES
                 if (IS_ON_SLOPE(col))
                 {
@@ -2084,15 +2084,15 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_SLOPES
                     // only ignore collisions if there is a slope on this y column
                     // somewhere
-                    if (slope_on_y || tile_start == slope_y)
+                    if (slope_on_y || tile_y_start == slope_y)
                     {
                         // Right slope
                         if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_RIGHT(on_slope)) ||
                             (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_RIGHT(prev_on_slope)))
                         {
-                            if (tile_start <= slope_y)
+                            if (tile_y_start <= slope_y)
                             {
-                                tile_start++;
+                                tile_y_start++;
                                 continue;
                             }
                         }
@@ -2103,9 +2103,9 @@ void move_and_collide(UBYTE mask) BANKED
                         if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_LEFT(on_slope)) ||
                             (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_LEFT(prev_on_slope)))
                         {
-                            if (tile_start >= slope_y)
+                            if (tile_y_start >= slope_y)
                             {
-                                tile_start++;
+                                tile_y_start++;
                                 continue;
                             }
                         }
@@ -2121,7 +2121,7 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
                     break;
                 }
-                tile_start++;
+                tile_y_start++;
             }
         }
         else if (new_x < PLAYER.pos.x)
@@ -2141,13 +2141,13 @@ void move_and_collide(UBYTE mask) BANKED
             UBYTE slope_on_y = FALSE;
 #endif
 
-            tile_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
+            tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
             // End New Slope 3
 
-            while (tile_start != tile_end)
+            while (tile_y_start != tile_y_end)
             {
                 // New Slope 4
-                col = tile_at(tile_x, tile_start);
+                col = tile_at(tile_x, tile_y_start);
 
 #ifdef FEAT_PLATFORM_SLOPES
                 if (IS_ON_SLOPE(col))
@@ -2161,15 +2161,15 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_SLOPES
                     // only ignore collisions if there is a slope on this y column
                     // somewhere
-                    if (slope_on_y || tile_start == slope_y)
+                    if (slope_on_y || tile_y_start == slope_y)
                     {
                         // Left slope
                         if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_LEFT(on_slope)) ||
                             (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_LEFT(prev_on_slope)))
                         {
-                            if (tile_start <= slope_y)
+                            if (tile_y_start <= slope_y)
                             {
-                                tile_start++;
+                                tile_y_start++;
                                 continue;
                             }
                         }
@@ -2180,9 +2180,9 @@ void move_and_collide(UBYTE mask) BANKED
                         if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_RIGHT(on_slope)) ||
                             (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_RIGHT(prev_on_slope)))
                         {
-                            if (tile_start >= slope_y)
+                            if (tile_y_start >= slope_y)
                             {
-                                tile_start++;
+                                tile_y_start++;
                                 continue;
                             }
                         }
@@ -2197,7 +2197,7 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
                     break;
                 }
-                tile_start++;
+                tile_y_start++;
             }
         }
         PLAYER.pos.x = new_x;
@@ -2220,8 +2220,8 @@ void move_and_collide(UBYTE mask) BANKED
 // End New Y Slopes 1
 #endif
 
-        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
-        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
+        UBYTE tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
+        UBYTE tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
         if (deltaY > 0)
         {
             // Moving Downward
@@ -2284,9 +2284,9 @@ void move_and_collide(UBYTE mask) BANKED
                     }
                     // If we are moving up a slope, check for top collision
                     UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + sp_bounds_top);
-                    while (tile_start != tile_end)
+                    while (tile_x_start != tile_x_end)
                     {
-                        if (tile_at(tile_start, slope_top_tile_y) & COLLISION_BOTTOM)
+                        if (tile_at(tile_x_start, slope_top_tile_y) & COLLISION_BOTTOM)
                         {
                             pl_vel_y = 0;
                             pl_vel_x = 0;
@@ -2297,7 +2297,7 @@ void move_and_collide(UBYTE mask) BANKED
                             slope_y = tile_y;
                             goto gotoActorCol;
                         }
-                        tile_start++;
+                        tile_x_start++;
                     }
 
                     PLAYER.pos.y = slope_y_coord;
@@ -2318,30 +2318,30 @@ void move_and_collide(UBYTE mask) BANKED
 
 #endif
 
-            tile_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
-            tile_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
+            tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
+            tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
             tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
             if (nocollide == 0)
             {
                 // Check collisions from left to right with the bottom of the player
-                while (tile_start != tile_end)
+                while (tile_x_start != tile_x_end)
                 {
-                    if (tile_at(tile_start, tile_y) & COLLISION_TOP)
+                    if (tile_at(tile_x_start, tile_y) & COLLISION_TOP)
                     {
 #ifdef FEAT_PLATFORM_DROP_THROUGH
                         // Drop-Through Floor Check
                         if (drop_press())
                         {
                             // If it's a regular tile, do not drop through
-                            while (tile_start != tile_end)
+                            while (tile_x_start != tile_x_end)
                             {
-                                if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM)
+                                if (tile_at(tile_x_start, tile_y) & COLLISION_BOTTOM)
                                 {
                                     // Escape two levels of looping.
                                     goto land;
                                 }
-                                tile_start++;
+                                tile_x_start++;
                             }
                             nocollide = 5; // Magic Number, how many frames to
                                            // steal vertical control
@@ -2364,7 +2364,7 @@ void move_and_collide(UBYTE mask) BANKED
                         que_state = GROUND_STATE;
                         break;
                     }
-                    tile_start++;
+                    tile_x_start++;
                 }
             }
             PLAYER.pos.y = new_y;
@@ -2374,9 +2374,9 @@ void move_and_collide(UBYTE mask) BANKED
             // Moving Upward
             WORD new_y = PLAYER.pos.y + deltaY;
             UBYTE tile_y = SUBPX_TO_TILE(new_y + sp_bounds_top);
-            while (tile_start != tile_end)
+            while (tile_x_start != tile_x_end)
             {
-                if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM)
+                if (tile_at(tile_x_start, tile_y) & COLLISION_BOTTOM)
                 {
                     new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_y + 1) - PLAYER.bounds.top) + 1;
                     pl_vel_y = 0;
@@ -2399,7 +2399,7 @@ void move_and_collide(UBYTE mask) BANKED
                     que_state = FALL_STATE;
                     break;
                 }
-                tile_start++;
+                tile_x_start++;
             }
             PLAYER.pos.y = new_y;
         }
