@@ -1870,75 +1870,101 @@ void handle_horizontal_input(void) BANKED
 {
     if (INPUT_LEFT || INPUT_RIGHT)
     {
-        BYTE dir = 1;
+        BYTE dir;
+        WORD input_aligned_vel_x;
+
         if (INPUT_LEFT)
         {
             dir = -1;
-            pl_vel_x = -pl_vel_x;
+            input_aligned_vel_x = pl_vel_x * -1;
+        }
+        else
+        {
+            dir = 1;
+            input_aligned_vel_x = pl_vel_x;
         }
 
-#ifdef FEAT_PLATFORM_RUN
-        if (INPUT_PLATFORM_RUN)
+        // Currently moving opposite direction to input, add turning friction
+        if (input_aligned_vel_x < 0)
         {
-#if PLATFORM_RUN_STYLE == RUN_STYLE_SMOOTH
-            // Type 2: Enhanced Smooth Acceleration
-            if (pl_vel_x < 0)
-            {
-                pl_vel_x += plat_turn_acc;
-                run_stage = RUN_STAGE_TURNING;
-            }
-            else if (pl_vel_x < plat_walk_vel)
-            {
-                pl_vel_x = MAX(pl_vel_x + plat_walk_acc, plat_min_vel);
-                run_stage = RUN_STAGE_WALK_ACC;
-            }
-            else if (pl_vel_x < plat_run_vel)
-            {
-                pl_vel_x = MIN(pl_vel_x + plat_run_acc, plat_run_vel);
-                run_stage = RUN_STAGE_RUN_ACC;
-            }
-            else
-            {
-                run_stage = RUN_STAGE_RUN_MAX;
-            }
-            pl_vel_x *= dir;
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
-#elif PLATFORM_RUN_STYLE == RUN_STYLE_INSTANT
-            // Type 3: Instant acceleration to full speed
-            run_stage = RUN_STAGE_RUN_MAX;
-            pl_vel_x = plat_run_vel * dir;
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
-#else
-            // Type 1: Smooth Acceleration as the Default in GBStudio
-            pl_vel_x = CLAMP(pl_vel_x + plat_run_acc, plat_min_vel, plat_run_vel);
-            pl_vel_x *= dir;
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
-            run_stage = RUN_STAGE_RUN_MAX;
+            input_aligned_vel_x = MIN(input_aligned_vel_x + plat_turn_acc, 0);
+#ifdef FEAT_PLATFORM_RUN
+            run_stage = RUN_STAGE_TURNING;
 #endif
         }
         else
         {
+#ifdef FEAT_PLATFORM_RUN
+            const UBYTE running = INPUT_PLATFORM_RUN;
+            const WORD max_vel = running ? plat_run_vel : plat_walk_vel;
+            const WORD accel = running ? plat_run_acc : plat_walk_acc;
+#else
+            const WORD max_vel = plat_walk_vel;
+            const WORD accel = plat_walk_acc;
 #endif
-            // Ordinay Walk
-            if (pl_vel_x < 0 && plat_turn_acc != 0)
+
+            // Above max speed, decelerate until below max speed
+            if (input_aligned_vel_x > max_vel)
             {
-                pl_vel_x += plat_turn_acc;
-                run_stage = RUN_STAGE_TURNING;
+                goto decelerate;
+            }
+
+#if defined(FEAT_PLATFORM_RUN) && PLATFORM_RUN_STYLE == RUN_STYLE_INSTANT
+            if (running)
+            {
+                // Instant move at run speed
+                input_aligned_vel_x = max_vel;
+                run_stage = RUN_STAGE_RUN_MAX;
             }
             else
             {
+                // Walking
+                input_aligned_vel_x = CLAMP(input_aligned_vel_x + accel, plat_min_vel, max_vel);
                 run_stage = RUN_STAGE_NONE;
-                pl_vel_x += plat_walk_acc;
-                pl_vel_x = CLAMP(pl_vel_x, plat_min_vel, plat_walk_vel);
             }
-            pl_vel_x *= dir;
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
+#elif defined(FEAT_PLATFORM_RUN) && PLATFORM_RUN_STYLE == RUN_STYLE_SMOOTH
+            if (running)
+            {
+                // Accelerate to walk speed
+                if (input_aligned_vel_x < plat_walk_vel)
+                {
+                    input_aligned_vel_x = MAX(input_aligned_vel_x + plat_walk_acc, plat_min_vel);
+                    run_stage = RUN_STAGE_WALK_ACC;
+                }
+                // Accelerate to run speed
+                else if (input_aligned_vel_x < max_vel)
+                {
+                    input_aligned_vel_x = MIN(input_aligned_vel_x + plat_run_acc, max_vel);
+                    run_stage = RUN_STAGE_RUN_ACC;
+                }
+                // At max speed
+                else
+                {
+                    input_aligned_vel_x = max_vel;
+                    run_stage = RUN_STAGE_RUN_MAX;
+                }
+            }
+            else
+            {
+                // Walking
+                input_aligned_vel_x = CLAMP(input_aligned_vel_x + accel, plat_min_vel, max_vel);
+                run_stage = RUN_STAGE_NONE;
+            }
+#else
+            input_aligned_vel_x = CLAMP(input_aligned_vel_x + accel, plat_min_vel, max_vel);
 #ifdef FEAT_PLATFORM_RUN
-        }
+            run_stage = running ? RUN_STAGE_RUN_MAX : RUN_STAGE_NONE;
 #endif
+
+#endif
+        }
+        // Restore velocity to original sign
+        pl_vel_x = dir == 1 ? input_aligned_vel_x : input_aligned_vel_x * -1;
+        deltaX += VEL_TO_SUBPX(pl_vel_x);
     }
     else // No Horizontal Input
     {
+    decelerate:
         // Deceleration
         if (pl_vel_x != 0)
         {
@@ -1955,9 +1981,9 @@ void handle_horizontal_input(void) BANKED
                 // Decelerate while moving right
                 pl_vel_x = MAX(pl_vel_x - dec, 0);
             }
+            deltaX += VEL_TO_SUBPX(pl_vel_x);
         }
         run_stage = RUN_STAGE_NONE;
-        deltaX += VEL_TO_SUBPX(pl_vel_x);
     }
 }
 
