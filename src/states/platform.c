@@ -1151,7 +1151,7 @@ void platform_update(void) BANKED
             // there are enough spaces in a row
             while (tile_current != tile_x)
             {
-#ifdef FEAT_PLATFORM_EDGE_LOCKING                
+#ifdef FEAT_PLATFORM_EDGE_LOCKING
                 // Don't go past camera bounds
                 if ((plat_camera_block & 2) && tile_current > PX_TO_TILE(camera_x + SCREEN_WIDTH_HALF - 16))
                 {
@@ -1215,7 +1215,7 @@ void platform_update(void) BANKED
             // CHECK EACH SPACE FROM START TO END
             while (tile_current != tile_x)
             {
-#ifdef FEAT_PLATFORM_EDGE_LOCKING                
+#ifdef FEAT_PLATFORM_EDGE_LOCKING
                 // Camera lock check
                 if ((plat_camera_block & 1) && tile_current < PX_TO_TILE(camera_x - SCREEN_WIDTH_HALF))
                 {
@@ -2404,7 +2404,9 @@ gotoActorCol:
             {
                 if (!actor_attached || hit_actor != last_actor)
                 {
-                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom)) < (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) && (pl_vel_y >= 0))
+                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom)) <
+                            (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
+                        (pl_vel_y >= 0))
                     {
                         // Attach to MP
                         last_actor = hit_actor;
@@ -2473,7 +2475,9 @@ gotoActorCol:
             {
                 if (!actor_attached || hit_actor != last_actor)
                 {
-                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom)) < (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) && (pl_vel_y >= 0))
+                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom)) <
+                            (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
+                        (pl_vel_y >= 0))
                     {
                         // Attach to MP
                         last_actor = hit_actor;
