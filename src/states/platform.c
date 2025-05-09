@@ -1937,37 +1937,23 @@ void handle_horizontal_input(void) BANKED
         }
 #endif
     }
-    else
+    else // No Horizontal Input
     {
-        // DECELERATION
-        if (pl_vel_x < 0)
+        // Deceleration
+        if (pl_vel_x != 0)
         {
-            if (plat_state == GROUND_STATE)
-            {
-                pl_vel_x += plat_dec;
-            }
-            else
-            {
-                pl_vel_x += plat_air_dec;
-            }
-            if (pl_vel_x > 0)
-            {
-                pl_vel_x = 0;
-            }
-        }
-        else if (pl_vel_x > 0)
-        {
-            if (plat_state == GROUND_STATE)
-            {
-                pl_vel_x -= plat_dec;
-            }
-            else
-            {
-                pl_vel_x -= plat_air_dec;
-            }
+            // Set deceleration value based on state
+            WORD dec = (plat_state == GROUND_STATE) ? plat_dec : plat_air_dec;
+
             if (pl_vel_x < 0)
             {
-                pl_vel_x = 0;
+                // Decelerate while moving left
+                pl_vel_x = MIN(pl_vel_x + dec, 0);
+            }
+            else
+            {
+                // Decelerate while moving right
+                pl_vel_x = MAX(pl_vel_x - dec, 0);
             }
         }
         run_stage = RUN_STAGE_NONE;
