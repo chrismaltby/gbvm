@@ -2000,6 +2000,7 @@ void move_and_collide(UBYTE mask) BANKED
     UBYTE prev_on_slope = 0;
 #endif
 
+    // Horizontal Movement
     if (mask & COL_CHECK_X)
     {
         deltaX = CLAMP(deltaX, -127, 127);
@@ -2158,21 +2159,19 @@ void move_and_collide(UBYTE mask) BANKED
         PLAYER.pos.x = new_x;
     }
 
+    // Vertical Movement
     if (mask & COL_CHECK_Y)
     {
-        // FUNCTION Y COLLISION
         deltaY = CLAMP(deltaY, -127, 127);
 
         UBYTE prev_grounded = grounded;
         UWORD old_y = PLAYER.pos.y;
-        grounded = FALSE;
 
 #ifdef FEAT_PLATFORM_SLOPES
         // 1 frame leniency of grounded state if we were on a slope last frame
-        if (prev_on_slope)
-        {
-            grounded = TRUE;
-        }
+        grounded = prev_on_slope;
+#else
+        grounded = FALSE;
 #endif
 
         UBYTE tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
