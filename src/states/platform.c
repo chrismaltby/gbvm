@@ -2049,157 +2049,112 @@ void move_and_collide(UBYTE mask) BANKED
         }
 #endif
 
-        // Step-Check for collisions one tile left or right for each avatar height
-        // tile
+        // Step-Check for collisions one tile left or right based on movement direction
+        UBYTE moving_right, hit_flag;
+        enum wall_t wall;
+        WORD bounds_edge;
+
         if (new_x > PLAYER.pos.x)
         {
-            tile_x = SUBPX_TO_TILE(new_x + sp_bounds_right);
-
-            // New Slope Stuff Part 1
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
-            UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
-            col_mid = tile_at(tile_x_mid, tile_y);
-#ifdef FEAT_PLATFORM_SLOPES
-            if (IS_ON_SLOPE(col_mid))
-            {
-                on_slope = col_mid;
-                slope_y = tile_y;
-            }
-            UBYTE slope_on_y = FALSE;
-#endif
-            // New Slope Stuff P1 End
-
-            while (tile_y_start != tile_y_end)
-            {
-                // New Slope Stuff P2
-                col = tile_at(tile_x, tile_y_start);
-#ifdef FEAT_PLATFORM_SLOPES
-                if (IS_ON_SLOPE(col))
-                {
-                    slope_on_y = TRUE;
-                }
-#endif
-                if (col & COLLISION_LEFT)
-                {
-#ifdef FEAT_PLATFORM_SLOPES
-                    // only ignore collisions if there is a slope on this y column
-                    // somewhere
-                    if (slope_on_y || tile_y_start == slope_y)
-                    {
-                        // Right slope
-                        if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_RIGHT(on_slope)) ||
-                            (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_RIGHT(prev_on_slope)))
-                        {
-                            if (tile_y_start <= slope_y)
-                            {
-                                tile_y_start++;
-                                continue;
-                            }
-                        }
-                    }
-                    if (slope_on_y)
-                    {
-                        // Left slope
-                        if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_LEFT(on_slope)) ||
-                            (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_LEFT(prev_on_slope)))
-                        {
-                            if (tile_y_start >= slope_y)
-                            {
-                                tile_y_start++;
-                                continue;
-                            }
-                        }
-                    }
-                    // End New Slope Stuff P2
-#endif
-                    new_x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;
-                    pl_vel_x = 0;
-                    col = WALL_COL_RIGHT;
-                    last_wall = WALL_COL_RIGHT;
-#ifdef FEAT_PLATFORM_WALL_JUMP
-                    wc_val = plat_coyote_max + 1;
-#endif
-                    break;
-                }
-                tile_y_start++;
-            }
+            // Right movement
+            moving_right = TRUE;
+            hit_flag = COLLISION_LEFT;
+            wall = WALL_COL_RIGHT;
+            bounds_edge = sp_bounds_right;
         }
-        else if (new_x < PLAYER.pos.x)
+        else
         {
-            // New Slope 3
-            tile_x = SUBPX_TO_TILE(new_x + sp_bounds_left);
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
-            UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
-            col_mid = tile_at(tile_x_mid, tile_y);
-
-#ifdef FEAT_PLATFORM_SLOPES
-            if (IS_ON_SLOPE(col_mid))
-            {
-                on_slope = col_mid;
-                slope_y = tile_y;
-            }
-            UBYTE slope_on_y = FALSE;
-#endif
-
-            tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
-            // End New Slope 3
-
-            while (tile_y_start != tile_y_end)
-            {
-                // New Slope 4
-                col = tile_at(tile_x, tile_y_start);
-
-#ifdef FEAT_PLATFORM_SLOPES
-                if (IS_ON_SLOPE(col))
-                {
-                    slope_on_y = TRUE;
-                }
-#endif
-
-                if (col & COLLISION_RIGHT)
-                {
-#ifdef FEAT_PLATFORM_SLOPES
-                    // only ignore collisions if there is a slope on this y column
-                    // somewhere
-                    if (slope_on_y || tile_y_start == slope_y)
-                    {
-                        // Left slope
-                        if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_LEFT(on_slope)) ||
-                            (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_LEFT(prev_on_slope)))
-                        {
-                            if (tile_y_start <= slope_y)
-                            {
-                                tile_y_start++;
-                                continue;
-                            }
-                        }
-                    }
-                    if (slope_on_y)
-                    {
-                        // Right slope
-                        if ((IS_ON_SLOPE(on_slope) && IS_SLOPE_RIGHT(on_slope)) ||
-                            (IS_ON_SLOPE(prev_on_slope) && IS_SLOPE_RIGHT(prev_on_slope)))
-                        {
-                            if (tile_y_start >= slope_y)
-                            {
-                                tile_y_start++;
-                                continue;
-                            }
-                        }
-                    }
-#endif
-                    new_x = PX_TO_SUBPX((TILE_TO_PX(tile_x + 1)) - PLAYER.bounds.left) + 1;
-                    pl_vel_x = 0;
-                    col = WALL_COL_LEFT;
-                    last_wall = WALL_COL_LEFT;
-#ifdef FEAT_PLATFORM_WALL_JUMP
-                    wc_val = plat_coyote_max + 1;
-#endif
-                    break;
-                }
-                tile_y_start++;
-            }
+            // Left movement
+            moving_right = FALSE;
+            hit_flag = COLLISION_RIGHT;
+            wall = WALL_COL_LEFT;
+            bounds_edge = sp_bounds_left;
         }
+
+        tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
+        UBYTE tile_y = tile_y_end - 1;
+        UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
+        col_mid = tile_at(tile_x_mid, tile_y);
+
+#ifdef FEAT_PLATFORM_SLOPES
+        if (IS_ON_SLOPE(col_mid))
+        {
+            on_slope = col_mid;
+            slope_y = tile_y;
+        }
+        UBYTE slope_on_y = FALSE;
+#endif
+
+        while (tile_y_start != tile_y_end)
+        {
+            // New Slope 4
+            col = tile_at(tile_x, tile_y_start);
+
+#ifdef FEAT_PLATFORM_SLOPES
+            if (IS_ON_SLOPE(col))
+            {
+                slope_on_y = TRUE;
+            }
+#endif
+
+            // if ((moving_right && (col & COLLISION_LEFT)) || (!moving_right && (col & COLLISION_RIGHT)))
+            if (col & hit_flag)
+            {
+#ifdef FEAT_PLATFORM_SLOPES
+                // Handle case when moving up a slope and top contains a solid collision
+                //   e.g.
+                //
+                //    /EX
+                //   /XXX
+                //
+                //  Tile `E` would block movement up slope without these checks
+                if (slope_on_y || tile_y_start == slope_y)
+                {
+                    // Slope in in same direction as movement
+                    if ((IS_ON_SLOPE(on_slope) && (IS_SLOPE_LEFT(on_slope) != moving_right)) ||
+                        (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) != moving_right)))
+                    {
+                        if (tile_y_start <= slope_y)
+                        {
+                            tile_y_start++;
+                            continue;
+                        }
+                    }
+                }
+                if (slope_on_y)
+                {
+                    // Slope is in opposite direction to movement
+                    if ((IS_ON_SLOPE(on_slope) && (IS_SLOPE_LEFT(on_slope) == moving_right)) ||
+                        (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) == moving_right)))
+                    {
+                        if (tile_y_start >= slope_y)
+                        {
+                            tile_y_start++;
+                            continue;
+                        }
+                    }
+                }
+#endif
+                if (moving_right)
+                {
+                    new_x = TILE_TO_SUBPX(tile_x) - bounds_edge - 1;
+                }
+                else
+                {
+                    new_x = TILE_TO_SUBPX(tile_x + 1) - bounds_edge + 1;
+                }
+
+                pl_vel_x = 0;
+                col = wall;
+                last_wall = wall;
+#ifdef FEAT_PLATFORM_WALL_JUMP
+                wc_val = plat_coyote_max + 1;
+#endif
+                break;
+            }
+            tile_y_start++;
+        }
+
         PLAYER.pos.x = new_x;
     }
 
