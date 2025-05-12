@@ -2014,7 +2014,6 @@ void move_and_collide(UBYTE mask) BANKED
         UWORD new_x = PLAYER.pos.x + deltaX;
 
         UBYTE tile_x = 0;
-        UBYTE col_mid = 0;
 
 #ifdef FEAT_PLATFORM_EDGE_LOCKING
         // Edge Locking
@@ -2073,10 +2072,11 @@ void move_and_collide(UBYTE mask) BANKED
 
         tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
         UBYTE tile_y = tile_y_end - 1;
-        UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
-        col_mid = tile_at(tile_x_mid, tile_y);
 
 #ifdef FEAT_PLATFORM_SLOPES
+        UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
+        UBYTE col_mid = tile_at(tile_x_mid, tile_y);
+
         if (IS_ON_SLOPE(col_mid))
         {
             on_slope = col_mid;
@@ -2163,7 +2163,6 @@ void move_and_collide(UBYTE mask) BANKED
         // FUNCTION Y COLLISION
         deltaY = CLAMP(deltaY, -127, 127);
 
-        // New Y Slopes 1
         UBYTE prev_grounded = grounded;
         UWORD old_y = PLAYER.pos.y;
         grounded = FALSE;
@@ -2171,8 +2170,9 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_SLOPES
         // 1 frame leniency of grounded state if we were on a slope last frame
         if (prev_on_slope)
+        {
             grounded = TRUE;
-// End New Y Slopes 1
+        }
 #endif
 
         UBYTE tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
@@ -2182,10 +2182,10 @@ void move_and_collide(UBYTE mask) BANKED
         {
             // Moving Downward
             WORD new_y = PLAYER.pos.y + deltaY;
+            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
 
 #ifdef FEAT_PLATFORM_SLOPES
             // New Slope Y 2
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
             UBYTE new_tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
             // If previously grounded and gravity is not enough to pull us down to
             // the next tile, manually check it for the next slope This prevents the
@@ -2335,6 +2335,7 @@ void move_and_collide(UBYTE mask) BANKED
             {
                 if (tile_at(tile_x_i, tile_y) & COLLISION_BOTTOM)
                 {
+                    // Hit the ceiling
                     new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_y + 1) - PLAYER.bounds.top) + 1;
                     pl_vel_y = 0;
                     // MP Test: Attempting stuff to stop the player from continuing
