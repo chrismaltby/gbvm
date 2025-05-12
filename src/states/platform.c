@@ -2177,6 +2177,7 @@ void move_and_collide(UBYTE mask) BANKED
 
         UBYTE tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
         UBYTE tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
+
         if (deltaY > 0)
         {
             // Moving Downward
@@ -2239,9 +2240,10 @@ void move_and_collide(UBYTE mask) BANKED
                     }
                     // If we are moving up a slope, check for top collision
                     UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + sp_bounds_top);
-                    while (tile_x_start != tile_x_end)
+                    UBYTE tile_x_i = tile_x_start;
+                    while (tile_x_i != tile_x_end)
                     {
-                        if (tile_at(tile_x_start, slope_top_tile_y) & COLLISION_BOTTOM)
+                        if (tile_at(tile_x_i, slope_top_tile_y) & COLLISION_BOTTOM)
                         {
                             pl_vel_y = 0;
                             pl_vel_x = 0;
@@ -2252,7 +2254,7 @@ void move_and_collide(UBYTE mask) BANKED
                             slope_y = tile_y;
                             goto gotoActorCol;
                         }
-                        tile_x_start++;
+                        tile_x_i++;
                     }
 
                     PLAYER.pos.y = slope_y_coord;
@@ -2273,30 +2275,29 @@ void move_and_collide(UBYTE mask) BANKED
 
 #endif
 
-            tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
-            tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
+            UBYTE tile_x_i = tile_x_start;
             tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
             if (nocollide == 0)
             {
                 // Check collisions from left to right with the bottom of the player
-                while (tile_x_start != tile_x_end)
+                while (tile_x_i != tile_x_end)
                 {
-                    if (tile_at(tile_x_start, tile_y) & COLLISION_TOP)
+                    if (tile_at(tile_x_i, tile_y) & COLLISION_TOP)
                     {
 #ifdef FEAT_PLATFORM_DROP_THROUGH
                         // Drop-Through Floor Check
                         if (drop_press())
                         {
                             // If it's a regular tile, do not drop through
-                            while (tile_x_start != tile_x_end)
+                            while (tile_x_i != tile_x_end)
                             {
-                                if (tile_at(tile_x_start, tile_y) & COLLISION_BOTTOM)
+                                if (tile_at(tile_x_i, tile_y) & COLLISION_BOTTOM)
                                 {
                                     // Escape two levels of looping.
                                     goto land;
                                 }
-                                tile_x_start++;
+                                tile_x_i++;
                             }
                             nocollide = 5; // Magic Number, how many frames to
                                            // steal vertical control
@@ -2319,7 +2320,7 @@ void move_and_collide(UBYTE mask) BANKED
                         que_state = GROUND_STATE;
                         break;
                     }
-                    tile_x_start++;
+                    tile_x_i++;
                 }
             }
             PLAYER.pos.y = new_y;
@@ -2328,10 +2329,11 @@ void move_and_collide(UBYTE mask) BANKED
         {
             // Moving Upward
             WORD new_y = PLAYER.pos.y + deltaY;
+            UBYTE tile_x_i = tile_x_start;
             UBYTE tile_y = SUBPX_TO_TILE(new_y + sp_bounds_top);
-            while (tile_x_start != tile_x_end)
+            while (tile_x_i != tile_x_end)
             {
-                if (tile_at(tile_x_start, tile_y) & COLLISION_BOTTOM)
+                if (tile_at(tile_x_i, tile_y) & COLLISION_BOTTOM)
                 {
                     new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_y + 1) - PLAYER.bounds.top) + 1;
                     pl_vel_y = 0;
@@ -2354,7 +2356,7 @@ void move_and_collide(UBYTE mask) BANKED
                     que_state = FALL_STATE;
                     break;
                 }
-                tile_x_start++;
+                tile_x_i++;
             }
             PLAYER.pos.y = new_y;
         }
