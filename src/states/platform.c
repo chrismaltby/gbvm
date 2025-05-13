@@ -2378,7 +2378,7 @@ gotoActorCol:
             {
                 if (!actor_attached || hit_actor != last_actor)
                 {
-                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom)) <
+                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom - 7)) <
                             (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
                         (pl_vel_y >= 0))
                     {
@@ -2449,7 +2449,7 @@ gotoActorCol:
             {
                 if (!actor_attached || hit_actor != last_actor)
                 {
-                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom)) <
+                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom - 7)) <
                             (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
                         (pl_vel_y >= 0))
                     {
