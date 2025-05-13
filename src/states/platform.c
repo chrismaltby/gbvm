@@ -291,8 +291,8 @@ UBYTE
 nocontrol_h;     // Turns off horizontal input, currently only for wall jumping
 UBYTE nocollide; // Turns off vertical collisions, currently only for dropping
                  // through platforms
-WORD deltaX;
-WORD deltaY;
+WORD delta_x;
+WORD delta_y;
 
 // COUNTER variables
 UBYTE ct_val;        // Coyote Time Variable
@@ -462,8 +462,8 @@ void platform_init(void) BANKED
     wj_val = plat_wall_jump_max;
     dash_end_clear = FALSE; // could also be mixed into the collision bitmask
     jump_type = JUMP_TYPE_NONE;
-    deltaX = 0;
-    deltaY = 0;
+    delta_x = 0;
+    delta_y = 0;
 }
 
 void platform_update(void) BANKED
@@ -695,14 +695,14 @@ void platform_update(void) BANKED
 
         // Collision ------------------------------------------------------
         // Vertical Collision Checks
-        deltaY += VEL_TO_SUBPX(pl_vel_y);
+        delta_y += VEL_TO_SUBPX(pl_vel_y);
         temp_y = PLAYER.pos.y;
 
         // Horizontal Movement --------------------------------------------
         if (nocontrol_h != 0 || plat_air_control == 0)
         {
             // No horizontal input
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
+            delta_x += VEL_TO_SUBPX(pl_vel_x);
         }
         else
         {
@@ -869,7 +869,7 @@ void platform_update(void) BANKED
             // Otherwise, add any change in movement from platform
             else
             {
-                deltaX += (last_actor->pos.x - mp_last_x);
+                delta_x += (last_actor->pos.x - mp_last_x);
                 mp_last_x = last_actor->pos.x;
             }
 
@@ -878,7 +878,7 @@ void platform_update(void) BANKED
             pl_vel_y = 0;
 
             // Add any change from the platform we're standing on
-            deltaY += last_actor->pos.y - mp_last_y;
+            delta_y += last_actor->pos.y - mp_last_y;
 
             // We're setting these to the platform's position, rather than
             // the actor so that if something causes the player to detach
@@ -905,7 +905,7 @@ void platform_update(void) BANKED
                                     // an If test in YCollision
         }
         // Add Collision Offset from Moving Platforms
-        deltaY += VEL_TO_SUBPX(pl_vel_y);
+        delta_y += VEL_TO_SUBPX(pl_vel_y);
 
         handle_horizontal_input();
         move_and_collide(COL_CHECK_ALL);
@@ -1026,14 +1026,14 @@ void platform_update(void) BANKED
 
         temp_y = PLAYER.pos.y;
         // Start DeltaX with Actor offsets
-        deltaY += VEL_TO_SUBPX(pl_vel_y);
+        delta_y += VEL_TO_SUBPX(pl_vel_y);
 
         // Horizontal Movement --------------------------------------------
         if (nocontrol_h != 0 || plat_air_control == 0)
         {
             // If the player doesn't have control of their horizontal
             // movement, skip acceleration phase
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
+            delta_x += VEL_TO_SUBPX(pl_vel_x);
         }
         else
         {
@@ -1310,14 +1310,14 @@ void platform_update(void) BANKED
 
             // Vertical Collisions
             temp_y = PLAYER.pos.y;
-            deltaY += VEL_TO_SUBPX(pl_vel_y);
-            deltaY = CLAMP(deltaY, -127, 127);
+            delta_y += VEL_TO_SUBPX(pl_vel_y);
+            delta_y = CLAMP(delta_y, -127, 127);
             UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
             UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
-            if (deltaY > 0)
+            if (delta_y > 0)
             {
                 // Moving Downward
-                WORD new_y = PLAYER.pos.y + deltaY;
+                WORD new_y = PLAYER.pos.y + delta_y;
                 UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.bottom);
                 while (tile_start != tile_end)
                 {
@@ -1336,10 +1336,10 @@ void platform_update(void) BANKED
                 }
                 PLAYER.pos.y = new_y;
             }
-            else if (deltaY < 0)
+            else if (delta_y < 0)
             {
                 // Moving Upward
-                WORD new_y = PLAYER.pos.y + deltaY;
+                WORD new_y = PLAYER.pos.y + delta_y;
                 UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_y) + PLAYER.bounds.top);
                 while (tile_start != tile_end)
                 {
@@ -1505,7 +1505,7 @@ void platform_update(void) BANKED
 
         // Collision ------------------------------------------------------
         // Vertical Collision Checks
-        deltaY += VEL_TO_SUBPX(pl_vel_y);
+        delta_y += VEL_TO_SUBPX(pl_vel_y);
         temp_y = PLAYER.pos.y;
 
         handle_horizontal_input();
@@ -1585,7 +1585,7 @@ void platform_update(void) BANKED
             pl_vel_x -= plat_air_dec;
             pl_vel_x = MAX(pl_vel_x, 0);
         }
-        deltaX += VEL_TO_SUBPX(pl_vel_x);
+        delta_x += VEL_TO_SUBPX(pl_vel_x);
 
         // Vertical Movement ----------------------------------------------
         // Normal gravity
@@ -1595,7 +1595,7 @@ void platform_update(void) BANKED
         // Collision ------------------------------------------------------
 
         // Vertical Collision Checks
-        deltaY += VEL_TO_SUBPX(pl_vel_y);
+        delta_y += VEL_TO_SUBPX(pl_vel_y);
         temp_y = PLAYER.pos.y;
 
         nocollide = 0;
@@ -1960,7 +1960,7 @@ void handle_horizontal_input(void) BANKED
         }
         // Restore velocity to original sign
         pl_vel_x = dir == 1 ? input_aligned_vel_x : input_aligned_vel_x * -1;
-        deltaX += VEL_TO_SUBPX(pl_vel_x);
+        delta_x += VEL_TO_SUBPX(pl_vel_x);
     }
     else // No Horizontal Input
     {
@@ -1981,7 +1981,7 @@ void handle_horizontal_input(void) BANKED
                 // Decelerate while moving right
                 pl_vel_x = MAX(pl_vel_x - dec, 0);
             }
-            deltaX += VEL_TO_SUBPX(pl_vel_x);
+            delta_x += VEL_TO_SUBPX(pl_vel_x);
         }
         run_stage = RUN_STAGE_NONE;
     }
@@ -2003,7 +2003,7 @@ void move_and_collide(UBYTE mask) BANKED
     // Horizontal Movement
     if (mask & COL_CHECK_X)
     {
-        deltaX = CLAMP(deltaX, -127, 127);
+        delta_x = CLAMP(delta_x, -127, 127);
 #ifdef FEAT_PLATFORM_SLOPES
         prev_on_slope = on_slope;
         on_slope = FALSE;
@@ -2012,7 +2012,7 @@ void move_and_collide(UBYTE mask) BANKED
 
         UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
         UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) + 1;
-        UWORD new_x = PLAYER.pos.x + deltaX;
+        UWORD new_x = PLAYER.pos.x + delta_x;
 
         UBYTE tile_x = 0;
 
@@ -2037,7 +2037,7 @@ void move_and_collide(UBYTE mask) BANKED
         }
         else if (new_x < PX_TO_SUBPX(*edge_left))
         {
-            if (deltaX < 0)
+            if (delta_x < 0)
             {
                 new_x = PLAYER.pos.x;
                 pl_vel_x = 0;
@@ -2162,7 +2162,7 @@ void move_and_collide(UBYTE mask) BANKED
     // Vertical Movement
     if (mask & COL_CHECK_Y)
     {
-        deltaY = CLAMP(deltaY, -127, 127);
+        delta_y = CLAMP(delta_y, -127, 127);
 
         UBYTE prev_grounded = grounded;
         UWORD old_y = PLAYER.pos.y;
@@ -2177,10 +2177,10 @@ void move_and_collide(UBYTE mask) BANKED
         UBYTE tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
         UBYTE tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
 
-        if (deltaY > 0)
+        if (delta_y > 0)
         {
             // Moving Downward
-            WORD new_y = PLAYER.pos.y + deltaY;
+            WORD new_y = PLAYER.pos.y + delta_y;
             UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
 
 #ifdef FEAT_PLATFORM_SLOPES
@@ -2324,10 +2324,10 @@ void move_and_collide(UBYTE mask) BANKED
             }
             PLAYER.pos.y = new_y;
         }
-        else if (deltaY < 0)
+        else if (delta_y < 0)
         {
             // Moving Upward
-            WORD new_y = PLAYER.pos.y + deltaY;
+            WORD new_y = PLAYER.pos.y + delta_y;
             UBYTE tile_x_i = tile_x_start;
             UBYTE tile_y = SUBPX_TO_TILE(new_y + sp_bounds_top);
             while (tile_x_i != tile_x_end)
@@ -2363,8 +2363,8 @@ void move_and_collide(UBYTE mask) BANKED
     }
 
 gotoActorCol:
-    deltaX = 0;
-    deltaY = 0;
+    delta_x = 0;
+    delta_y = 0;
 
     if (mask & COL_CHECK_ACTORS)
     {
@@ -2397,8 +2397,8 @@ gotoActorCol:
                     else if (temp_y + PX_TO_SUBPX(PLAYER.bounds.top) >
                              hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.bottom))
                     {
-                        deltaY += (hit_actor->pos.y - PLAYER.pos.y) +
-                                  PX_TO_SUBPX(-PLAYER.bounds.top + hit_actor->bounds.bottom) + 32;
+                        delta_y += (hit_actor->pos.y - PLAYER.pos.y) +
+                                   PX_TO_SUBPX(-PLAYER.bounds.top + hit_actor->bounds.bottom) + 32;
                         pl_vel_y = plat_grav;
 
                         if (que_state == JUMP_STATE || actor_attached)
@@ -2408,8 +2408,8 @@ gotoActorCol:
                     }
                     else if (PLAYER.pos.x < hit_actor->pos.x)
                     {
-                        deltaX = (hit_actor->pos.x - PLAYER.pos.x) -
-                                 PX_TO_SUBPX(PLAYER.bounds.right + -hit_actor->bounds.left);
+                        delta_x = (hit_actor->pos.x - PLAYER.pos.x) -
+                                  PX_TO_SUBPX(PLAYER.bounds.right + -hit_actor->bounds.left);
                         col = WALL_COL_RIGHT;
                         last_wall = WALL_COL_RIGHT;
                         wc_val = plat_coyote_max + 1;
@@ -2426,8 +2426,8 @@ gotoActorCol:
                     }
                     else if (PLAYER.pos.x > hit_actor->pos.x)
                     {
-                        deltaX = (hit_actor->pos.x - PLAYER.pos.x) +
-                                 PX_TO_SUBPX(-PLAYER.bounds.left + hit_actor->bounds.right) + 16;
+                        delta_x = (hit_actor->pos.x - PLAYER.pos.x) +
+                                  PX_TO_SUBPX(-PLAYER.bounds.left + hit_actor->bounds.right) + 16;
                         col = WALL_COL_LEFT;
                         last_wall = WALL_COL_LEFT;
                         wc_val = plat_coyote_max + 1;
