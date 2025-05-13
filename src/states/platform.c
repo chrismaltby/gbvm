@@ -542,7 +542,7 @@ void platform_update(void) BANKED
             break;
         }
         case GROUND_STATE: {
-            pl_vel_y = 256;
+            pl_vel_y = 0;
             jump_type = JUMP_TYPE_NONE;
 #ifdef FEAT_PLATFORM_WALL_JUMP
             wc_val = 0;
@@ -901,9 +901,11 @@ void platform_update(void) BANKED
             // Normal gravity
             pl_vel_y += plat_grav;
             temp_y = PLAYER.pos.y;
-            que_state = FALL_STATE; // Use this to test for Falling, avoids
-                                    // an If test in YCollision
+            // queue falling state which will be set back to ground
+            // if collision is detected in move_and_collide
+            que_state = FALL_STATE;
         }
+
         // Add Collision Offset from Moving Platforms
         delta_y += VEL_TO_SUBPX(pl_vel_y);
 
@@ -1329,7 +1331,7 @@ void platform_update(void) BANKED
                         actor_attached = FALSE; // Detach when MP moves
 // through a solid tile.
 #endif
-                        pl_vel_y = 256;
+                        pl_vel_y = 0;
                         break;
                     }
                     tile_start++;
@@ -1602,10 +1604,7 @@ void platform_update(void) BANKED
 
         move_and_collide(COL_CHECK_ALL);
 
-        if (que_state == GROUND_STATE)
-        {
-            pl_vel_y = 256;
-        }
+        pl_vel_y = 0;
         que_state = KNOCKBACK_STATE;
 
         break;
@@ -2259,10 +2258,6 @@ void move_and_collide(UBYTE mask) BANKED
                     PLAYER.pos.y = slope_y_coord;
                     pl_vel_y = 0;
                     grounded = TRUE;
-                    if (plat_state == GROUND_STATE)
-                    {
-                        pl_vel_y = 256;
-                    }
                     que_state = GROUND_STATE;
                     on_slope = col;
                     slope_y = tile_y;
@@ -2310,12 +2305,7 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_SOLID_ACTORS
                         actor_attached = FALSE; // Detach when MP moves through a solid tile.
 #endif
-                        // The distinction here is used so that we can check the
-                        // velocity when the player hits the ground.
-                        if (plat_state == GROUND_STATE)
-                        {
-                            pl_vel_y = 256;
-                        }
+                        pl_vel_y = 0;
                         que_state = GROUND_STATE;
                         break;
                     }
