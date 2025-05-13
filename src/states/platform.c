@@ -2362,30 +2362,30 @@ gotoActorCol:
         hit_actor = actor_overlapping_player(FALSE);
         if (hit_actor != NULL && hit_actor->collision_group)
         {
-            // Solid Actors
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
-            if (hit_actor->collision_group == plat_solid_group)
+            const UBYTE is_solid = hit_actor->collision_group == plat_solid_group;
+            const UBYTE is_platform = hit_actor->collision_group == plat_mp_group;
+
+            if ((is_solid || is_platform) && (!actor_attached || hit_actor != last_actor))
             {
-                if (!actor_attached || hit_actor != last_actor)
+                if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom - 7)) <
+                        (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
+                    (pl_vel_y >= 0))
                 {
-                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom - 7)) <
-                            (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
-                        (pl_vel_y >= 0))
-                    {
-                        // Attach to MP
-                        last_actor = hit_actor;
-                        mp_last_x = hit_actor->pos.x;
-                        mp_last_y = hit_actor->pos.y;
-                        PLAYER.pos.y = hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top) -
-                                       PX_TO_SUBPX(PLAYER.bounds.bottom) - 4;
-                        // Other cleanup
-                        pl_vel_y = 0;
-                        actor_attached = TRUE;
-                        que_state = GROUND_STATE;
-                        // PLAYER bounds top seems to be 0 and counting down...
-                    }
-                    else if (temp_y + PX_TO_SUBPX(PLAYER.bounds.top) >
-                             hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.bottom))
+                    // Attach to actor (solid or platform)
+                    last_actor = hit_actor;
+                    mp_last_x = hit_actor->pos.x;
+                    mp_last_y = hit_actor->pos.y;
+                    PLAYER.pos.y =
+                        hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top) - PX_TO_SUBPX(PLAYER.bounds.bottom) - 4;
+                    pl_vel_y = 0;
+                    actor_attached = TRUE;
+                    que_state = GROUND_STATE;
+                }
+                else if (is_solid)
+                {
+                    // Solid-only behavior (side/bottom collision)
+                    if (temp_y + PX_TO_SUBPX(PLAYER.bounds.top) >
+                        hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.bottom))
                     {
                         delta_y += (hit_actor->pos.y - PLAYER.pos.y) +
                                    PX_TO_SUBPX(-PLAYER.bounds.top + hit_actor->bounds.bottom) + 32;
@@ -2396,35 +2396,23 @@ gotoActorCol:
                             que_state = FALL_STATE;
                         }
                     }
-                    else if (PLAYER.pos.x < hit_actor->pos.x)
+                    else if (PLAYER.pos.x != hit_actor->pos.x)
                     {
-                        delta_x = (hit_actor->pos.x - PLAYER.pos.x) -
-                                  PX_TO_SUBPX(PLAYER.bounds.right + -hit_actor->bounds.left);
-                        col = WALL_COL_RIGHT;
-                        last_wall = WALL_COL_RIGHT;
-                        wc_val = plat_coyote_max + 1;
-                        if (!INPUT_RIGHT)
-                        {
-                            pl_vel_x = 0;
-                        }
-#ifdef FEAT_PLATFORM_DASH
-                        if (que_state == DASH_STATE)
-                        {
-                            que_state = FALL_STATE;
-                        }
-#endif
-                    }
-                    else if (PLAYER.pos.x > hit_actor->pos.x)
-                    {
+                        const UBYTE moving_right = PLAYER.pos.x < hit_actor->pos.x;
+
                         delta_x = (hit_actor->pos.x - PLAYER.pos.x) +
-                                  PX_TO_SUBPX(-PLAYER.bounds.left + hit_actor->bounds.right) + 16;
-                        col = WALL_COL_LEFT;
-                        last_wall = WALL_COL_LEFT;
+                                  (moving_right ? -PX_TO_SUBPX(PLAYER.bounds.right + -hit_actor->bounds.left)
+                                                : PX_TO_SUBPX(-PLAYER.bounds.left + hit_actor->bounds.right) + 16);
+
+                        col = moving_right ? WALL_COL_RIGHT : WALL_COL_LEFT;
+                        last_wall = col;
                         wc_val = plat_coyote_max + 1;
-                        if (!INPUT_LEFT)
+
+                        if ((moving_right && !INPUT_RIGHT) || (!moving_right && !INPUT_LEFT))
                         {
                             pl_vel_x = 0;
                         }
+
 #ifdef FEAT_PLATFORM_DASH
                         if (que_state == DASH_STATE)
                         {
@@ -2434,29 +2422,7 @@ gotoActorCol:
                     }
                 }
             }
-            // Platform Actors
-            else if (hit_actor->collision_group == plat_mp_group)
-            {
-                if (!actor_attached || hit_actor != last_actor)
-                {
-                    if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom - 7)) <
-                            (hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top)) &&
-                        (pl_vel_y >= 0))
-                    {
-                        // Attach to MP
-                        last_actor = hit_actor;
-                        mp_last_x = hit_actor->pos.x;
-                        mp_last_y = hit_actor->pos.y;
-                        PLAYER.pos.y = hit_actor->pos.y + PX_TO_SUBPX(hit_actor->bounds.top) -
-                                       PX_TO_SUBPX(PLAYER.bounds.bottom) - 4;
-                        // Other cleanup
-                        pl_vel_y = 0;
-                        actor_attached = TRUE;
-                        que_state = GROUND_STATE;
-                    }
-                }
-            }
-#endif
+
             // All Other Collisions
             player_register_collision_with(hit_actor);
         }
