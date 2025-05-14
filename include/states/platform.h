@@ -5,13 +5,6 @@
 
 void platform_init(void) BANKED;
 void platform_update(void) BANKED;
-void basic_anim(void) BANKED;
-void wall_check(void) BANKED;
-void ladder_check(void) BANKED;
-void dash_init_switch(void) BANKED;
-UBYTE drop_press(void) BANKED;
-void handle_horizontal_input(void) BANKED;
-void move_and_collide(UBYTE mask) BANKED;
 
 extern WORD pl_vel_x;
 extern WORD pl_vel_y;
