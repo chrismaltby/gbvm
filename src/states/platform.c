@@ -578,6 +578,9 @@ void platform_update(void) BANKED
 #endif
 #ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+            ct_val = plat_coyote_max;
+#endif
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
             dj_val = plat_extra_jumps;
 #endif
@@ -826,7 +829,7 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_COYOTE_TIME
         // Counting down Coyote Time Window
         // Set in ground and checked in fall state
-        if (ct_val != 0 && que_state != GROUND_STATE)
+        if (ct_val != 0)
         {
             ct_val -= 1;
         }
@@ -1166,7 +1169,7 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_JUMP
         // DASH -> JUMP Check
-        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || jb_val != 0) && (grounded || dj_val != 0))
+        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || jb_val != 0) && (grounded || dj_val != 0 || ct_val != 0))
         {
             if (nocollide == 0)
             {
