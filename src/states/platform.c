@@ -343,7 +343,6 @@ WORD pl_vel_y; // Tracks the player's y-velocity between frames
 // VARIABLES FOR CAMERAS
 WORD *edge_left;
 WORD *edge_right;
-WORD mod_image_right;
 WORD mod_image_left;
 
 // VARIABLES FOR EVENT PLUGINS
@@ -393,9 +392,9 @@ void platform_init(void) BANKED
     }
 
     // Initialize Camera Bounds
-#ifdef FEAT_PLATFORM_EDGE_LOCKING
-    mod_image_right = image_width - SCREEN_WIDTH;
     mod_image_left = 0;
+
+#ifdef FEAT_PLATFORM_EDGE_LOCKING
     if (plat_camera_block & 1)
     {
         edge_left = &scroll_x;
@@ -413,6 +412,9 @@ void platform_init(void) BANKED
     {
         edge_right = &image_width;
     }
+#else
+    edge_left = &mod_image_left;
+    edge_right = &image_width;
 #endif
 
     // Make sure jumping doesn't overflow variables
@@ -1820,7 +1822,6 @@ static void move_and_collide(UBYTE mask) BANKED
 
         UBYTE tile_x = 0;
 
-#ifdef FEAT_PLATFORM_EDGE_LOCKING
         // Edge Locking
         // If the player is past the right edge (camera or screen)
         if (new_x > PX_TO_SUBPX(*edge_right + SCREEN_WIDTH - 16))
@@ -1851,7 +1852,6 @@ static void move_and_collide(UBYTE mask) BANKED
                 new_x = PLAYER.pos.x + MIN(PX_TO_SUBPX(*edge_left + 8) - PLAYER.pos.x, 16);
             }
         }
-#endif
 
         if (!(mask & COL_CHECK_WALLS))
         {
