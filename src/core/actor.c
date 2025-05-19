@@ -370,7 +370,11 @@ void actors_handle_player_collision(void) BANKED {
         if (player_collision_actor->collision_group) {
             // Execute scene player hit scripts based on actor's collision group
             if (PLAYER.script.bank) {
-                script_execute(PLAYER.script.bank, PLAYER.script.ptr, 0, 1, (UWORD)(player_collision_actor->collision_group));
+                script_execute(
+                    PLAYER.script.bank,
+                    PLAYER.script.ptr, 0, 1,
+                    (UWORD)(player_collision_actor->collision_group & COLLISION_GROUP_MASK)
+                );
             }
             // Execute actor's onHit player script
             if (player_collision_actor->script.bank) {

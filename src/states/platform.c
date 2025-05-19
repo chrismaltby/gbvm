@@ -232,8 +232,6 @@ WORD plat_max_fall_vel;
 BYTE plat_camera_deadzone_x; // Camera deadzone
 UBYTE plat_camera_block;     // Limit the player's movement to the camera's edges
 UBYTE plat_drop_through;     // Drop-through control
-UBYTE plat_mp_group;         // Collision group for platform actors
-UBYTE plat_solid_group;      // Collision group for solid actors
 WORD plat_jump_min;          // Jump amount applied on the first frame of jumping
 UBYTE plat_hold_jump_max;    // Maximum number for frames for continuous input
 UBYTE plat_extra_jumps;      // Number of jumps while in the air
@@ -2169,8 +2167,8 @@ gotoActorCol:
         hit_actor = actor_overlapping_player(FALSE);
         if (hit_actor != NULL && hit_actor->collision_group)
         {
-            const UBYTE is_solid = hit_actor->collision_group == plat_solid_group;
-            const UBYTE is_platform = hit_actor->collision_group == plat_mp_group;
+            const UBYTE is_solid = hit_actor->collision_group & COLLISION_GROUP_FLAG_SOLID;
+            const UBYTE is_platform = hit_actor->collision_group & COLLISION_GROUP_FLAG_PLATFORM;
 
             if ((is_solid || is_platform) && (!actor_attached || hit_actor != last_actor))
             {
