@@ -2167,6 +2167,7 @@ gotoActorCol:
         hit_actor = actor_overlapping_player(FALSE);
         if (hit_actor != NULL && hit_actor->collision_group)
         {
+#ifdef FEAT_PLATFORM_SOLID_ACTORS
             const UBYTE is_solid = hit_actor->collision_group & COLLISION_GROUP_FLAG_SOLID;
             const UBYTE is_platform = hit_actor->collision_group & COLLISION_GROUP_FLAG_PLATFORM;
 
@@ -2230,6 +2231,7 @@ gotoActorCol:
                     }
                 }
             }
+#endif
 
             // All Other Collisions
             player_register_collision_with(hit_actor);
