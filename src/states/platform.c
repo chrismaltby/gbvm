@@ -169,6 +169,14 @@ caught mid-way on the next one.
 #define COL_CHECK_TRIGGERS 0x8
 #define COL_CHECK_WALLS 0x10
 
+#define CAMERA_LOCK_SCREEN_LEFT 0x1
+#define CAMERA_LOCK_SCREEN_RIGHT 0x2
+
+#define DROP_THRU_INPUT_DOWN_HOLD 0x1
+#define DROP_THRU_INPUT_DOWN_TAP 0x2
+#define DROP_THRU_INPUT_DOWN_JUMP_HOLD 0x3
+#define DROP_THRU_INPUT_DOWN_JUMP_TAP 0x4
+
 #define COL_CHECK_ALL COL_CHECK_X | COL_CHECK_Y | COL_CHECK_ACTORS | COL_CHECK_TRIGGERS | COL_CHECK_WALLS
 
 #ifndef COLLISION_LADDER
@@ -393,7 +401,7 @@ void platform_init(void) BANKED
     mod_image_left = 0;
 
 #ifdef FEAT_PLATFORM_EDGE_LOCKING
-    if (plat_camera_block & 1)
+    if (plat_camera_block & CAMERA_LOCK_SCREEN_LEFT)
     {
         edge_left = &scroll_x;
     }
@@ -401,8 +409,7 @@ void platform_init(void) BANKED
     {
         edge_left = &mod_image_left;
     }
-
-    if (plat_camera_block & 2)
+    if (plat_camera_block & CAMERA_LOCK_SCREEN_RIGHT)
     {
         edge_right = &scroll_x;
     }
@@ -1638,32 +1645,16 @@ static UBYTE drop_press(void) BANKED
 {
     switch (plat_drop_through)
     {
-    case 1:
-        if (INPUT_DOWN)
-        {
-            return 1;
-        }
-        return 0;
-    case 2:
-        if (INPUT_PRESSED(INPUT_DOWN))
-        {
-            return 1;
-        }
-        return 0;
-    case 3:
-        if (INPUT_DOWN && INPUT_PLATFORM_JUMP)
-        {
-            return 1;
-        }
-        return 0;
-    case 4:
-        if ((INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP)))
-        {
-            return 1;
-        }
-        return 0;
+    case DROP_THRU_INPUT_DOWN_HOLD:
+        return INPUT_DOWN;
+    case DROP_THRU_INPUT_DOWN_TAP:
+        return INPUT_PRESSED(INPUT_DOWN);
+    case DROP_THRU_INPUT_DOWN_JUMP_HOLD:
+        return INPUT_DOWN && INPUT_PLATFORM_JUMP;
+    case DROP_THRU_INPUT_DOWN_JUMP_TAP:
+        return (INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP));
     }
-    return 0;
+    return FALSE;
 }
 #endif
 
