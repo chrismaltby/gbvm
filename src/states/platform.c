@@ -1148,6 +1148,12 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_DASH
     case DASH_STATE: {
 
+        if (!dash_end_clear)
+        {
+            que_state = FALL_STATE;
+            break;
+        }
+
         BYTE dir = (PLAYER.dir == DIR_LEFT ? -1 : 1);
         WORD remaining_dash_dist = dash_dist;
 
@@ -1530,11 +1536,12 @@ static void dash_init_switch(void) BANKED
         new_x = PLAYER.pos.x + (-dash_dist * plat_dash_frames);
     }
 
+    dash_end_clear = true; // Assume that the landing spot is clear, and
+                           // disable if we collide below
+
     // Dash through walls
     if (plat_dash_through == DASH_THRU_ACTORS_TRIGGERS_WALLS && plat_dash_momentum < 2)
     {
-        dash_end_clear = true; // Assume that the landing spot is clear, and
-                               // disable if we collide below
         UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
         UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
 
