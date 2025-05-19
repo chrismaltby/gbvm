@@ -247,14 +247,12 @@ UBYTE plat_run_boost;        // Additional jump height based on horizontal speed
 UBYTE plat_dash;             // Choice of input for dashing:
                              // double-tap, interact, or down and interact
 UBYTE plat_dash_style;       // Ground, air, or both
-UBYTE plat_dash_momentum;    // Applies horizontal momentum or vertical momentum,
-                             // neither or both
-UBYTE plat_dash_through;     // Choose if the player can dash through actors,
+UBYTE plat_dash_use_grav;    // Applies gravity during a dash
+UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
                              // triggers, and walls
-UBYTE plat_dash_mask;
-WORD plat_dash_dist;       // Distance of the dash
-UBYTE plat_dash_frames;    // Number of frames for dashing
-UBYTE plat_dash_ready_max; // Time before the player can dash again
+WORD plat_dash_dist;         // Distance of the dash
+UBYTE plat_dash_frames;      // Number of frames for dashing
+UBYTE plat_dash_ready_max;   // Time before the player can dash again
 UBYTE plat_dash_deadzone;
 
 enum pStates
@@ -1158,7 +1156,7 @@ void platform_update(void) BANKED
         WORD remaining_dash_dist = dash_dist;
 
         pl_vel_x = plat_run_vel * dir;
-        delta_y = (plat_dash_momentum >= 2) ? VEL_TO_SUBPX(plat_grav) : -1;
+        delta_y = plat_dash_use_grav ? VEL_TO_SUBPX(plat_grav) : -1;
 
         while (remaining_dash_dist)
         {
@@ -1540,8 +1538,13 @@ static void dash_init_switch(void) BANKED
                            // disable if we collide below
 
     // Dash through walls
-    if (plat_dash_through == DASH_THRU_ACTORS_TRIGGERS_WALLS && plat_dash_momentum < 2)
+    if ((plat_dash_mask & COL_CHECK_WALLS) == 0)
     {
+        if (plat_dash_use_grav)
+        {
+            dash_end_clear = false;
+        }
+
         UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
         UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
 
@@ -1616,7 +1619,7 @@ initDash:
 #endif
     camera_deadzone_x = plat_dash_deadzone;
     dash_ready_val = plat_dash_ready_max + plat_dash_frames;
-    if (plat_dash_momentum < 2)
+    if (!plat_dash_use_grav)
     {
         pl_vel_y = 0;
     }
@@ -1626,22 +1629,7 @@ initDash:
     run_stage = RUN_STAGE_NONE;
     que_state = DASH_STATE;
 
-    if (plat_dash_through == DASH_THRU_ACTORS_TRIGGERS_WALLS)
-    {
-        plat_dash_mask = COL_CHECK_X | COL_CHECK_Y;
-    }
-    else if (plat_dash_through == DASH_THRU_ACTORS_TRIGGERS)
-    {
-        plat_dash_mask = COL_CHECK_X | COL_CHECK_Y | COL_CHECK_WALLS;
-    }
-    else if (plat_dash_through == DASH_THRU_ACTORS)
-    {
-        plat_dash_mask = COL_CHECK_X | COL_CHECK_Y | COL_CHECK_TRIGGERS | COL_CHECK_WALLS;
-    }
-    else
-    {
-        plat_dash_mask = COL_CHECK_ALL;
-    }
+    plat_dash_mask |= COL_CHECK_X | COL_CHECK_Y;
 }
 #endif
 
