@@ -2137,10 +2137,11 @@ gotoActorCol:
         if (hit_actor != NULL && hit_actor->collision_group)
         {
 #ifdef FEAT_PLATFORM_SOLID_ACTORS
-            const UBYTE is_solid = hit_actor->collision_group & COLLISION_GROUP_FLAG_SOLID;
-            const UBYTE is_platform = hit_actor->collision_group & COLLISION_GROUP_FLAG_PLATFORM;
+            const UBYTE is_platform =
+                hit_actor->collision_group & (COLLISION_GROUP_FLAG_PLATFORM | COLLISION_GROUP_FLAG_SOLID);
+            const UBYTE is_solid = is_platform & COLLISION_GROUP_FLAG_SOLID;
 
-            if ((is_solid || is_platform) && (!actor_attached || hit_actor != last_actor))
+            if (is_platform && (!actor_attached || hit_actor != last_actor))
             {
                 if (!is_solid && (drop_frames != 0))
                 {
