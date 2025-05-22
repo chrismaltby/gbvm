@@ -175,6 +175,10 @@ caught mid-way on the next one.
 #define DROP_THRU_INPUT_DOWN_JUMP_HOLD 0x3
 #define DROP_THRU_INPUT_DOWN_JUMP_TAP 0x4
 
+#define DASH_FROM_GROUND 0x1
+#define DASH_FROM_AIR 0x2
+#define DASH_FROM_LADDER 0x3
+
 #define DROP_FRAMES_MAX 15
 
 #define COL_CHECK_ALL COL_CHECK_X | COL_CHECK_Y | COL_CHECK_ACTORS | COL_CHECK_TRIGGERS | COL_CHECK_WALLS
@@ -252,7 +256,7 @@ WORD plat_turn_acc;          // Speed with which a character turns
 UBYTE plat_run_boost;        // Additional jump height based on horizontal speed
 UBYTE plat_dash;             // Choice of input for dashing:
                              // double-tap, interact, or down and interact
-UBYTE plat_dash_style;       // Ground, air, or both
+UBYTE plat_dash_from;        // Ground, air, ladders flags
 UBYTE plat_dash_use_grav;    // Applies gravity during a dash
 UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
                              // triggers, and walls
@@ -743,7 +747,7 @@ void platform_update(void) BANKED
         // FALL -> DASH check
         if (dash_press && dash_ready_val == 0)
         {
-            if (plat_dash_style != 0)
+            if (plat_dash_from & DASH_FROM_AIR)
             {
                 if (col == WALL_COL_NONE || (col == WALL_COL_RIGHT && !INPUT_RIGHT) ||
                     (col == WALL_COL_LEFT && !INPUT_LEFT))
@@ -751,11 +755,6 @@ void platform_update(void) BANKED
                     que_state = DASH_STATE;
                     break;
                 }
-            }
-            else if (que_state == GROUND_STATE && plat_dash_style != 1)
-            {
-                que_state = DASH_STATE;
-                break;
             }
         }
 #endif
@@ -948,7 +947,7 @@ void platform_update(void) BANKED
         // STATE CHANGE: Above, basic_y_col can shift to
         // FALL_STATE.--------------------------------------------------
         // GROUND -> DASH Check
-        if (dash_press && plat_dash_style != 1 && dash_ready_val == 0)
+        if (dash_press && (plat_dash_from & DASH_FROM_GROUND) && dash_ready_val == 0)
         {
             que_state = DASH_STATE;
             break;
@@ -1064,9 +1063,9 @@ void platform_update(void) BANKED
         if (dash_press && dash_ready_val == 0)
         {
 #ifdef FEAT_PLATFORM_COYOTE_TIME
-            if (plat_dash_style != 0 || ct_val != 0)
+            if ((plat_dash_from & DASH_FROM_AIR) || ct_val != 0)
 #else
-            if (plat_dash_style != 0)
+            if ((plat_dash_from & DASH_FROM_AIR))
 #endif
             {
                 que_state = DASH_STATE;
@@ -1178,14 +1177,42 @@ void platform_update(void) BANKED
         pl_vel_x = 0;
         pl_vel_y = 0;
 
+#if defined(FEAT_PLATFORM_DASH)
+        // LADDER -> DASH Check
+        if (dash_press && (plat_dash_from & DASH_FROM_LADDER) && dash_ready_val == 0)
+        {
+            que_state = DASH_STATE;
+
+            UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
+            UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+            UBYTE tile_x = tile_x_mid + (PLAYER.dir == DIR_LEFT ? -1 : 1);
+            UBYTE tile_edge = (PLAYER.dir == DIR_LEFT ? COLLISION_RIGHT : COLLISION_LEFT);
+
+            while (tile_start != tile_end)
+            {
+                UBYTE tile = tile_at(tile_x, tile_start);
+                if (tile & tile_edge)
+                {
+                    que_state = LADDER_STATE; // If there is a wall, cancel dash.
+                    break;
+                }
+                tile_start++;
+            }
+
+            break;
+        }
+#endif
+
+#if defined(FEAT_PLATFORM_JUMP) && defined(FEAT_PLATFORM_LADDERS_DROP)
         // LADDER -> FALL check
         if (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))
         {
             que_state = FALL_STATE;
             break;
         }
+#endif
 
-#ifdef FEAT_PLATFORM_JUMP
+#if defined(FEAT_PLATFORM_JUMP) && defined(FEAT_PLATFORM_LADDERS_JUMP)
         // LADDER -> JUMP check
         if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
         {
@@ -1199,26 +1226,53 @@ void platform_update(void) BANKED
         {
             // Climb laddder
             UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
-            // Check if the tile above the player is a ladder tile. If so add ladder
-            // velocity
+            // Check if the tile above the player is a ladder tile. If so add ladder velocity
             if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
             {
                 pl_vel_y = -plat_climb_vel;
+            }
+            // If reached the top of ladder and tile just below can be stood on then let go of ladder
+            else if (tile_at(tile_x_mid, PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1) &
+                     COLLISION_TOP)
+            {
+                que_state = FALL_STATE;
             }
         }
         else if (INPUT_DOWN)
         {
             // Descend ladder
             UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom + 1);
-            if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
+            UBYTE tile = tile_at(tile_x_mid, tile_y);
+            // If tile below is still a ladder climb down
+            if (IS_LADDER(tile))
             {
                 pl_vel_y = plat_climb_vel;
             }
+            // If reached bottom of ladder then let go
+            else if (tile & COLLISION_TOP)
+            {
+                que_state = FALL_STATE;
+            }
         }
-        else if (INPUT_LEFT)
+
+        if (INPUT_LEFT)
         {
-            que_state = FALL_STATE; // Assume we're going to leave the ladder state,
-            // Check if able to leave ladder on left
+            PLAYER.dir = DIR_LEFT;
+
+            // If tile below player can be stood on then let go of ladder
+            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+            UBYTE tile = tile_at(tile_x_mid, tile_y);
+            if (tile & COLLISION_TOP)
+            {
+                pl_vel_x = 0;
+                que_state = FALL_STATE;
+                break;
+            }
+
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+            que_state = FALL_STATE;
+#endif
+
             UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
             UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
             while (tile_start != tile_end)
@@ -1226,21 +1280,40 @@ void platform_update(void) BANKED
                 UBYTE tile = tile_at(tile_x_mid - 1, tile_start);
                 if (IS_LADDER(tile))
                 {
-                    que_state = LADDER_STATE; // If there is a wall, stay on the ladder.
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+                    que_state = LADDER_STATE; // If there is a ladder, stay on the ladder.
+#endif
                     pl_vel_x = -plat_climb_vel;
                     break;
                 }
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
                 else if (tile & COLLISION_RIGHT)
                 {
                     que_state = LADDER_STATE; // If there is a wall, stay on the ladder.
                     break;
                 }
+#endif
                 tile_start++;
             }
         }
         else if (INPUT_RIGHT)
         {
+            PLAYER.dir = DIR_RIGHT;
+
+            // If tile below player can be stood on then let go of ladder
+            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+            UBYTE tile = tile_at(tile_x_mid, tile_y);
+            if (tile & COLLISION_TOP)
+            {
+                pl_vel_x = 0;
+                que_state = FALL_STATE;
+                break;
+            }
+
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
             que_state = FALL_STATE;
+#endif
+
             // Check if able to leave ladder on right
             UBYTE tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
             UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
@@ -1249,15 +1322,19 @@ void platform_update(void) BANKED
                 UBYTE tile = tile_at(tile_x_mid + 1, tile_start);
                 if (IS_LADDER(tile))
                 {
-                    que_state = LADDER_STATE; // If there is a wall, stay on the ladder.
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+                    que_state = LADDER_STATE; // If there is a ladder, stay on the ladder.
+#endif
                     pl_vel_x = plat_climb_vel;
                     break;
                 }
-                if (tile & COLLISION_LEFT)
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+                else if (tile & COLLISION_LEFT)
                 {
                     que_state = LADDER_STATE;
                     break;
                 }
+#endif
                 tile_start++;
             }
         }
@@ -1273,13 +1350,6 @@ void platform_update(void) BANKED
 
         // State Change------------------------------------------------------------
         // Collision logic provides options for exiting to Neutral
-
-        // Above is the default GBStudio setup. However it seems worth adding a
-        // jump-from-ladder option, at the very least to drop down.
-        if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
-        {
-            que_state = FALL_STATE;
-        }
 
         move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
 
@@ -1334,7 +1404,7 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_DASH
         // WALL -> DASH Check
-        if (dash_press && plat_dash_style != 0 && dash_ready_val == 0)
+        if (dash_press && (plat_dash_from & DASH_FROM_AIR) && dash_ready_val == 0)
         {
             if ((col == WALL_COL_RIGHT && !INPUT_RIGHT) || (col == WALL_COL_LEFT && !INPUT_LEFT))
             {
