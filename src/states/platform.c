@@ -113,7 +113,6 @@ caught mid-way on the next one.
 // #define FEAT_PLATFORM_KNOCKBACK
 // #define FEAT_PLATFORM_LADDERS
 // #define FEAT_PLATFORM_SLOPES
-// #define FEAT_PLATFORM_SOLID_ACTORS
 // #define FEAT_PLATFORM_WALL_JUMP
 
 #ifndef INPUT_PLATFORM_JUMP
@@ -447,10 +446,7 @@ void platform_init(void) BANKED
     // Initialize State
     plat_state = GROUND_STATE;
     que_state = GROUND_STATE;
-
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
     actor_attached = FALSE;
-#endif
     run_stage = RUN_STAGE_NONE;
     nocontrol_h = 0;
 
@@ -528,9 +524,7 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
             actor_attached = FALSE;
-#endif
             state_events_execute(FALL_INIT);
             break;
         }
@@ -540,9 +534,7 @@ void platform_update(void) BANKED
             // INPUT_PLATFORM_JUMP But if the player switches to this state
             // without pressing jump, then these won't fire...
             hold_jump_val = plat_hold_jump_max;
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
             actor_attached = FALSE;
-#endif
             pl_vel_y = -plat_jump_min;
             jb_val = 0;
 #ifdef FEAT_PLATFORM_COYOTE_TIME
@@ -868,7 +860,6 @@ void platform_update(void) BANKED
         }
 #endif
 
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
         if (actor_attached)
         {
             // If the platform has been disabled, detach the player
@@ -915,17 +906,14 @@ void platform_update(void) BANKED
         }
         else
         {
-#endif
+
             // Normal gravity
             pl_vel_y += plat_grav;
             temp_y = PLAYER.pos.y;
             // queue falling state which will be set back to ground
             // if collision is detected in move_and_collide
             que_state = FALL_STATE;
-
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
         }
-#endif
 
         // Add Collision Offset from Moving Platforms
         delta_y += VEL_TO_SUBPX(pl_vel_y);
@@ -1592,9 +1580,7 @@ static void dash_init_switch(void) BANKED
         }
     }
 initDash:
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
     actor_attached = FALSE;
-#endif
     camera_deadzone_x = plat_dash_deadzone;
     dash_ready_val = plat_dash_ready_max + plat_dash_frames;
     if (!plat_dash_use_grav)
@@ -2070,9 +2056,7 @@ static void move_and_collide(UBYTE mask) BANKED
                     }
 #endif
                     new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
                     actor_attached = FALSE; // Detach when MP moves through a solid tile.
-#endif
                     pl_vel_y = 0;
 #ifdef FEAT_PLATFORM_DROP_THROUGH
                     drop_frames = 0;
@@ -2103,7 +2087,6 @@ static void move_and_collide(UBYTE mask) BANKED
                     pl_vel_y = 0;
                     // MP Test: Attempting stuff to stop the player from continuing
                     // upward
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
                     if (actor_attached)
                     {
                         temp_y = last_actor->pos.y;
@@ -2113,7 +2096,6 @@ static void move_and_collide(UBYTE mask) BANKED
                         }
                         new_y = temp_y;
                     }
-#endif
 #ifdef FEAT_PLATFORM_COYOTE_TIME
                     ct_val = 0;
 #endif
@@ -2136,7 +2118,6 @@ gotoActorCol:
         hit_actor = actor_overlapping_player(FALSE);
         if (hit_actor != NULL && hit_actor->collision_group)
         {
-#ifdef FEAT_PLATFORM_SOLID_ACTORS
             const UBYTE is_platform =
                 hit_actor->collision_group & (COLLISION_GROUP_FLAG_PLATFORM | COLLISION_GROUP_FLAG_SOLID);
             const UBYTE is_solid = is_platform & COLLISION_GROUP_FLAG_SOLID;
@@ -2207,7 +2188,6 @@ gotoActorCol:
                     }
                 }
             }
-#endif
 
             // All Other Collisions
             player_register_collision_with(hit_actor);
