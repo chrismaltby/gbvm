@@ -115,7 +115,6 @@ caught mid-way on the next one.
 // #define FEAT_PLATFORM_SLOPES
 // #define FEAT_PLATFORM_SOLID_ACTORS
 // #define FEAT_PLATFORM_WALL_JUMP
-// #define FEAT_PLATFORM_EDGE_LOCKING
 
 #ifndef INPUT_PLATFORM_JUMP
 #define INPUT_PLATFORM_JUMP INPUT_A
@@ -398,7 +397,6 @@ void platform_init(void) BANKED
     // Initialize Camera Bounds
     mod_image_left = 0;
 
-#ifdef FEAT_PLATFORM_EDGE_LOCKING
     if (plat_camera_block & CAMERA_LOCK_SCREEN_LEFT)
     {
         edge_left = &scroll_x;
@@ -415,10 +413,6 @@ void platform_init(void) BANKED
     {
         edge_right = &image_width;
     }
-#else
-    edge_left = &mod_image_left;
-    edge_right = &image_width;
-#endif
 
     // Make sure jumping doesn't overflow variables
     // First, check for jumping based on Frames and Initial Jump Min
