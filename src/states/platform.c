@@ -1175,6 +1175,7 @@ void platform_update(void) BANKED
         // For positioning the player in the middle of the ladder
         UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
         UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
+        pl_vel_x = 0;
         pl_vel_y = 0;
         if (INPUT_UP)
         {
@@ -1204,7 +1205,14 @@ void platform_update(void) BANKED
             UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
             while (tile_start != tile_end)
             {
-                if (tile_at(tile_x_mid - 1, tile_start) & COLLISION_RIGHT)
+                UBYTE tile = tile_at(tile_x_mid - 1, tile_start);
+                if (IS_LADDER(tile))
+                {
+                    que_state = LADDER_STATE; // If there is a wall, stay on the ladder.
+                    pl_vel_x = -plat_climb_vel;
+                    break;
+                }
+                else if (tile & COLLISION_RIGHT)
                 {
                     que_state = LADDER_STATE; // If there is a wall, stay on the ladder.
                     break;
@@ -1220,7 +1228,14 @@ void platform_update(void) BANKED
             UBYTE tile_end = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
             while (tile_start != tile_end)
             {
-                if (tile_at(tile_x_mid + 1, tile_start) & COLLISION_LEFT)
+                UBYTE tile = tile_at(tile_x_mid + 1, tile_start);
+                if (IS_LADDER(tile))
+                {
+                    que_state = LADDER_STATE; // If there is a wall, stay on the ladder.
+                    pl_vel_x = plat_climb_vel;
+                    break;
+                }
+                if (tile & COLLISION_LEFT)
                 {
                     que_state = LADDER_STATE;
                     break;
@@ -1228,11 +1243,12 @@ void platform_update(void) BANKED
                 tile_start++;
             }
         }
+        PLAYER.pos.x += VEL_TO_SUBPX(pl_vel_x);
         PLAYER.pos.y += VEL_TO_SUBPX(pl_vel_y);
 
         // Animation---------------------------------------------------------------
         actor_set_anim(&PLAYER, ANIM_CLIMB);
-        if (pl_vel_y == 0)
+        if (pl_vel_x == 0 && pl_vel_y == 0)
         {
             actor_stop_anim(&PLAYER);
         }
@@ -1468,7 +1484,6 @@ void ladder_check(void) BANKED
         {
             PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 4 - (PLAYER.bounds.left + p_half_width));
             que_state = LADDER_STATE;
-            pl_vel_x = 0;
         }
     }
 }
