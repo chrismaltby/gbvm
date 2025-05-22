@@ -1177,6 +1177,24 @@ void platform_update(void) BANKED
         UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
         pl_vel_x = 0;
         pl_vel_y = 0;
+
+        // LADDER -> FALL check
+        if (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+        {
+            que_state = FALL_STATE;
+            break;
+        }
+
+#ifdef FEAT_PLATFORM_JUMP
+        // LADDER -> JUMP check
+        if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+        {
+            jump_type = JUMP_TYPE_GROUND;
+            que_state = JUMP_STATE;
+            break;
+        }
+#endif
+
         if (INPUT_UP)
         {
             // Climb laddder
@@ -1475,7 +1493,7 @@ void wall_check(void) BANKED
 void ladder_check(void) BANKED
 {
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
-    if (INPUT_UP || INPUT_DOWN)
+    if ((INPUT_UP_PRESSED || INPUT_DOWN_PRESSED) && !INPUT_PLATFORM_JUMP)
     {
         // Grab upwards ladder
         UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
