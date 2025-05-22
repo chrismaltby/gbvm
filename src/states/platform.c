@@ -535,7 +535,7 @@ void platform_update(void) BANKED
             // without pressing jump, then these won't fire...
             hold_jump_val = plat_hold_jump_max;
             actor_attached = FALSE;
-            pl_vel_y = -plat_jump_min;
+            pl_vel_y = MIN(-plat_jump_min, pl_vel_y);
             jb_val = 0;
 #ifdef FEAT_PLATFORM_COYOTE_TIME
             ct_val = 0;
