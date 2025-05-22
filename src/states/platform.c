@@ -1253,6 +1253,12 @@ void platform_update(void) BANKED
             {
                 que_state = FALL_STATE;
             }
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+            else
+            {
+                que_state = FALL_STATE; // Reached bottom of ladder with no platform below so fall off
+            }
+#endif
         }
 
         if (INPUT_LEFT)
