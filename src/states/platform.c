@@ -85,7 +85,7 @@ BUGS:
  - When the player is on a moving platform and is hit by another one, they get
 caught mid-way on the next one.
 */
-#pragma bank 3
+#pragma bank 255
 
 #include "states/platform.h"
 
@@ -361,13 +361,13 @@ UBYTE slope_y;
 
 WORD temp_y = 0;
 
-static void basic_anim(void) BANKED;
-static void wall_check(void) BANKED;
-static void ladder_check(void) BANKED;
-static void dash_init_switch(void) BANKED;
-static UBYTE drop_press(void) BANKED;
-static void handle_horizontal_input(void) BANKED;
-static void move_and_collide(UBYTE mask) BANKED;
+void basic_anim(void) BANKED;
+void wall_check(void) BANKED;
+void ladder_check(void) BANKED;
+void dash_init_switch(void) BANKED;
+UBYTE drop_press(void) BANKED;
+void handle_horizontal_input(void) BANKED;
+void move_and_collide(UBYTE mask) BANKED;
 
 void platform_init(void) BANKED
 {
@@ -1406,7 +1406,7 @@ void platform_update(void) BANKED
     }
 }
 
-static void basic_anim(void) BANKED
+void basic_anim(void) BANKED
 {
     // This animation is currently shared by jumping, dashing, and falling.
     // Dashing doesn't need this complexity though. Here velocity overrides
@@ -1442,7 +1442,7 @@ static void basic_anim(void) BANKED
 }
 
 #ifdef FEAT_PLATFORM_WALL_JUMP
-static void wall_check(void) BANKED
+void wall_check(void) BANKED
 {
     if (col != 0 && plat_wall_slide)
     {
@@ -1456,7 +1456,7 @@ static void wall_check(void) BANKED
 #endif
 
 #ifdef FEAT_PLATFORM_LADDERS
-static void ladder_check(void) BANKED
+void ladder_check(void) BANKED
 {
     UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
     if (INPUT_UP || INPUT_DOWN)
@@ -1475,7 +1475,7 @@ static void ladder_check(void) BANKED
 #endif
 
 #ifdef FEAT_PLATFORM_DASH
-static void dash_init_switch(void) BANKED
+void dash_init_switch(void) BANKED
 {
     WORD new_x;
     // If the player is pressing a direction (but not facing a direction, ie on
@@ -1598,7 +1598,7 @@ initDash:
 #endif
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
-static UBYTE drop_press(void) BANKED
+UBYTE drop_press(void) BANKED
 {
     switch (plat_drop_through)
     {
@@ -1615,7 +1615,7 @@ static UBYTE drop_press(void) BANKED
 }
 #endif
 
-static void handle_horizontal_input(void) BANKED
+void handle_horizontal_input(void) BANKED
 {
     if (INPUT_LEFT || INPUT_RIGHT)
     {
@@ -1736,7 +1736,7 @@ static void handle_horizontal_input(void) BANKED
     }
 }
 
-static void move_and_collide(UBYTE mask) BANKED
+void move_and_collide(UBYTE mask) BANKED
 {
     const WORD sp_bounds_top = PX_TO_SUBPX(PLAYER.bounds.top);
     const WORD sp_bounds_bottom = PX_TO_SUBPX(PLAYER.bounds.bottom);
