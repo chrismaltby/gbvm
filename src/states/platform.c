@@ -222,6 +222,19 @@ caught mid-way on the next one.
     ((plat_float_input == FLOAT_INPUT_HOLD_JUMP && INPUT_PLATFORM_JUMP) ||                                             \
      (plat_float_input == FLOAT_INPUT_HOLD_UP && INPUT_UP))
 
+#define COUNTER_DECREMENT(x)                                                                                           \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if ((x) != 0)                                                                                                  \
+            (x)--;                                                                                                     \
+    } while (0)
+#define COUNTER_DECREMENT_IF(x, cond)                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if ((x) != 0 && (cond))                                                                                        \
+            (x)--;                                                                                                     \
+    } while (0)
+
 // DEFAULT ENGINE VARIABLES
 WORD plat_min_vel;
 WORD plat_walk_vel;
@@ -839,33 +852,21 @@ void platform_update(void) BANKED
         // COUNTERS
         //  Counting down Jump Buffer Window
         //  Set in Fall and checked in Ground state
-        if (jb_val != 0)
-        {
-            jb_val -= 1;
-        }
+        COUNTER_DECREMENT(jb_val);
 
         // Counting down No Control frames
         // Set in Wall and Fall states, checked in Fall and Jump states
-        if (nocontrol_h != 0)
-        {
-            nocontrol_h -= 1;
-        }
+        COUNTER_DECREMENT(nocontrol_h);
 
 #ifdef FEAT_PLATFORM_COYOTE_TIME
         // Counting down Coyote Time Window
         // Set in ground and checked in fall state
-        if (ct_val != 0)
-        {
-            ct_val -= 1;
-        }
+        COUNTER_DECREMENT(ct_val);
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
         // Counting down Wall Coyote Time
         //  Set in collisions and checked in fall state
-        if (wc_val != 0 && col == WALL_COL_NONE)
-        {
-            wc_val -= 1;
-        }
+        COUNTER_DECREMENT_IF(wc_val, col == WALL_COL_NONE);
 #endif
 
         break;
@@ -1140,10 +1141,7 @@ void platform_update(void) BANKED
 
         // Counting down No Control frames
         // Set in Wall and Fall states, checked in Fall and Jump states
-        if (nocontrol_h != 0)
-        {
-            nocontrol_h -= 1;
-        }
+        COUNTER_DECREMENT(nocontrol_h);
 
         break;
     }
@@ -1518,10 +1516,7 @@ void platform_update(void) BANKED
     // COUNTERS================================================================
     //  Counting down until dashing is ready again
     //  XX Set in dash Init and checked in wall, fall, ground, and jump states
-    if (dash_ready_val != 0)
-    {
-        dash_ready_val -= 1;
-    }
+    COUNTER_DECREMENT(dash_ready_val);
 #endif
 
     // Counting down from the max double-tap time (left is -DOUBLE_TAP_WINDOW, right is +DOUBLE_TAP_WINDOW)
@@ -1886,10 +1881,7 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
-    if (drop_frames != 0)
-    {
-        drop_frames -= 1;
-    }
+    COUNTER_DECREMENT(drop_frames);
 #endif
 
     // Horizontal Movement
