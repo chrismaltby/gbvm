@@ -2255,7 +2255,6 @@ gotoActorCol:
                 if (!is_solid && (drop_frames != 0))
                 {
                     actor_attached = FALSE;
-                    last_actor = FALSE;
                     que_state = FALL_STATE;
                 }
                 else if ((temp_y + PX_TO_SUBPX(PLAYER.bounds.bottom - 7)) <
