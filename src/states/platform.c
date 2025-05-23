@@ -181,6 +181,10 @@ caught mid-way on the next one.
 
 #define DROP_FRAMES_MAX 15
 
+#define MAX_DELTA 127
+#define UNLIMITED_JUMPS 255
+#define DOUBLE_TAP_WINDOW 15
+
 #define COL_CHECK_ALL COL_CHECK_X | COL_CHECK_Y | COL_CHECK_ACTORS | COL_CHECK_TRIGGERS | COL_CHECK_WALLS
 
 #ifndef COLLISION_LADDER
@@ -669,7 +673,7 @@ void platform_update(void) BANKED
             }
             else
             {
-                tap_val = -15;
+                tap_val = -DOUBLE_TAP_WINDOW;
             }
         }
         else if (INPUT_PRESSED(INPUT_RIGHT))
@@ -680,7 +684,7 @@ void platform_update(void) BANKED
             }
             else
             {
-                tap_val = 15;
+                tap_val = DOUBLE_TAP_WINDOW;
             }
         }
         break;
@@ -810,7 +814,7 @@ void platform_update(void) BANKED
             {
                 // Double Jump
                 jump_type = JUMP_TYPE_DOUBLE;
-                if (dj_val != 255)
+                if (dj_val != UNLIMITED_JUMPS)
                 {
                     dj_val -= 1;
                 }
@@ -1117,7 +1121,7 @@ void platform_update(void) BANKED
             {
                 // Double Jump
                 jump_type = JUMP_TYPE_DOUBLE;
-                if (dj_val != 255)
+                if (dj_val != UNLIMITED_JUMPS)
                 {
                     dj_val -= 1;
                 }
@@ -1161,7 +1165,7 @@ void platform_update(void) BANKED
 
         while (remaining_dash_dist)
         {
-            WORD dist = MIN(remaining_dash_dist, 127);
+            WORD dist = MIN(remaining_dash_dist, MAX_DELTA);
             delta_x = dist * dir;
             move_and_collide(plat_dash_mask);
             remaining_dash_dist -= dist;
@@ -1520,7 +1524,7 @@ void platform_update(void) BANKED
     }
 #endif
 
-    // Counting down from the max double-tap time (left is -15, right is +15)
+    // Counting down from the max double-tap time (left is -DOUBLE_TAP_WINDOW, right is +DOUBLE_TAP_WINDOW)
     if (tap_val > 0)
     {
         tap_val -= 1;
@@ -1890,7 +1894,7 @@ void move_and_collide(UBYTE mask) BANKED
     // Horizontal Movement
     if (mask & COL_CHECK_X)
     {
-        delta_x = CLAMP(delta_x, -127, 127);
+        delta_x = CLAMP(delta_x, -MAX_DELTA, MAX_DELTA);
 #ifdef FEAT_PLATFORM_SLOPES
         prev_on_slope = on_slope;
         on_slope = FALSE;
@@ -2051,7 +2055,7 @@ void move_and_collide(UBYTE mask) BANKED
     // Vertical Movement
     if (mask & COL_CHECK_Y)
     {
-        delta_y = CLAMP(delta_y, -127, 127);
+        delta_y = CLAMP(delta_y, -MAX_DELTA, MAX_DELTA);
 
         WORD new_y = PLAYER.pos.y + delta_y;
         if (!(mask & COL_CHECK_WALLS))
