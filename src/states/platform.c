@@ -97,7 +97,7 @@
 #define MAX_DELTA 127
 #define UNLIMITED_JUMPS 255
 #define DOUBLE_TAP_WINDOW 15
-#define WALL_JUMP_NO_CONTROL_H_FRAMES 5
+#define WALL_JUMP_NO_CONTROL_H_FRAMES 15
 
 #define COL_CHECK_ALL COL_CHECK_X | COL_CHECK_Y | COL_CHECK_ACTORS | COL_CHECK_TRIGGERS | COL_CHECK_WALLS
 
@@ -502,6 +502,7 @@ void platform_update(void) BANKED
             jump_type = JUMP_TYPE_NONE;
 #ifdef FEAT_PLATFORM_WALL_JUMP
             wc_val = 0;
+            wj_val = plat_wall_jump_max;
 #endif
 #ifdef FEAT_PLATFORM_COYOTE_TIME
             ct_val = plat_coyote_max;
@@ -512,7 +513,6 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
             dj_val = plat_extra_jumps;
 #endif
-            wj_val = plat_wall_jump_max;
             jump_reduction_val = 0;
             state_events_execute(GROUND_INIT);
             break;
@@ -1018,7 +1018,7 @@ void platform_update(void) BANKED
             {
                 jump_type = JUMP_TYPE_WALL;
                 wj_val -= 1;
-                nocontrol_h = 5;
+                nocontrol_h = WALL_JUMP_NO_CONTROL_H_FRAMES;
                 pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
                 que_state = JUMP_STATE;
             }
@@ -1357,7 +1357,7 @@ void platform_update(void) BANKED
         {
             // Wall Jump
             wj_val -= 1;
-            nocontrol_h = 5;
+            nocontrol_h = WALL_JUMP_NO_CONTROL_H_FRAMES;
             pl_vel_x = (plat_wall_kick + plat_walk_vel) * -last_wall;
             jump_type = JUMP_TYPE_WALL;
             que_state = JUMP_STATE;
