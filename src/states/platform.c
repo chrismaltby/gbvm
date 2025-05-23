@@ -1496,13 +1496,29 @@ void wall_check(void) BANKED
 #ifdef FEAT_PLATFORM_LADDERS
 void ladder_check(void) BANKED
 {
-    if ((INPUT_UP_PRESSED || INPUT_DOWN_PRESSED) && !INPUT_PLATFORM_JUMP)
+    if (INPUT_PLATFORM_JUMP)
     {
-        UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
-
+        return;
+    }
+    if (INPUT_UP_PRESSED)
+    {
         // Grab upwards ladder
+        UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
         UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
         UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
+        if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
+        {
+            PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 4 - (PLAYER.bounds.left + p_half_width));
+            que_state = LADDER_STATE;
+        }
+    }
+    else if (INPUT_DOWN_PRESSED)
+    {
+        // Grab downwards ladder
+        UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
+        UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
+        UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+
         if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
         {
             PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 4 - (PLAYER.bounds.left + p_half_width));
