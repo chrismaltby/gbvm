@@ -457,10 +457,6 @@ void platform_init(void) BANKED
 #ifdef FEAT_PLATFORM_DROP_THROUGH
     drop_frames = 0;
 #endif
-    if (PLAYER.dir == DIR_UP || PLAYER.dir == DIR_DOWN || PLAYER.dir == DIR_NONE)
-    {
-        PLAYER.dir = DIR_RIGHT;
-    }
 
     // Initialize other vars
     game_time = 0;
@@ -477,6 +473,31 @@ void platform_init(void) BANKED
     jump_type = JUMP_TYPE_NONE;
     delta_x = 0;
     delta_y = 0;
+
+#ifdef FEAT_PLATFORM_LADDERS
+    // Test if should start scene attached to ladder
+    // Requires player to start scene facing either up/down and start on a ladder tile
+    if (IS_DIR_VERTICAL(PLAYER.dir))
+    {
+        UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
+
+        // Grab upwards ladder
+        UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
+        UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
+        if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
+        {
+            PLAYER.pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x_mid) + 4 - (PLAYER.bounds.left + p_half_width));
+            plat_state = que_state = LADDER_STATE;
+            actor_set_anim(&PLAYER, ANIM_CLIMB);
+            actor_stop_anim(&PLAYER);
+        }
+    }
+#endif
+
+    if (PLAYER.dir == DIR_UP || PLAYER.dir == DIR_DOWN || PLAYER.dir == DIR_NONE)
+    {
+        PLAYER.dir = DIR_RIGHT;
+    }
 }
 
 void platform_update(void) BANKED
@@ -1568,9 +1589,10 @@ void wall_check(void) BANKED
 #ifdef FEAT_PLATFORM_LADDERS
 void ladder_check(void) BANKED
 {
-    UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
     if ((INPUT_UP_PRESSED || INPUT_DOWN_PRESSED) && !INPUT_PLATFORM_JUMP)
     {
+        UBYTE p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
+
         // Grab upwards ladder
         UBYTE tile_x_mid = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left + p_half_width);
         UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top + 1);
