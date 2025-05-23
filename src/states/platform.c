@@ -164,9 +164,9 @@ WORD plat_max_fall_vel;
 // PLATFORMER PLUS ENGINE VARIABLES
 // All engine fields are prefixed with plat_
 
-BYTE plat_camera_deadzone_x; // Camera deadzone
+BYTE plat_camera_deadzone_x; // Camera deadzone x
 UBYTE plat_camera_block;     // Limit the player's movement to the camera's edges
-UBYTE plat_drop_through;     // Drop-through control
+UBYTE plat_drop_through;     // Drop-through control input option
 WORD plat_jump_min;          // Jump amount applied on the first frame of jumping
 UBYTE plat_hold_jump_max;    // Maximum number for frames for continuous input
 UBYTE plat_extra_jumps;      // Number of jumps while in the air
@@ -194,7 +194,7 @@ UBYTE plat_dash_mask;        // Choose if the player can dash through actors,
 WORD plat_dash_dist;         // Distance of the dash
 UBYTE plat_dash_frames;      // Number of frames for dashing
 UBYTE plat_dash_ready_max;   // Time before the player can dash again
-UBYTE plat_dash_deadzone;
+UBYTE plat_dash_deadzone;    // Override camera x deadzone when in dash state
 
 enum pStates
 { // Datatype for tracking states
@@ -283,17 +283,12 @@ WORD *edge_right;
 WORD mod_image_left;
 
 // VARIABLES FOR EVENT PLUGINS
-// UBYTE grounded;             //Variable to keep compatability with other
-// plugins that use the older 'grounded' check
 BYTE run_stage;  // Tracks the stage of running based on the run type
 UBYTE jump_type; // Tracks the type of jumping, from the ground, in the air, or
                  // off the wall
-
-// SLOPE VARIABLES
-UBYTE grounded; // Needed? Add for compatability?
+UBYTE grounded;
 UBYTE on_slope;
 UBYTE slope_y;
-
 WORD temp_y = 0;
 
 void player_set_jump_anim(void) BANKED;
