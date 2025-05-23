@@ -369,7 +369,7 @@ UBYTE slope_y;
 
 WORD temp_y = 0;
 
-void basic_anim(void) BANKED;
+void player_set_jump_anim(void) BANKED;
 void wall_check(void) BANKED;
 void ladder_check(void) BANKED;
 void dash_init_switch(void) BANKED;
@@ -758,7 +758,7 @@ void platform_update(void) BANKED
         move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
-        basic_anim();
+        player_set_jump_anim();
 
         // STATE CHANGE ---------------------------------------------------
         // Above: FALL -> GROUND in basic_y_col()
@@ -1067,7 +1067,7 @@ void platform_update(void) BANKED
         move_and_collide(COL_CHECK_ALL);
 
         // ANIMATION ------------------------------------------------------
-        basic_anim();
+        player_set_jump_anim();
 
         // STATE CHANGE ---------------------------------------------------
         // Above: JUMP-> NEUTRAL when a) player starts descending, b) player
@@ -1170,7 +1170,6 @@ void platform_update(void) BANKED
             move_and_collide(plat_dash_mask);
             remaining_dash_dist -= dist;
         }
-        basic_anim();
 
         dash_currentframe -= 1;
         if (dash_currentframe == 0)
@@ -1541,7 +1540,7 @@ void platform_update(void) BANKED
     }
 }
 
-void basic_anim(void) BANKED
+void player_set_jump_anim(void) BANKED
 {
     // This animation is currently shared by jumping, dashing, and falling.
     // Dashing doesn't need this complexity though. Here velocity overrides
@@ -1729,6 +1728,7 @@ initDash:
     que_state = DASH_STATE;
 
     plat_dash_mask |= COL_CHECK_X | COL_CHECK_Y;
+    player_set_jump_anim();
 }
 #endif
 
