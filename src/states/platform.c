@@ -194,8 +194,8 @@ UBYTE plat_dash_frames;      // Number of frames for dashing
 UBYTE plat_dash_ready_max;   // Time before the player can dash again
 UBYTE plat_dash_deadzone;    // Override camera x deadzone when in dash state
 
-enum pStates
-{ // Datatype for tracking states
+typedef enum
+{
     FALL_STATE = 0,
     GROUND_STATE,
     JUMP_STATE,
@@ -204,9 +204,9 @@ enum pStates
     WALL_STATE,
     KNOCKBACK_STATE,
     BLANK_STATE
-};
-enum cStates
-{ // Datatype for state callbacks
+} state_e;
+typedef enum
+{
     FALL_INIT = 0,
     FALL_END,
     GROUND_INIT,
@@ -222,13 +222,16 @@ enum cStates
     KNOCKBACK_INIT,
     KNOCKBACK_END,
     BLANK_INIT,
-    BLANK_END
-};
+    BLANK_END,
+    CALLBACK_SIZE
+} callback_e;
 
-enum pStates plat_state; // Current platformer state
-enum pStates que_state;
-UBYTE nocontrol_h; // Turns off horizontal input, currently only for wall jumping
-UBYTE drop_frames; // The number of frames remaining to drop through platforms
+script_event_t callback_events[CALLBACK_SIZE];
+
+state_e plat_state; // Current platformer state
+state_e que_state;  // Next frame's platformer state
+UBYTE nocontrol_h;  // Turns off horizontal input, currently only for wall jumping
+UBYTE drop_frames;  // The number of frames remaining to drop through platforms
 WORD delta_x;
 WORD delta_y;
 
@@ -296,6 +299,9 @@ void dash_init(void) BANKED;
 UBYTE drop_press(void) BANKED;
 void handle_horizontal_input(void) BANKED;
 void move_and_collide(UBYTE mask) BANKED;
+void plat_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
+void plat_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
+void plat_callback_execute(UBYTE i) BANKED;
 
 void platform_init(void) BANKED
 {
@@ -435,32 +441,32 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
-            state_events_execute(FALL_END);
+            plat_callback_execute(FALL_END);
             break;
         }
         case JUMP_STATE: {
-            state_events_execute(JUMP_END);
+            plat_callback_execute(JUMP_END);
             break;
         }
         case GROUND_STATE: {
-            state_events_execute(GROUND_END);
+            plat_callback_execute(GROUND_END);
             break;
         }
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
-            state_events_execute(LADDER_END);
+            plat_callback_execute(LADDER_END);
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
-            state_events_execute(DASH_END);
+            plat_callback_execute(DASH_END);
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
-            state_events_execute(WALL_END);
+            plat_callback_execute(WALL_END);
             break;
         }
 #endif
@@ -474,7 +480,7 @@ void platform_update(void) BANKED
         {
         case FALL_STATE: {
             actor_attached = FALSE;
-            state_events_execute(FALL_INIT);
+            plat_callback_execute(FALL_INIT);
             break;
         }
         case JUMP_STATE: {
@@ -492,7 +498,7 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
             wc_val = 0;
 #endif
-            state_events_execute(JUMP_INIT);
+            plat_callback_execute(JUMP_INIT);
             break;
         }
         case GROUND_STATE: {
@@ -512,13 +518,13 @@ void platform_update(void) BANKED
             dj_val = plat_extra_jumps;
 #endif
             jump_reduction_val = 0;
-            state_events_execute(GROUND_INIT);
+            plat_callback_execute(GROUND_INIT);
             break;
         }
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
             jump_type = JUMP_TYPE_NONE;
-            state_events_execute(LADDER_INIT);
+            plat_callback_execute(LADDER_INIT);
             break;
         }
 #endif
@@ -531,7 +537,7 @@ void platform_update(void) BANKED
             dj_val = plat_extra_jumps;
 #endif
             dash_init();
-            state_events_execute(DASH_INIT);
+            plat_callback_execute(DASH_INIT);
             break;
         }
 #endif
@@ -539,7 +545,7 @@ void platform_update(void) BANKED
         case WALL_STATE: {
             jump_type = JUMP_TYPE_NONE;
             run_stage = RUN_STAGE_NONE;
-            state_events_execute(WALL_INIT);
+            plat_callback_execute(WALL_INIT);
             break;
         }
 #endif
@@ -547,7 +553,7 @@ void platform_update(void) BANKED
         case KNOCKBACK_STATE: {
             run_stage = RUN_STAGE_NONE;
             jump_type = JUMP_TYPE_NONE;
-            state_events_execute(KNOCKBACK_INIT);
+            plat_callback_execute(KNOCKBACK_INIT);
             break;
         }
 #endif
@@ -557,7 +563,7 @@ void platform_update(void) BANKED
             pl_vel_y = 0;
             run_stage = RUN_STAGE_NONE;
             jump_type = JUMP_TYPE_NONE;
-            state_events_execute(BLANK_INIT);
+            plat_callback_execute(BLANK_INIT);
             break;
         }
 #endif
@@ -2260,5 +2266,32 @@ gotoActorCol:
     if (mask & COL_CHECK_TRIGGERS)
     {
         trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, INPUT_UP_PRESSED);
+    }
+}
+
+void plat_callback_attach(SCRIPT_CTX *THIS) OLDCALL BANKED
+{
+    UWORD *slot = VM_REF_TO_PTR(FN_ARG2);
+    UBYTE *bank = VM_REF_TO_PTR(FN_ARG1);
+    UBYTE **ptr = VM_REF_TO_PTR(FN_ARG0);
+    callback_events[*slot].script_bank = *bank;
+    callback_events[*slot].script_addr = *ptr;
+}
+
+void plat_callback_detach(SCRIPT_CTX *THIS) OLDCALL BANKED
+{
+    UWORD *slot = VM_REF_TO_PTR(FN_ARG0);
+    callback_events[*slot].script_bank = NULL;
+    callback_events[*slot].script_addr = NULL;
+}
+
+void plat_callback_execute(UBYTE i) BANKED
+{
+    script_event_t *event = &callback_events[i];
+    if (!event->script_addr)
+        return;
+    if ((event->handle == 0) || ((event->handle & SCRIPT_TERMINATED) != 0))
+    {
+        script_execute(event->script_bank, event->script_addr, &event->handle, 0, 0);
     }
 }
