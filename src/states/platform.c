@@ -15,6 +15,7 @@
 #include "trigger.h"
 #include "vm.h"
 
+// Optional feature flags, set in 'state_defines.h'
 // #define FEAT_PLATFORM_BLANK
 // #define FEAT_PLATFORM_COYOTE_TIME
 // #define FEAT_PLATFORM_DASH
@@ -148,7 +149,7 @@
             (x)--;                                                                                                     \
     } while (0)
 
-// DEFAULT ENGINE VARIABLES
+//  ENGINE VARIABLES
 WORD plat_min_vel;
 WORD plat_walk_vel;
 WORD plat_run_vel;
@@ -160,9 +161,6 @@ WORD plat_jump_vel;
 WORD plat_grav;
 WORD plat_hold_grav;
 WORD plat_max_fall_vel;
-
-// PLATFORMER PLUS ENGINE VARIABLES
-// All engine fields are prefixed with plat_
 
 BYTE plat_camera_deadzone_x; // Camera deadzone x
 UBYTE plat_camera_block;     // Limit the player's movement to the camera's edges
