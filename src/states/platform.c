@@ -271,7 +271,7 @@ BYTE plat_col;
 
 // DASH VARIABLES
 UBYTE plat_dash_ready_val;    // tracks the current amount before the dash is ready
-WORD plat_dash_dist;          // Takes overall dash distance and holds the amount per-frame
+WORD plat_dash_per_frame;     // Takes overall dash distance and holds the amount per-frame
 UBYTE plat_dash_currentframe; // Tracks the current frame of the overall dash
 BYTE plat_tap_val;            // Number of frames since the last time left or right button was
                               // tapped
@@ -399,7 +399,7 @@ void platform_init(void) BANKED
     plat_jump_reduction = plat_jump_reduction / plat_hold_jump_max;    // Amount to reduce subequent jumps
                                                                        // per frame in JUMP_STATE
 #ifdef FEAT_PLATFORM_DASH
-    plat_dash_dist = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
+    plat_dash_per_frame = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
 #endif
 
     plat_boost_val = plat_run_boost / plat_hold_jump_max; // Vertical boost from horizontal
@@ -963,8 +963,8 @@ void platform_update(void) BANKED
             WORD tempBoost = VEL_TO_SUBPX(plat_vel_x) * plat_boost_val;
             // Take the positive value of x-vel
             tempBoost = MAX(tempBoost, -tempBoost);
-            // This is a test to see if the results will overflow pl_vel_y.
-            // Note, pl_vel_y is negative here.
+            // This is a test to see if the results will overflow plat_vel_y.
+            // Note, plat_vel_y is negative here.
             if (tempBoost > 32767 + plat_vel_y)
             {
                 plat_vel_y = -32767;
@@ -1097,7 +1097,7 @@ void platform_update(void) BANKED
         }
 
         BYTE dir = (PLAYER.dir == DIR_LEFT ? -1 : 1);
-        WORD remaining_dash_dist = plat_dash_dist;
+        WORD remaining_dash_dist = plat_dash_per_frame;
 
         plat_vel_x = plat_run_vel * dir;
         plat_delta_y = plat_dash_use_grav ? VEL_TO_SUBPX(plat_grav) : -1;
@@ -1576,17 +1576,17 @@ void dash_init(void) BANKED
         PLAYER.dir = DIR_LEFT;
     }
 
-    plat_dash_dist = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
+    plat_dash_per_frame = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
 
     // Set new_x be the final destination of the dash (ie. the distance covered
     // by all of the dash frames combined)
     if (PLAYER.dir == DIR_RIGHT)
     {
-        new_x = PLAYER.pos.x + (plat_dash_dist * plat_dash_frames);
+        new_x = PLAYER.pos.x + (plat_dash_per_frame * plat_dash_frames);
     }
     else
     {
-        new_x = PLAYER.pos.x + (-plat_dash_dist * plat_dash_frames);
+        new_x = PLAYER.pos.x + (-plat_dash_per_frame * plat_dash_frames);
     }
 
     plat_dash_end_clear = true; // Assume that the landing spot is clear, and
@@ -1608,7 +1608,7 @@ void dash_init(void) BANKED
         if (PLAYER.dir == DIR_RIGHT)
         {
             // Don't dash off the screen to the right
-            if (PLAYER.pos.x + PX_TO_SUBPX(PLAYER.bounds.right) + (plat_dash_dist * (plat_dash_frames)) >
+            if (PLAYER.pos.x + PX_TO_SUBPX(PLAYER.bounds.right) + (plat_dash_per_frame * (plat_dash_frames)) >
                 PX_TO_SUBPX(image_width - 16))
             {
                 plat_dash_end_clear = false;
@@ -1641,7 +1641,7 @@ void dash_init(void) BANKED
         {
             // Don't dash off the screen to the left
             if (PLAYER.pos.x <=
-                ((plat_dash_dist * plat_dash_frames) + PX_TO_SUBPX(PLAYER.bounds.left)) + PX_TO_SUBPX(8))
+                ((plat_dash_per_frame * plat_dash_frames) + PX_TO_SUBPX(PLAYER.bounds.left)) + PX_TO_SUBPX(8))
             {
                 plat_dash_end_clear = false; // To get around unsigned position, test if the
                                              // player's current position is less than the total
