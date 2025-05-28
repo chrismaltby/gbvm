@@ -292,7 +292,7 @@ WORD temp_y = 0;
 void player_set_jump_anim(void) BANKED;
 void wall_check(void) BANKED;
 void ladder_check(void) BANKED;
-void dash_init_switch(void) BANKED;
+void dash_init(void) BANKED;
 UBYTE drop_press(void) BANKED;
 void handle_horizontal_input(void) BANKED;
 void move_and_collide(UBYTE mask) BANKED;
@@ -530,7 +530,7 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_DOUBLE_JUMP
             dj_val = plat_extra_jumps;
 #endif
-            dash_init_switch();
+            dash_init();
             state_events_execute(DASH_INIT);
             break;
         }
@@ -1528,7 +1528,7 @@ void ladder_check(void) BANKED
 #endif
 
 #ifdef FEAT_PLATFORM_DASH
-void dash_init_switch(void) BANKED
+void dash_init(void) BANKED
 {
     WORD new_x;
     // If the player is pressing a direction (but not facing a direction, ie on
