@@ -6,8 +6,8 @@
 void platform_init(void) BANKED;
 void platform_update(void) BANKED;
 
-extern WORD pl_vel_x;
-extern WORD pl_vel_y;
+extern WORD plat_vel_x;
+extern WORD plat_vel_y;
 extern WORD plat_min_vel;
 extern WORD plat_walk_vel;
 extern WORD plat_run_vel;
