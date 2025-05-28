@@ -1082,6 +1082,7 @@ void platform_update(void) BANKED
         if (dash_currentframe == 0)
         {
             que_state = FALL_STATE;
+            pl_vel_x = 0;
         }
 
 #ifdef FEAT_PLATFORM_JUMP
@@ -1542,6 +1543,8 @@ void dash_init_switch(void) BANKED
     {
         PLAYER.dir = DIR_LEFT;
     }
+
+    dash_dist = plat_dash_dist / plat_dash_frames; // Dash distance per frame in the DASH_STATE
 
     // Set new_x be the final destination of the dash (ie. the distance covered
     // by all of the dash frames combined)
