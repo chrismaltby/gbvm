@@ -258,19 +258,23 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
 }
 
 void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
-    static actor_t *actor;
-    actor = actors_inactive_head;
+    actor_t *actor = actors_inactive_head;
+    UBYTE y_max = y + SCREEN_TILE_REFRES_H;
+
     while (actor) {
-        UBYTE tx_left   = SUBPX_TO_TILE(actor->pos.x);
-        UBYTE ty_bottom = SUBPX_TO_TILE(actor->pos.y);
+        
+        UBYTE tx_left   = PX_TO_TILE(SUBPX_TO_PX(actor->pos.x) + actor->bounds.left);
         UBYTE tx_right  = PX_TO_TILE(SUBPX_TO_PX(actor->pos.x) + actor->bounds.right);
-        UBYTE ty_top    = PX_TO_TILE(SUBPX_TO_PX(actor->pos.y) + actor->bounds.top);
-        if (tx_left <= x && tx_right >= x && ty_top <= (y + SCREEN_TILE_REFRES_H) && ty_bottom >= y) {
-            actor_t * next = actor->next;
-            activate_actor(actor);
-            actor=next;
-            continue;
+        
+        if ((tx_left == x) || (tx_right == x)) {
+            UBYTE ty_top    = PX_TO_TILE(SUBPX_TO_PX(actor->pos.y) + actor->bounds.top);
+            UBYTE ty_bottom = PX_TO_TILE(SUBPX_TO_PX(actor->pos.y) + actor->bounds.bottom);
+
+            if (ty_bottom >= y && ty_top <= y_max) {
+                activate_actor(actor);
+            }
         }
+
         actor = actor->next;
     }
 }
