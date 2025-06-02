@@ -1835,7 +1835,6 @@ void move_and_collide(UBYTE mask) BANKED
     const WORD sp_bounds_right = PX_TO_SUBPX(PLAYER.bounds.right);
     WORD sp_half_width = DIV_2(sp_bounds_right - sp_bounds_left);
 
-    UBYTE old_x = 0;
 #ifdef FEAT_PLATFORM_SLOPES
     UBYTE prev_on_slope = 0;
 #endif
@@ -1852,7 +1851,6 @@ void move_and_collide(UBYTE mask) BANKED
         prev_on_slope = plat_on_slope;
         plat_on_slope = FALSE;
 #endif
-        old_x = PLAYER.pos.x;
 
         UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
         UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) + 1;
@@ -2028,7 +2026,6 @@ void move_and_collide(UBYTE mask) BANKED
             goto gotoYReposition;
         }
         UBYTE prev_grounded = plat_grounded;
-        UWORD old_y = PLAYER.pos.y;
 
 #ifdef FEAT_PLATFORM_SLOPES
         // 1 frame leniency of grounded state if we were on a slope last frame
@@ -2121,9 +2118,9 @@ void move_and_collide(UBYTE mask) BANKED
                         {
                             plat_vel_y = 0;
                             plat_vel_x = 0;
-                            PLAYER.pos.y = old_y;
-                            PLAYER.pos.x = old_x;
+                            PLAYER.pos.x -= plat_delta_x;
                             plat_grounded = TRUE;
+                            plat_next_state = GROUND_STATE;
                             plat_on_slope = col;
                             plat_slope_y = tile_y;
                             goto gotoActorCol;
