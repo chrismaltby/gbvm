@@ -9,6 +9,7 @@
 #include "asm/types.h"
 
 #define IS_NEG(a) ((uint8_t)(a)&0x80)
+#define IS_NEG_WORD(a) ((a >> 8)&0x80)
 
 #define U_LESS_THAN(A, B) ((A) - (B)&0x8000u)
 #define UBYTE_LESS_THAN(A, B) ((A) - (B)&0x80u)
