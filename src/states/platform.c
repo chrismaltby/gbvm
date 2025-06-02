@@ -1933,10 +1933,19 @@ void move_and_collide(UBYTE mask) BANKED
         UBYTE slope_on_y = FALSE;
 #endif
 
+        UBYTE *tile_ptr = collision_ptr + (tile_y_start * (UINT16)image_tile_width) + tile_x;
+
         while (tile_y_start != tile_y_end)
         {
+            UBYTE tile;
+            if ((tile_x < image_tile_width) && (tile_y_start < image_tile_height)) {
+                tile = ReadBankedUBYTE(tile_ptr, collision_bank);
+            } else {
+                tile = COLLISION_ALL;
+            }
+
             // New Slope 4
-            UBYTE tile = tile_at(tile_x, tile_y_start);
+            // UBYTE tile = tile_at(tile_x, tile_y_start);
 
 #ifdef FEAT_PLATFORM_SLOPES
             if (IS_ON_SLOPE(tile))
@@ -1964,6 +1973,7 @@ void move_and_collide(UBYTE mask) BANKED
                         if (tile_y_start <= plat_slope_y)
                         {
                             tile_y_start++;
+                            tile_ptr += (UINT16)image_tile_width;
                             continue;
                         }
                     }
@@ -1977,6 +1987,7 @@ void move_and_collide(UBYTE mask) BANKED
                         if (tile_y_start >= plat_slope_y)
                         {
                             tile_y_start++;
+                            tile_ptr += (UINT16)image_tile_width;
                             continue;
                         }
                     }
@@ -2000,6 +2011,7 @@ void move_and_collide(UBYTE mask) BANKED
                 break;
             }
             tile_y_start++;
+            tile_ptr += (UINT16)image_tile_width;
         }
     gotoXReposition:
         PLAYER.pos.x = new_x;
@@ -2030,6 +2042,8 @@ void move_and_collide(UBYTE mask) BANKED
 
         if (plat_delta_y >= 0)
         {
+            UBYTE *tile_ptr;
+
             // Moving Downward
             UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
 
@@ -2043,9 +2057,19 @@ void move_and_collide(UBYTE mask) BANKED
                 new_tile_y += 1;
             UWORD x_mid_coord = SUBPX_TO_PX(PLAYER.pos.x + sp_bounds_left + sp_half_width) + 1;
 
+            UBYTE tile_x = PX_TO_TILE(x_mid_coord);
+            tile_ptr = collision_ptr + (tile_y * (UINT16)image_tile_width) + tile_x;
+
             while (tile_y <= new_tile_y)
             {
-                UBYTE col = tile_at(PX_TO_TILE(x_mid_coord), tile_y);
+                // UBYTE col = tile_at(PX_TO_TILE(x_mid_coord), tile_y);
+                UBYTE col;
+                if ((tile_x < image_tile_width) && (tile_y < image_tile_height)) {
+                    col = ReadBankedUBYTE(tile_ptr, collision_bank);
+                } else {
+                    col = COLLISION_ALL;
+                }
+
                 UWORD tile_x_coord = PX_SNAP_TILE(x_mid_coord);
                 UWORD x_offset = x_mid_coord - tile_x_coord;
 
@@ -2085,6 +2109,7 @@ void move_and_collide(UBYTE mask) BANKED
                     if (!prev_grounded && slope_y_coord > new_y)
                     {
                         tile_y++;
+                        tile_ptr += (UINT16)image_tile_width;
                         continue;
                     }
                     // If we are moving up a slope, check for top collision
@@ -2121,6 +2146,7 @@ void move_and_collide(UBYTE mask) BANKED
                     goto gotoActorCol;
                 }
                 tile_y++;
+                tile_ptr += (UINT16)image_tile_width;
             }
             // End New Slope Y 2
 
@@ -2129,10 +2155,20 @@ void move_and_collide(UBYTE mask) BANKED
             UBYTE tile_x_i = tile_x_start;
             tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
+            tile_ptr = collision_ptr + (tile_y * (UINT16)image_tile_width) + tile_x_i;
+
             // Check collisions from left to right with the bottom of the player
             while (tile_x_i != tile_x_end)
             {
-                UBYTE tile = tile_at(tile_x_i, tile_y);
+                // UBYTE tile = tile_at(tile_x_i, tile_y);
+                UBYTE tile;
+                if ((tile_x_i < image_tile_width) && (tile_y < image_tile_height)) {
+                    tile = ReadBankedUBYTE(tile_ptr, collision_bank);
+                } else {
+                    tile = COLLISION_ALL;
+                }
+
+
                 if (tile & COLLISION_TOP)
                 {
 #ifdef FEAT_PLATFORM_DROP_THROUGH
@@ -2140,6 +2176,7 @@ void move_and_collide(UBYTE mask) BANKED
                     if (plat_drop_frames && !(tile & COLLISION_BOTTOM))
                     {
                         tile_x_i++;
+                        tile_ptr++;
                         continue;
                     }
 #endif
@@ -2157,6 +2194,7 @@ void move_and_collide(UBYTE mask) BANKED
                     break;
                 }
                 tile_x_i++;
+                tile_ptr++;
             }
         gotoYReposition:
             PLAYER.pos.y = new_y;
