@@ -68,4 +68,12 @@ inline UBYTE tile_at(UBYTE tx, UBYTE ty) {
     return COLLISION_ALL;
 }
 
+inline UBYTE* tile_ptr_at(UBYTE tx, UBYTE ty) {
+    return collision_ptr + (ty * (UINT16)image_tile_width) + tx;
+}
+
+inline UBYTE read_tile_ptr(UBYTE *ptr) {
+    return ReadBankedUBYTE(ptr, collision_bank);
+}
+
 #endif

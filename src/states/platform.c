@@ -1933,13 +1933,13 @@ void move_and_collide(UBYTE mask) BANKED
         UBYTE slope_on_y = FALSE;
 #endif
 
-        UBYTE *tile_ptr = collision_ptr + (tile_y_start * (UINT16)image_tile_width) + tile_x;
-
+        UBYTE *tile_ptr = tile_ptr_at(tile_x, tile_y_start);
+        
         while (tile_y_start != tile_y_end)
         {
             UBYTE tile;
             if ((tile_x < image_tile_width) && (tile_y_start < image_tile_height)) {
-                tile = ReadBankedUBYTE(tile_ptr, collision_bank);
+                tile = read_tile_ptr(tile_ptr);
             } else {
                 tile = COLLISION_ALL;
             }
@@ -2058,14 +2058,14 @@ void move_and_collide(UBYTE mask) BANKED
             UWORD x_mid_coord = SUBPX_TO_PX(PLAYER.pos.x + sp_bounds_left + sp_half_width) + 1;
 
             UBYTE tile_x = PX_TO_TILE(x_mid_coord);
-            tile_ptr = collision_ptr + (tile_y * (UINT16)image_tile_width) + tile_x;
+            tile_ptr = tile_ptr_at(tile_x, tile_y);
 
             while (tile_y <= new_tile_y)
             {
                 // UBYTE col = tile_at(PX_TO_TILE(x_mid_coord), tile_y);
                 UBYTE col;
                 if ((tile_x < image_tile_width) && (tile_y < image_tile_height)) {
-                    col = ReadBankedUBYTE(tile_ptr, collision_bank);
+                    col = read_tile_ptr(tile_ptr);
                 } else {
                     col = COLLISION_ALL;
                 }
@@ -2155,7 +2155,7 @@ void move_and_collide(UBYTE mask) BANKED
             UBYTE tile_x_i = tile_x_start;
             tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
-            tile_ptr = collision_ptr + (tile_y * (UINT16)image_tile_width) + tile_x_i;
+            tile_ptr = tile_ptr_at(tile_x_i, tile_y);
 
             // Check collisions from left to right with the bottom of the player
             while (tile_x_i != tile_x_end)
@@ -2163,7 +2163,7 @@ void move_and_collide(UBYTE mask) BANKED
                 // UBYTE tile = tile_at(tile_x_i, tile_y);
                 UBYTE tile;
                 if ((tile_x_i < image_tile_width) && (tile_y < image_tile_height)) {
-                    tile = ReadBankedUBYTE(tile_ptr, collision_bank);
+                    tile = read_tile_ptr(tile_ptr);
                 } else {
                     tile = COLLISION_ALL;
                 }
