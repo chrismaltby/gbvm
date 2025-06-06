@@ -67,8 +67,8 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         actor_set_anim_moving(actor);
 
         // Snap to nearest pixel before moving
-        actor->pos.x = actor->pos.x & 0xFFF0;
-        actor->pos.y = actor->pos.y & 0xFFF0;
+        actor->pos.x = SUBX_SNAP_PX(actor->pos.x);
+        actor->pos.y = SUBX_SNAP_PX(actor->pos.y);
 
         if (CHK_FLAG(params->ATTR, ACTOR_ATTR_DIAGONAL)) {
             SET_FLAG(THIS->flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
@@ -76,6 +76,16 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             SET_FLAG(THIS->flags, MOVE_ALLOW_H);
         } else {
             SET_FLAG(THIS->flags, MOVE_ALLOW_V);
+        }
+
+        // If moving relative add current position
+        // and snap destination to either pixels/tiles
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_PX)) {
+            params->X = SUBX_SNAP_PX(params->X + actor->pos.x);
+            params->Y = SUBX_SNAP_PX(params->Y + actor->pos.y);
+        } else if (CHK_FLAG(params->ATTR, ACTOR_ATTR_RELATIVE_SNAP_TILE)) {
+            params->X = SUBX_SNAP_TILE(params->X + actor->pos.x);
+            params->Y = SUBX_SNAP_TILE(params->Y + actor->pos.y);
         }
 
         // Check for collisions in path
