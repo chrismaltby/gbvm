@@ -56,7 +56,7 @@ typedef struct actor_def_t
     far_ptr_t sprite;
     far_ptr_t script, script_update;
     // Collisions
-    collision_group_e collision_group;
+    uint8_t collision_group;
 } actor_def_t;
 
 // Runtime actor representation in RAM
