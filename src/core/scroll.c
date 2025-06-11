@@ -145,6 +145,8 @@ UBYTE scroll_viewport(parallax_row_t * port) {
             // If column differs by more than 1 render entire screen
             scroll_render_rows(draw_scroll_x, draw_scroll_y, ((scene_LCD_type == LCD_parallax) ? port->start_tile : -SCREEN_PAD_TOP), SCREEN_TILE_REFRES_H);
             return TRUE;
+        } else if (pending_h_i) {
+            scroll_load_pending_col();
         }
 
         // If row is +/- 1 just render next row
@@ -164,11 +166,8 @@ UBYTE scroll_viewport(parallax_row_t * port) {
             // If row differs by more than 1 render entire screen
             scroll_render_rows(draw_scroll_x, draw_scroll_y, ((scene_LCD_type == LCD_parallax) ? port->start_tile : -SCREEN_PAD_TOP), SCREEN_TILE_REFRES_H);
             return TRUE;
-        }
-
-        if (IS_FRAME_2) {
-            if (pending_h_i) scroll_load_pending_col();
-            if (pending_w_i) scroll_load_pending_row();
+        } else if (pending_w_i) {
+            scroll_load_pending_row();
         }
 
         return TRUE;
