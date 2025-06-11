@@ -26,26 +26,23 @@ void camera_init(void) BANKED
     camera_reset();
 }
 
-void camera_update(void) NONBANKED
-{
+void camera_update(void) BANKED {
     if (camera_settings & CAMERA_LOCK_X_FLAG)
     {
         WORD target_pos = PLAYER.pos.x + CAMERA_FIXED_OFFSET_X;
         WORD tolerance = PX_TO_SUBPX(camera_deadzone_x + camera_offset_x);
+        WORD new_cam_pos = camera_x;
 
-        WORD delta = camera_x - target_pos;
-        if ((delta >= -tolerance) && (delta <= tolerance)) {
-            goto checkY;
-        }
-
-        WORD new_cam_pos;
-        if (IS_NEG_WORD(delta)) {
+        if (new_cam_pos < target_pos - tolerance)
+        {
             new_cam_pos = target_pos - tolerance;
             if ((camera_settings & CAMERA_LOCK_X_MAX_FLAG) && new_cam_pos > camera_clamp_x)
             {
                 new_cam_pos = camera_clamp_x;
             }
-        } else {
+        }
+        else if (new_cam_pos > target_pos + tolerance)
+        {
             new_cam_pos = target_pos + tolerance;
             if ((camera_settings & CAMERA_LOCK_X_MIN_FLAG) && new_cam_pos < camera_clamp_x)
             {
@@ -55,26 +52,22 @@ void camera_update(void) NONBANKED
         camera_x = camera_clamp_x = new_cam_pos;
     }
 
-checkY:
-
     if (camera_settings & CAMERA_LOCK_Y_FLAG)
     {
         WORD target_pos = PLAYER.pos.y + CAMERA_FIXED_OFFSET_Y;
         WORD tolerance = PX_TO_SUBPX(camera_deadzone_y + camera_offset_y);
+        WORD new_cam_pos = camera_y;
 
-        WORD delta = camera_y - target_pos;
-        if ((delta >= -tolerance) && (delta <= tolerance)) {
-            return;
-        }
-
-        WORD new_cam_pos;
-        if (IS_NEG_WORD(delta)) {
+        if (new_cam_pos < target_pos - tolerance)
+        {
             new_cam_pos = target_pos - tolerance;
             if ((camera_settings & CAMERA_LOCK_Y_MAX_FLAG) && new_cam_pos > camera_clamp_y)
             {
                 new_cam_pos = camera_clamp_y;
             }
-        } else {
+        }
+        else if (new_cam_pos > target_pos + tolerance)
+        {
             new_cam_pos = target_pos + tolerance;
             if ((camera_settings & CAMERA_LOCK_Y_MIN_FLAG) && new_cam_pos < camera_clamp_y)
             {

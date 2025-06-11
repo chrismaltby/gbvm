@@ -4,13 +4,14 @@
 #include <gbdk/platform.h>
 #include "bankdata.h"
 #include "gbs_types.h"
+#include "math.h"
 
 #define MAX_ACTORS            21
 #define MAX_ACTORS_ACTIVE     12
 
 #define PLAYER                actors[0]
-#define ON_8PX_GRID(A)        ( MOD_8((A).x >> 4) == 0 &&  MOD_8((A).y >> 4) == 0)
-#define ON_16PX_GRID(A)       (MOD_16((A).x >> 4) == 0 && MOD_16((A).y >> 4) == 8)
+#define ON_8PX_GRID(A)        ( MOD_8(SUBPX_TO_PX((A).x)) == 0 &&  MOD_8(SUBPX_TO_PX((A).y)) == 0)
+#define ON_16PX_GRID(A)       (MOD_16(SUBPX_TO_PX((A).x)) == 0 && MOD_16(SUBPX_TO_PX((A).y)) == 8)
 
 #define PLAYER_HURT_IFRAMES   20
 

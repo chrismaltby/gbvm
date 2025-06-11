@@ -33,6 +33,6 @@ inline void camera_reset(void) {
     camera_deadzone_x = camera_deadzone_y = 0;
 }
 
-void camera_update(void) NONBANKED;
+void camera_update(void) BANKED;
 
 #endif

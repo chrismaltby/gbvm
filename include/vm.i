@@ -596,6 +596,8 @@ OP_VM_ACTOR_MOVE_TO             = 0x30
 .ACTOR_ATTR_H_FIRST             = 0x01
 .ACTOR_ATTR_CHECK_COLL          = 0x02
 .ACTOR_ATTR_DIAGONAL            = 0x04
+.ACTOR_ATTR_RELATIVE_SNAP_PX    = 0x08
+.ACTOR_ATTR_RELATIVE_SNAP_TILE  = 0x10
 ;-- Moves actor to a new position.
 ; @param IDX points to the beginning of the pseudo-structure that contains these members:
 ;    `ID`   - Actor number.

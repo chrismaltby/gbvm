@@ -38,6 +38,28 @@ typedef struct animation_t
     uint8_t end;
 } animation_t;
 
+// Compiled actor definition in ROM
+typedef struct actor_def_t
+{
+    bool pinned               : 1;
+    bool hidden               : 1;
+    bool disabled             : 1;
+    bool anim_noloop          : 1;
+    bool collision_enabled    : 1;
+    bool persistent           : 1;
+    point16_t pos;
+    direction_e dir;
+    bounding_box_t bounds;
+    uint8_t anim_tick;
+    uint8_t move_speed;
+    uint8_t reserve_tiles;
+    far_ptr_t sprite;
+    far_ptr_t script, script_update;
+    // Collisions
+    collision_group_e collision_group;
+} actor_def_t;
+
+// Runtime actor representation in RAM
 typedef struct actor_t
 {
     bool active               : 1;
