@@ -1971,8 +1971,6 @@ void move_and_collide(UBYTE mask) BANKED
 
         plat_tick_2f();
 
-        UBYTE slope_on_y = FALSE;
-
         // Fix offset to point at tile_x
         tile_ptr += (tile_x - tile_x_mid);
 
@@ -1991,13 +1989,6 @@ void move_and_collide(UBYTE mask) BANKED
             // New Slope 4
             // UBYTE tile = tile_at(tile_x, tile_y_start);
 
-#ifdef FEAT_PLATFORM_SLOPES
-            if (IS_ON_SLOPE(tile))
-            {
-                slope_on_y = TRUE;
-            }
-#endif
-
             if (tile & hit_flag)
             {
 #ifdef FEAT_PLATFORM_SLOPES
@@ -2008,7 +1999,7 @@ void move_and_collide(UBYTE mask) BANKED
                 //   /XXX
                 //
                 //  Tile `E` would block movement up slope without these checks
-                if ((slope_on_y || tile_y_start == plat_slope_y) && (tile_y_start <= plat_slope_y) &&
+                if ((tile_y_start == plat_slope_y) &&
                     ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
                     (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
                 {
@@ -2016,7 +2007,7 @@ void move_and_collide(UBYTE mask) BANKED
                     tile_y_start--;
                     tile_ptr -= (UINT16)image_tile_width;
                     continue;
-                }
+                }               
 #endif
                 if (moving_right)
                 {
