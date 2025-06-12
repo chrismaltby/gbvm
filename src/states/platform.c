@@ -2005,7 +2005,7 @@ void move_and_collide(UBYTE mask) BANKED
                 {
                     // Slope in in same direction as movement
                     tile_y_start--;
-                    tile_ptr -= (UINT16)image_tile_width;
+                    tile_ptr -= image_tile_width;
                     continue;
                 }               
 #endif
@@ -2027,7 +2027,7 @@ void move_and_collide(UBYTE mask) BANKED
                 break;
             }
             tile_y_start--;
-            tile_ptr -= (UINT16)image_tile_width;
+            tile_ptr -= image_tile_width;
         }
         plat_tick_2i();
 
@@ -2122,7 +2122,7 @@ void move_and_collide(UBYTE mask) BANKED
                     if (!prev_grounded && slope_y_coord > new_y)
                     {
                         tile_y++;
-                        tile_ptr += (UINT16)image_tile_width;
+                        tile_ptr += image_tile_width;
                         continue;
                     }
                     // If we are moving up a slope, check for top collision
@@ -2159,7 +2159,7 @@ void move_and_collide(UBYTE mask) BANKED
                     goto gotoActorCol;
                 }
                 tile_y++;
-                tile_ptr += (UINT16)image_tile_width;
+                tile_ptr += image_tile_width;
             }
             // End New Slope Y 2
 
