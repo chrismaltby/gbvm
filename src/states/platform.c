@@ -1986,9 +1986,6 @@ void move_and_collide(UBYTE mask) BANKED
         {
             UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
 
-            // New Slope 4
-            // UBYTE tile = tile_at(tile_x, tile_y_start);
-
             if (tile & hit_flag)
             {
 #ifdef FEAT_PLATFORM_SLOPES
@@ -2003,7 +2000,6 @@ void move_and_collide(UBYTE mask) BANKED
                     ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
                      (IS_ON_SLOPE(prev_on_slope)  && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
                 {
-                    // Slope in in same direction as movement
                     tile_y_start--;
                     tile_ptr -= image_tile_width;
                     continue;
@@ -2089,33 +2085,32 @@ void move_and_collide(UBYTE mask) BANKED
                 UWORD slope_y_coord = 0;
                 if (IS_ON_SLOPE(col))
                 {
-                    slope_y_coord = TILE_TO_SUBPX(tile_y);
-                    // Slope right
-                    if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_RIGHT)
-                    {
-                        slope_y_coord += PX_TO_SUBPX((8 - x_offset) - PLAYER.bounds.bottom) - 1;
+                    const UBYTE slope_type = (col & COLLISION_SLOPE);
+                    const BYTE bottom = PLAYER.bounds.bottom;
+                    BYTE offset = 0;
+
+                    switch (slope_type) {
+                        case COLLISION_SLOPE_45_RIGHT:
+                            offset = (8 - x_offset) - bottom;
+                            break;
+                        case COLLISION_SLOPE_225_RIGHT_BOT:
+                            offset = (8 - DIV_2(x_offset)) - bottom;
+                            break;
+                        case COLLISION_SLOPE_225_RIGHT_TOP:
+                            offset = (4 - DIV_2(x_offset)) - bottom;
+                            break;
+                        case COLLISION_SLOPE_45_LEFT:
+                            offset = x_offset - bottom;
+                            break;
+                        case COLLISION_SLOPE_225_LEFT_BOT:
+                            offset = DIV_2(x_offset) - bottom + 4;
+                            break;
+                        case COLLISION_SLOPE_225_LEFT_TOP:
+                            offset = DIV_2(x_offset) - bottom;
+                            break;
                     }
-                    else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_BOT)
-                    {
-                        slope_y_coord += PX_TO_SUBPX((8 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
-                    }
-                    else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_RIGHT_TOP)
-                    {
-                        slope_y_coord += PX_TO_SUBPX((4 - DIV_2(x_offset)) - PLAYER.bounds.bottom) - 1;
-                    }
-                    // Slope left
-                    else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_45_LEFT)
-                    {
-                        slope_y_coord += PX_TO_SUBPX((x_offset)-PLAYER.bounds.bottom) - 1;
-                    }
-                    else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_BOT)
-                    {
-                        slope_y_coord += PX_TO_SUBPX(DIV_2(x_offset) - PLAYER.bounds.bottom + 4) - 1;
-                    }
-                    else if ((col & COLLISION_SLOPE) == COLLISION_SLOPE_225_LEFT_TOP)
-                    {
-                        slope_y_coord += PX_TO_SUBPX(DIV_2(x_offset) - PLAYER.bounds.bottom) - 1;
-                    }
+
+                    slope_y_coord = TILE_TO_SUBPX(tile_y) + PX_TO_SUBPX(offset) - 1;
 
                     // If going downwards into a slope, don't snap to it unless
                     // we've actually collided
