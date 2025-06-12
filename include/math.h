@@ -90,6 +90,8 @@
 #define SUBPX_SNAP_TILE16(a) ((a) & 0xFF00)
 #define PX_SNAP_TILE(a)     ((a) & 0xFFF8)
 
+#define SUBPX_TILE_REMAINDER(a) ((a) & 0x7F)
+
 typedef struct upoint16_t {
     uint16_t x, y;
 } upoint16_t;

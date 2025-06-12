@@ -2070,47 +2070,43 @@ void move_and_collide(UBYTE mask) BANKED
             // "animation glitch" when going down slopes
             if (prev_grounded && new_tile_y == (tile_y + 1))
                 new_tile_y += 1;
-            UWORD x_mid_coord = SUBPX_TO_PX(PLAYER.pos.x + sp_bounds_left + sp_half_width) + 1;
+            UWORD x_mid_coord = PLAYER.pos.x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1);
 
-            UBYTE tile_x = PX_TO_TILE(x_mid_coord);
+            UBYTE tile_x = SUBPX_TO_TILE(x_mid_coord);
             tile_ptr = tile_ptr_at(tile_x, tile_y);
 
             while (tile_y <= new_tile_y)
             {
                 UBYTE col = safe_read_tile_ptr(tile_ptr, tile_x, tile_y);
 
-                UWORD tile_x_coord = PX_SNAP_TILE(x_mid_coord);
-                UWORD x_offset = x_mid_coord - tile_x_coord;
-
-                UWORD slope_y_coord = 0;
                 if (IS_ON_SLOPE(col))
                 {
                     const UBYTE slope_type = (col & COLLISION_SLOPE);
-                    const BYTE bottom = PLAYER.bounds.bottom;
-                    BYTE offset = 0;
+                    UBYTE x_offset = SUBPX_TILE_REMAINDER(x_mid_coord);
+                    WORD offset = 0;
 
                     switch (slope_type) {
                         case COLLISION_SLOPE_45_RIGHT:
-                            offset = (8 - x_offset) - bottom;
+                            offset = (PX_TO_SUBPX(8) - x_offset) - sp_bounds_bottom;
                             break;
                         case COLLISION_SLOPE_225_RIGHT_BOT:
-                            offset = (8 - DIV_2(x_offset)) - bottom;
+                            offset = (PX_TO_SUBPX(8) - DIV_2(x_offset)) - sp_bounds_bottom;
                             break;
                         case COLLISION_SLOPE_225_RIGHT_TOP:
-                            offset = (4 - DIV_2(x_offset)) - bottom;
+                            offset = (PX_TO_SUBPX(4) - DIV_2(x_offset)) - sp_bounds_bottom;
                             break;
                         case COLLISION_SLOPE_45_LEFT:
-                            offset = x_offset - bottom;
+                            offset = x_offset - sp_bounds_bottom;
                             break;
                         case COLLISION_SLOPE_225_LEFT_BOT:
-                            offset = DIV_2(x_offset) - bottom + 4;
+                            offset = DIV_2(x_offset) - sp_bounds_bottom + PX_TO_SUBPX(4);
                             break;
                         case COLLISION_SLOPE_225_LEFT_TOP:
-                            offset = DIV_2(x_offset) - bottom;
+                            offset = DIV_2(x_offset) - sp_bounds_bottom;
                             break;
                     }
 
-                    slope_y_coord = TILE_TO_SUBPX(tile_y) + PX_TO_SUBPX(offset) - 1;
+                    UWORD slope_y_coord = TILE_TO_SUBPX(tile_y) + offset - 1;
 
                     // If going downwards into a slope, don't snap to it unless
                     // we've actually collided
