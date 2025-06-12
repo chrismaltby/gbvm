@@ -76,4 +76,12 @@ inline UBYTE read_tile_ptr(UBYTE *ptr) {
     return ReadBankedUBYTE(ptr, collision_bank);
 }
 
+inline UBYTE safe_read_tile_ptr(UBYTE *ptr, UBYTE tx, UBYTE ty) {
+    if ((tx < image_tile_width) && (ty < image_tile_height)) {
+        return read_tile_ptr(ptr);
+    } else {
+        return COLLISION_ALL;
+    }
+}
+
 #endif

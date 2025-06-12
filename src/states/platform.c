@@ -329,6 +329,25 @@ void plat_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_callback_execute(UBYTE i) BANKED;
 
+
+void plat_tick_1(void) BANKED;
+void plat_tick_2(void) BANKED;
+void plat_tick_2a(void) BANKED;
+void plat_tick_2b(void) BANKED;
+void plat_tick_2c(void) BANKED;
+void plat_tick_2d(void) BANKED;
+void plat_tick_2e(void) BANKED;
+void plat_tick_2f(void) BANKED;
+void plat_tick_2fa(void) BANKED;
+void plat_tick_2fb(void) BANKED;
+void plat_tick_2fc(void) BANKED;
+void plat_tick_2fd(void) BANKED;
+void plat_tick_2g(void) BANKED;
+void plat_tick_2h(void) BANKED;
+void plat_tick_2i(void) BANKED;
+void plat_tick_3(void) BANKED;
+void plat_tick_4(void) BANKED;
+
 // End of Function Definitions ------------------------------------------------
 
 void platform_init(void) BANKED
@@ -1829,11 +1848,13 @@ void handle_horizontal_input(void) BANKED
 
 void move_and_collide(UBYTE mask) BANKED
 {
+    plat_tick_1();
     const WORD sp_bounds_top = PX_TO_SUBPX(PLAYER.bounds.top);
     const WORD sp_bounds_bottom = PX_TO_SUBPX(PLAYER.bounds.bottom);
     const WORD sp_bounds_left = PX_TO_SUBPX(PLAYER.bounds.left);
     const WORD sp_bounds_right = PX_TO_SUBPX(PLAYER.bounds.right);
     WORD sp_half_width = DIV_2(sp_bounds_right - sp_bounds_left);
+    plat_tick_2();
 
 #ifdef FEAT_PLATFORM_SLOPES
     UBYTE prev_on_slope = 0;
@@ -1842,6 +1863,8 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_DROP_THROUGH
     COUNTER_DECREMENT(plat_drop_frames);
 #endif
+
+    plat_tick_2a();
 
     // Horizontal Movement
     if (mask & COL_CHECK_X)
@@ -1852,8 +1875,10 @@ void move_and_collide(UBYTE mask) BANKED
         plat_on_slope = FALSE;
 #endif
 
-        UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
-        UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) + 1;
+    plat_tick_2b();
+
+        UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
+        UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top) - 1;
         UWORD new_x = PLAYER.pos.x + plat_delta_x;
 
         UBYTE tile_x = 0;
@@ -1888,11 +1913,17 @@ void move_and_collide(UBYTE mask) BANKED
                 new_x = PLAYER.pos.x + MIN(PX_TO_SUBPX(*plat_edge_left + 8) - PLAYER.pos.x, 16);
             }
         }
+        plat_tick_2c();
+
+
+        plat_tick_2d();
 
         if (!(mask & COL_CHECK_WALLS))
         {
             goto gotoXReposition;
         }
+
+        plat_tick_2e();
 
         // Step-Check for collisions one tile left or right based on movement direction
         UBYTE moving_right, hit_flag;
@@ -1916,31 +1947,46 @@ void move_and_collide(UBYTE mask) BANKED
             bounds_edge = sp_bounds_left;
         }
 
+        plat_tick_2f();
+
         tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
-        UBYTE tile_y = tile_y_end - 1;
+
+        plat_tick_2fa();
 
 #ifdef FEAT_PLATFORM_SLOPES
         UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
-        UBYTE col_mid = tile_at(tile_x_mid, tile_y);
+        plat_tick_2fb();
+
+        UBYTE *tile_ptr = tile_ptr_at(tile_x_mid, tile_y_start);
+        UBYTE col_mid = safe_read_tile_ptr(tile_ptr, tile_x_mid, tile_y_start);
+
+        plat_tick_2fc();
 
         if (IS_ON_SLOPE(col_mid))
         {
+            plat_tick_2fd();
             plat_on_slope = col_mid;
-            plat_slope_y = tile_y;
+            plat_slope_y = tile_y_start;
         }
+
+        plat_tick_2f();
+
         UBYTE slope_on_y = FALSE;
+
+        // Fix offset to point at tile_x
+        tile_ptr += (tile_x - tile_x_mid);
+
+#else
+        UBYTE *tile_ptr = tile_ptr_at(tile_x, tile_y_start);    
 #endif
 
-        UBYTE *tile_ptr = tile_ptr_at(tile_x, tile_y_start);
+        plat_tick_2g();
+
+        plat_tick_2h();
         
         while (tile_y_start != tile_y_end)
         {
-            UBYTE tile;
-            if ((tile_x < image_tile_width) && (tile_y_start < image_tile_height)) {
-                tile = read_tile_ptr(tile_ptr);
-            } else {
-                tile = COLLISION_ALL;
-            }
+            UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
 
             // New Slope 4
             // UBYTE tile = tile_at(tile_x, tile_y_start);
@@ -1962,33 +2008,14 @@ void move_and_collide(UBYTE mask) BANKED
                 //   /XXX
                 //
                 //  Tile `E` would block movement up slope without these checks
-                if (slope_on_y || tile_y_start == plat_slope_y)
+                if ((slope_on_y || tile_y_start == plat_slope_y) && (tile_y_start <= plat_slope_y) &&
+                    ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
+                    (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
                 {
                     // Slope in in same direction as movement
-                    if ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
-                        (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) != moving_right)))
-                    {
-                        if (tile_y_start <= plat_slope_y)
-                        {
-                            tile_y_start++;
-                            tile_ptr += (UINT16)image_tile_width;
-                            continue;
-                        }
-                    }
-                }
-                if (slope_on_y)
-                {
-                    // Slope is in opposite direction to movement
-                    if ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) == moving_right)) ||
-                        (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) == moving_right)))
-                    {
-                        if (tile_y_start >= plat_slope_y)
-                        {
-                            tile_y_start++;
-                            tile_ptr += (UINT16)image_tile_width;
-                            continue;
-                        }
-                    }
+                    tile_y_start--;
+                    tile_ptr -= (UINT16)image_tile_width;
+                    continue;
                 }
 #endif
                 if (moving_right)
@@ -2008,12 +2035,16 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
                 break;
             }
-            tile_y_start++;
-            tile_ptr += (UINT16)image_tile_width;
+            tile_y_start--;
+            tile_ptr -= (UINT16)image_tile_width;
         }
+        plat_tick_2i();
+
     gotoXReposition:
         PLAYER.pos.x = new_x;
     }
+
+    plat_tick_3();
 
     // Vertical Movement
     if (mask & COL_CHECK_Y)
@@ -2059,13 +2090,7 @@ void move_and_collide(UBYTE mask) BANKED
 
             while (tile_y <= new_tile_y)
             {
-                // UBYTE col = tile_at(PX_TO_TILE(x_mid_coord), tile_y);
-                UBYTE col;
-                if ((tile_x < image_tile_width) && (tile_y < image_tile_height)) {
-                    col = read_tile_ptr(tile_ptr);
-                } else {
-                    col = COLLISION_ALL;
-                }
+                UBYTE col = safe_read_tile_ptr(tile_ptr, tile_x, tile_y);
 
                 UWORD tile_x_coord = PX_SNAP_TILE(x_mid_coord);
                 UWORD x_offset = x_mid_coord - tile_x_coord;
@@ -2157,14 +2182,7 @@ void move_and_collide(UBYTE mask) BANKED
             // Check collisions from left to right with the bottom of the player
             while (tile_x_i != tile_x_end)
             {
-                // UBYTE tile = tile_at(tile_x_i, tile_y);
-                UBYTE tile;
-                if ((tile_x_i < image_tile_width) && (tile_y < image_tile_height)) {
-                    tile = read_tile_ptr(tile_ptr);
-                } else {
-                    tile = COLLISION_ALL;
-                }
-
+                UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x_i, tile_y);
 
                 if (tile & COLLISION_TOP)
                 {
@@ -2231,11 +2249,13 @@ void move_and_collide(UBYTE mask) BANKED
         }
     }
 
+    plat_tick_4();
+
 gotoActorCol:
     plat_delta_x = 0;
     plat_delta_y = 0;
 
-    if (mask & COL_CHECK_ACTORS)
+    if (IS_FRAME_ODD && mask & COL_CHECK_ACTORS)
     {
         actor_t *hit_actor;
         hit_actor = actor_overlapping_player(FALSE);
@@ -2327,7 +2347,7 @@ gotoActorCol:
         }
     }
 
-    if (mask & COL_CHECK_TRIGGERS)
+    if (IS_FRAME_EVEN && mask & COL_CHECK_TRIGGERS)
     {
         trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, INPUT_UP_PRESSED);
     }
@@ -2358,4 +2378,77 @@ void plat_callback_execute(UBYTE i) BANKED
     {
         script_execute(event->script_bank, event->script_addr, &event->handle, 0, 0);
     }
+}
+
+void plat_tick_1(void) BANKED
+{
+    plat_dash_ready_max = 0;
+}
+
+void plat_tick_2(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+
+void plat_tick_2a(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+
+void plat_tick_2b(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2c(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2d(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2e(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2f(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2fa(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2fb(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2fc(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2fd(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2g(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2h(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_2i(void) BANKED
+{
+    plat_dash_ready_max = 1;
+}
+void plat_tick_3(void) BANKED
+{
+    plat_dash_ready_max = 3;
+}
+
+void plat_tick_4(void) BANKED
+{
+    plat_dash_ready_max = 4;
 }
