@@ -2249,7 +2249,7 @@ gotoActorCol:
     plat_delta_x = 0;
     plat_delta_y = 0;
 
-    if (IS_FRAME_ODD && mask & COL_CHECK_ACTORS)
+    if (mask & COL_CHECK_ACTORS)
     {
         actor_t *hit_actor;
         hit_actor = actor_overlapping_player(FALSE);
