@@ -2001,7 +2001,7 @@ void move_and_collide(UBYTE mask) BANKED
                 //  Tile `E` would block movement up slope without these checks
                 if ((tile_y_start == plat_slope_y) &&
                     ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
-                    (IS_ON_SLOPE(prev_on_slope) && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
+                     (IS_ON_SLOPE(prev_on_slope)  && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
                 {
                     // Slope in in same direction as movement
                     tile_y_start--;
