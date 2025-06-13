@@ -60,10 +60,27 @@ UBYTE trigger_at_intersection(bounding_box_t *bb, point16_t *offset) BANKED {
     return NO_TRIGGER_COLLISON;
 }
 
+inline UBYTE inline_trigger_at_intersection(bounding_box_t *bb, point16_t *offset) {
+    UBYTE tile_left   = PX_TO_TILE(SUBPX_TO_PX(offset->x) + bb->left);
+    UBYTE tile_right  = PX_TO_TILE(SUBPX_TO_PX(offset->x) + bb->right);
+    UBYTE tile_top    = PX_TO_TILE(SUBPX_TO_PX(offset->y) + bb->top);
+    UBYTE tile_bottom = PX_TO_TILE(SUBPX_TO_PX(offset->y) + bb->bottom);
+    UBYTE i;
+
+    for (i = 0; i != triggers_len; i++) {
+        if ((tile_left <= triggers[i].right)
+            && (tile_right >= triggers[i].x)
+            && (tile_top <= triggers[i].bottom)
+            && (tile_bottom >= triggers[i].y)) {
+                return i;
+        }
+    }
+
+    return NO_TRIGGER_COLLISON;
+}
 
 UBYTE trigger_activate_at_intersection(bounding_box_t *bb, point16_t *offset, UBYTE force) BANKED {
-    UBYTE hit_trigger = trigger_at_intersection(bb, offset);
-    UBYTE trigger_script_called = FALSE;
+    UBYTE hit_trigger = inline_trigger_at_intersection(bb, offset);
 
     // Don't reactivate trigger if not changed tile
     if (!force && (last_trigger == hit_trigger)) {
@@ -72,6 +89,7 @@ UBYTE trigger_activate_at_intersection(bounding_box_t *bb, point16_t *offset, UB
 
     if (last_trigger != NO_TRIGGER_COLLISON && 
         (hit_trigger == NO_TRIGGER_COLLISON || hit_trigger != last_trigger)) {
+        UBYTE trigger_script_called = FALSE;
         
         if (hit_trigger != NO_TRIGGER_COLLISON && triggers[hit_trigger].script_flags & TRIGGER_HAS_ENTER_SCRIPT) {
             script_execute(triggers[hit_trigger].script.bank, triggers[hit_trigger].script.ptr, 0, 1, 1);
