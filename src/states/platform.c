@@ -2057,27 +2057,33 @@ void move_and_collide(UBYTE mask) BANKED
 
         if (plat_delta_y >= 0)
         {
+            // Moving Downward
             UBYTE *tile_ptr;
 
-            // Moving Downward
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
+            UBYTE new_tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
 #ifdef FEAT_PLATFORM_SLOPES
-            // New Slope Y 2
-            UBYTE new_tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
+
+            UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
+            UBYTE tile_y_offset = FALSE;
+
             // If previously grounded and gravity is not enough to pull us down to
             // the next tile, manually check it for the next slope This prevents the
             // "animation glitch" when going down slopes
-            if (prev_grounded && new_tile_y == (tile_y + 1))
+            if (prev_grounded && new_tile_y == (tile_y_start + 1)) {
                 new_tile_y += 1;
+                tile_y_offset = TRUE;
+            }
+
             UWORD x_mid_coord = PLAYER.pos.x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1);
 
             UBYTE tile_x = SUBPX_TO_TILE(x_mid_coord);
-            tile_ptr = tile_ptr_at(tile_x, tile_y);
 
-            while (tile_y <= new_tile_y)
+            tile_ptr = tile_ptr_at(tile_x, tile_y_start);
+
+            while (tile_y_start <= new_tile_y)
             {
-                UBYTE col = safe_read_tile_ptr(tile_ptr, tile_x, tile_y);
+                UBYTE col = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
 
                 if (IS_ON_SLOPE(col))
                 {
@@ -2106,13 +2112,13 @@ void move_and_collide(UBYTE mask) BANKED
                             break;
                     }
 
-                    UWORD slope_y_coord = TILE_TO_SUBPX(tile_y) + offset - 1;
+                    UWORD slope_y_coord = TILE_TO_SUBPX(tile_y_start) + offset - 1;
 
                     // If going downwards into a slope, don't snap to it unless
                     // we've actually collided
                     if (!prev_grounded && slope_y_coord > new_y)
                     {
-                        tile_y++;
+                        tile_y_start++;
                         tile_ptr += image_tile_width;
                         continue;
                     }
@@ -2129,7 +2135,7 @@ void move_and_collide(UBYTE mask) BANKED
                             plat_grounded = TRUE;
                             plat_next_state = GROUND_STATE;
                             plat_on_slope = col;
-                            plat_slope_y = tile_y;
+                            plat_slope_y = tile_y_start;
                             goto gotoActorCol;
                         }
                         tile_x_i++;
@@ -2146,25 +2152,31 @@ void move_and_collide(UBYTE mask) BANKED
                         plat_next_state = GROUND_STATE;
                     }
                     plat_on_slope = col;
-                    plat_slope_y = tile_y;
+                    plat_slope_y = tile_y_start;
                     goto gotoActorCol;
                 }
-                tile_y++;
+                tile_y_start++;
                 tile_ptr += image_tile_width;
             }
-            // End New Slope Y 2
 
-#endif
+            // Restore tile_ptr / new_tile_y
+            tile_ptr -= image_tile_width;
+            tile_ptr -= (tile_x - tile_x_start); 
+            if (tile_y_offset) {
+                new_tile_y--;
+                tile_ptr -= image_tile_width;
+            }
 
             UBYTE tile_x_i = tile_x_start;
-            tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
-
-            tile_ptr = tile_ptr_at(tile_x_i, tile_y);
+#else
+            UBYTE tile_x_i = tile_x_start;
+            tile_ptr = tile_ptr_at(tile_x_i, new_tile_y);            
+#endif
 
             // Check collisions from left to right with the bottom of the player
             while (tile_x_i != tile_x_end)
             {
-                UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x_i, tile_y);
+                UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x_i, new_tile_y);
 
                 if (tile & COLLISION_TOP)
                 {
@@ -2177,7 +2189,7 @@ void move_and_collide(UBYTE mask) BANKED
                         continue;
                     }
 #endif
-                    new_y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+                    new_y = PX_TO_SUBPX(TILE_TO_PX(new_tile_y) - PLAYER.bounds.bottom) - 1;
                     plat_actor_attached = FALSE; // Detach when MP moves through a solid tile.
                     plat_vel_y = 0;
 #ifdef FEAT_PLATFORM_DROP_THROUGH
