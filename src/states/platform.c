@@ -329,25 +329,6 @@ void plat_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_callback_execute(UBYTE i) BANKED;
 
-
-void plat_tick_1(void) BANKED;
-void plat_tick_2(void) BANKED;
-void plat_tick_2a(void) BANKED;
-void plat_tick_2b(void) BANKED;
-void plat_tick_2c(void) BANKED;
-void plat_tick_2d(void) BANKED;
-void plat_tick_2e(void) BANKED;
-void plat_tick_2f(void) BANKED;
-void plat_tick_2fa(void) BANKED;
-void plat_tick_2fb(void) BANKED;
-void plat_tick_2fc(void) BANKED;
-void plat_tick_2fd(void) BANKED;
-void plat_tick_2g(void) BANKED;
-void plat_tick_2h(void) BANKED;
-void plat_tick_2i(void) BANKED;
-void plat_tick_3(void) BANKED;
-void plat_tick_4(void) BANKED;
-
 // End of Function Definitions ------------------------------------------------
 
 void platform_init(void) BANKED
@@ -1848,13 +1829,11 @@ void handle_horizontal_input(void) BANKED
 
 void move_and_collide(UBYTE mask) BANKED
 {
-    plat_tick_1();
     const WORD sp_bounds_top = PX_TO_SUBPX(PLAYER.bounds.top);
     const WORD sp_bounds_bottom = PX_TO_SUBPX(PLAYER.bounds.bottom);
     const WORD sp_bounds_left = PX_TO_SUBPX(PLAYER.bounds.left);
     const WORD sp_bounds_right = PX_TO_SUBPX(PLAYER.bounds.right);
     WORD sp_half_width = DIV_2(sp_bounds_right - sp_bounds_left);
-    plat_tick_2();
 
 #ifdef FEAT_PLATFORM_SLOPES
     UBYTE prev_on_slope = 0;
@@ -1864,8 +1843,6 @@ void move_and_collide(UBYTE mask) BANKED
     COUNTER_DECREMENT(plat_drop_frames);
 #endif
 
-    plat_tick_2a();
-
     // Horizontal Movement
     if (mask & COL_CHECK_X)
     {
@@ -1874,8 +1851,6 @@ void move_and_collide(UBYTE mask) BANKED
         prev_on_slope = plat_on_slope;
         plat_on_slope = FALSE;
 #endif
-
-    plat_tick_2b();
 
         UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
         UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top) - 1;
@@ -1913,17 +1888,11 @@ void move_and_collide(UBYTE mask) BANKED
                 new_x = PLAYER.pos.x + MIN(PX_TO_SUBPX(*plat_edge_left + 8) - PLAYER.pos.x, 16);
             }
         }
-        plat_tick_2c();
-
-
-        plat_tick_2d();
 
         if (!(mask & COL_CHECK_WALLS))
         {
             goto gotoXReposition;
         }
-
-        plat_tick_2e();
 
         // Step-Check for collisions one tile left or right based on movement direction
         UBYTE moving_right, hit_flag;
@@ -1947,29 +1916,19 @@ void move_and_collide(UBYTE mask) BANKED
             bounds_edge = sp_bounds_left;
         }
 
-        plat_tick_2f();
-
         tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
-
-        plat_tick_2fa();
 
 #ifdef FEAT_PLATFORM_SLOPES
         UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
-        plat_tick_2fb();
 
         UBYTE *tile_ptr = tile_ptr_at(tile_x_mid, tile_y_start);
         UBYTE col_mid = safe_read_tile_ptr(tile_ptr, tile_x_mid, tile_y_start);
 
-        plat_tick_2fc();
-
         if (IS_ON_SLOPE(col_mid))
         {
-            plat_tick_2fd();
             plat_on_slope = col_mid;
             plat_slope_y = tile_y_start;
         }
-
-        plat_tick_2f();
 
         // Fix offset to point at tile_x
         tile_ptr += (tile_x - tile_x_mid);
@@ -1978,10 +1937,6 @@ void move_and_collide(UBYTE mask) BANKED
         UBYTE *tile_ptr = tile_ptr_at(tile_x, tile_y_start);    
 #endif
 
-        plat_tick_2g();
-
-        plat_tick_2h();
-        
         while (tile_y_start != tile_y_end)
         {
             UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
@@ -2025,13 +1980,10 @@ void move_and_collide(UBYTE mask) BANKED
             tile_y_start--;
             tile_ptr -= image_tile_width;
         }
-        plat_tick_2i();
 
     gotoXReposition:
         PLAYER.pos.x = new_x;
     }
-
-    plat_tick_3();
 
     // Vertical Movement
     if (mask & COL_CHECK_Y)
@@ -2243,8 +2195,6 @@ void move_and_collide(UBYTE mask) BANKED
         }
     }
 
-    plat_tick_4();
-
 gotoActorCol:
     plat_delta_x = 0;
     plat_delta_y = 0;
@@ -2372,77 +2322,4 @@ void plat_callback_execute(UBYTE i) BANKED
     {
         script_execute(event->script_bank, event->script_addr, &event->handle, 0, 0);
     }
-}
-
-void plat_tick_1(void) BANKED
-{
-    plat_dash_ready_max = 0;
-}
-
-void plat_tick_2(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-
-void plat_tick_2a(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-
-void plat_tick_2b(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2c(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2d(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2e(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2f(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2fa(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2fb(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2fc(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2fd(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2g(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2h(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_2i(void) BANKED
-{
-    plat_dash_ready_max = 1;
-}
-void plat_tick_3(void) BANKED
-{
-    plat_dash_ready_max = 3;
-}
-
-void plat_tick_4(void) BANKED
-{
-    plat_dash_ready_max = 4;
 }
