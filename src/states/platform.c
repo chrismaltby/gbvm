@@ -2189,7 +2189,7 @@ void move_and_collide(UBYTE mask) BANKED
                         continue;
                     }
 #endif
-                    new_y = PX_TO_SUBPX(TILE_TO_PX(new_tile_y) - PLAYER.bounds.bottom) - 1;
+                    new_y = TILE_TO_SUBPX(new_tile_y) - sp_bounds_bottom - 1;
                     plat_actor_attached = FALSE; // Detach when MP moves through a solid tile.
                     plat_vel_y = 0;
 #ifdef FEAT_PLATFORM_DROP_THROUGH
