@@ -49,15 +49,10 @@ UBYTE trigger_at_intersection(bounding_box_t *bb, point16_t *offset) BANKED {
     UBYTE i;
 
     for (i = 0; i != triggers_len; i++) {
-        UBYTE trigger_left   = triggers[i].x;
-        UBYTE trigger_top    = triggers[i].y;
-        UBYTE trigger_right  = triggers[i].x + triggers[i].width  - 1;
-        UBYTE trigger_bottom = triggers[i].y + triggers[i].height - 1;
-
-        if ((tile_left <= trigger_right)
-            && (tile_right >= trigger_left)
-            && (tile_top <= trigger_bottom)
-            && (tile_bottom >= trigger_top)) {
+        if ((tile_left <= triggers[i].right)
+            && (tile_right >= triggers[i].x)
+            && (tile_top <= triggers[i].bottom)
+            && (tile_bottom >= triggers[i].y)) {
                 return i;
         }
     }
@@ -111,8 +106,8 @@ UBYTE trigger_at_tile(UBYTE tx_a, UBYTE ty_a) BANKED {
     for (i = 0; i != triggers_len; i++) {
         tx_b = triggers[i].x;
         ty_b = triggers[i].y;
-        tx_c = tx_b + triggers[i].width - 1;
-        ty_c = ty_b + triggers[i].height - 1;
+        tx_c = triggers[i].right;
+        ty_c = triggers[i].bottom;
 
         if ((tx_a + 1) >= tx_b && tx_a <= tx_c && ty_a >= ty_b && ty_a <= ty_c) {
             return i;

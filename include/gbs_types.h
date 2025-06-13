@@ -98,7 +98,7 @@ typedef struct actor_t
 #define TRIGGER_HAS_LEAVE_SCRIPT    2
 
 typedef struct trigger_t {
-    uint8_t x, y, width, height;
+    uint8_t x, y, right, bottom;
     far_ptr_t script;
     uint8_t script_flags;
 } trigger_t;
