@@ -2069,20 +2069,18 @@ void move_and_collide(UBYTE mask) BANKED
                 // If we are moving up a slope, check for top collision
                 UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + sp_bounds_top);
                 UBYTE tile_x_i = tile_x_start;
-                while (tile_x_i != tile_x_end)
-                {
-                    if (tile_at(tile_x_i, slope_top_tile_y) & COLLISION_BOTTOM)
-                    {
-                        plat_vel_y = 0;
-                        plat_vel_x = 0;
-                        PLAYER.pos.x -= plat_delta_x;
-                        plat_grounded = TRUE;
-                        plat_next_state = GROUND_STATE;
-                        plat_on_slope = tile;
-                        plat_slope_y = tile_hit_y;
-                        goto gotoActorCol;
-                    }
-                    tile_x_i++;
+
+                plat_slope_y = tile_hit_y;
+                plat_on_slope = tile;
+                plat_grounded = TRUE;
+
+                UBYTE top_tile = tile_col_test_range_x(COLLISION_BOTTOM, slope_top_tile_y, tile_x_start, tile_x_end);
+                if (top_tile) {
+                    plat_vel_y = 0;
+                    plat_vel_x = 0;
+                    PLAYER.pos.x -= plat_delta_x;
+                    plat_next_state = GROUND_STATE;               
+                    goto gotoActorCol;
                 }
 
                 PLAYER.pos.y = slope_y_coord;
@@ -2090,13 +2088,10 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_DROP_THROUGH
                 plat_drop_frames = 0;
 #endif
-                plat_grounded = TRUE;
                 if (plat_state != DASH_STATE)
                 {
                     plat_next_state = GROUND_STATE;
                 }
-                plat_on_slope = tile;
-                plat_slope_y = tile_hit_y;
                 goto gotoActorCol;
             }  
 gotoAfterSlopeY:
