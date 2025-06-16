@@ -2018,13 +2018,14 @@ void move_and_collide(UBYTE mask) BANKED
 #ifdef FEAT_PLATFORM_SLOPES
 
             UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom) - 1;
+            UBYTE tile_y_end = new_tile_y;
             UBYTE tile_y_offset = FALSE;
 
             // If previously grounded and gravity is not enough to pull us down to
             // the next tile, manually check it for the next slope This prevents the
             // "animation glitch" when going down slopes
-            if (prev_grounded && new_tile_y == (tile_y_start + 1)) {
-                new_tile_y += 1;
+            if (prev_grounded && tile_y_end == (tile_y_start + 1)) {
+                tile_y_end += 1;
                 tile_y_offset = TRUE;
             }
 
@@ -2034,7 +2035,7 @@ void move_and_collide(UBYTE mask) BANKED
 
             tile_ptr = tile_ptr_at(tile_x, tile_y_start);
 
-            while (tile_y_start <= new_tile_y)
+            while (tile_y_start <= tile_y_end)
             {
                 UBYTE col = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
 
@@ -2110,20 +2111,7 @@ void move_and_collide(UBYTE mask) BANKED
                 }
                 tile_y_start++;
                 tile_ptr += image_tile_width;
-            }
-
-            // Restore tile_ptr / new_tile_y
-            tile_ptr -= image_tile_width;
-            tile_ptr -= (tile_x - tile_x_start); 
-            if (tile_y_offset) {
-                new_tile_y--;
-                tile_ptr -= image_tile_width;
-            }
-
-            UBYTE tile_x_i = tile_x_start;
-#else
-            UBYTE tile_x_i = tile_x_start;
-            tile_ptr = tile_ptr_at(tile_x_i, new_tile_y);            
+            }       
 #endif
 
             tile = tile_col_test_range_x(COLLISION_TOP, new_tile_y, tile_x_start, tile_x_end);
