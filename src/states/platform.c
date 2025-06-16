@@ -2011,6 +2011,7 @@ void move_and_collide(UBYTE mask) BANKED
         {
             // Moving Downward
             UBYTE *tile_ptr;
+            UBYTE tile;
 
             UBYTE new_tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
@@ -2125,37 +2126,26 @@ void move_and_collide(UBYTE mask) BANKED
             tile_ptr = tile_ptr_at(tile_x_i, new_tile_y);            
 #endif
 
-            // Check collisions from left to right with the bottom of the player
-            while (tile_x_i != tile_x_end)
-            {
-                UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x_i, new_tile_y);
-
-                if (tile & COLLISION_TOP)
+            tile = tile_col_test_range_x(COLLISION_TOP, new_tile_y, tile_x_start, tile_x_end);
+            if (tile) {
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+                // Only drop through platforms without a bottom collision
+                if (plat_drop_frames && !(tile & COLLISION_BOTTOM))
                 {
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-                    // Only drop through platforms without a bottom collision
-                    if (plat_drop_frames && !(tile & COLLISION_BOTTOM))
-                    {
-                        tile_x_i++;
-                        tile_ptr++;
-                        continue;
-                    }
-#endif
-                    new_y = TILE_TO_SUBPX(new_tile_y) - sp_bounds_bottom - 1;
-                    plat_actor_attached = FALSE; // Detach when MP moves through a solid tile.
-                    plat_vel_y = 0;
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-                    plat_drop_frames = 0;
-#endif
-                    plat_grounded = TRUE;
-                    if (plat_state != DASH_STATE)
-                    {
-                        plat_next_state = GROUND_STATE;
-                    }
-                    break;
+                    goto gotoYReposition;
                 }
-                tile_x_i++;
-                tile_ptr++;
+#endif
+                new_y = TILE_TO_SUBPX(tile_hit_y) - sp_bounds_bottom - 1;
+                plat_actor_attached = FALSE; // Detach when MP moves through a solid tile.
+                plat_vel_y = 0;
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+                plat_drop_frames = 0;
+#endif
+                plat_grounded = TRUE;
+                if (plat_state != DASH_STATE)
+                {
+                    plat_next_state = GROUND_STATE;
+                }
             }
         gotoYReposition:
             PLAYER.pos.y = new_y;
