@@ -1836,7 +1836,8 @@ void move_and_collide(UBYTE mask) BANKED
     WORD sp_half_width = DIV_2(sp_bounds_right - sp_bounds_left);
 
 #ifdef FEAT_PLATFORM_SLOPES
-    UBYTE prev_on_slope = 0;
+    UBYTE prev_on_slope = plat_on_slope;
+    plat_on_slope = FALSE;
 #endif
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
@@ -1847,16 +1848,10 @@ void move_and_collide(UBYTE mask) BANKED
     if (mask & COL_CHECK_X)
     {
         plat_delta_x = CLAMP(plat_delta_x, -MAX_DELTA, MAX_DELTA);
-#ifdef FEAT_PLATFORM_SLOPES
-        prev_on_slope = plat_on_slope;
-        plat_on_slope = FALSE;
-#endif
 
         UBYTE tile_y_start = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_bottom);
-        UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top) - 1;
+        UBYTE tile_y_end = SUBPX_TO_TILE(PLAYER.pos.y + sp_bounds_top);
         UWORD new_x = PLAYER.pos.x + plat_delta_x;
-
-        UBYTE tile_x = 0;
 
         // Edge Locking
         // If the player is past the right edge (camera or screen)
@@ -1916,69 +1911,42 @@ void move_and_collide(UBYTE mask) BANKED
             bounds_edge = sp_bounds_left;
         }
 
-        tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
+        UBYTE tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
+        
+        UBYTE tile = tile_col_test_range_y(hit_flag, tile_x, tile_y_start, tile_y_end);
 
+        if (tile)
+        {
 #ifdef FEAT_PLATFORM_SLOPES
-        UBYTE tile_x_mid = SUBPX_TO_TILE(new_x + sp_bounds_left + sp_half_width + PX_TO_SUBPX(1));
-
-        UBYTE *tile_ptr = tile_ptr_at(tile_x_mid, tile_y_start);
-        UBYTE col_mid = safe_read_tile_ptr(tile_ptr, tile_x_mid, tile_y_start);
-
-        if (IS_ON_SLOPE(col_mid))
-        {
-            plat_on_slope = col_mid;
-            plat_slope_y = tile_y_start;
-        }
-
-        // Fix offset to point at tile_x
-        tile_ptr += (tile_x - tile_x_mid);
-
-#else
-        UBYTE *tile_ptr = tile_ptr_at(tile_x, tile_y_start);    
-#endif
-
-        while (tile_y_start != tile_y_end)
-        {
-            UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
-
-            if (tile & hit_flag)
+            // Handle case when moving up a slope and top contains a solid collision
+            //   e.g.
+            //
+            //    /EX
+            //   /XXX
+            //
+            //  Tile `E` would block movement up slope without these checks
+            if ((tile_hit_y == plat_slope_y) &&
+                (IS_ON_SLOPE(prev_on_slope) &&
+                (IS_SLOPE_LEFT(prev_on_slope) != moving_right)))
             {
-#ifdef FEAT_PLATFORM_SLOPES
-                // Handle case when moving up a slope and top contains a solid collision
-                //   e.g.
-                //
-                //    /EX
-                //   /XXX
-                //
-                //  Tile `E` would block movement up slope without these checks
-                if ((tile_y_start == plat_slope_y) &&
-                    ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
-                     (IS_ON_SLOPE(prev_on_slope)  && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
-                {
-                    tile_y_start--;
-                    tile_ptr -= image_tile_width;
-                    continue;
-                }               
+                goto gotoXReposition;
+            }               
 #endif
-                if (moving_right)
-                {
-                    new_x = TILE_TO_SUBPX(tile_x) - bounds_edge - 1;
-                }
-                else
-                {
-                    new_x = TILE_TO_SUBPX(tile_x + 1) - bounds_edge + 1;
-                }
-
-                plat_vel_x = 0;
-                plat_col = wall;
-                plat_last_wall = wall;
-#ifdef FEAT_PLATFORM_WALL_JUMP
-                plat_wc_val = plat_coyote_max + 1;
-#endif
-                break;
+            if (moving_right)
+            {
+                new_x = TILE_TO_SUBPX(tile_x) - bounds_edge - 1;
             }
-            tile_y_start--;
-            tile_ptr -= image_tile_width;
+            else
+            {
+                new_x = TILE_TO_SUBPX(tile_x + 1) - bounds_edge + 1;
+            }
+
+            plat_vel_x = 0;
+            plat_col = wall;
+            plat_last_wall = wall;
+#ifdef FEAT_PLATFORM_WALL_JUMP
+            plat_wc_val = plat_coyote_max + 1;
+#endif
         }
 
     gotoXReposition:
