@@ -1932,53 +1932,40 @@ void move_and_collide(UBYTE mask) BANKED
 
         // Fix offset to point at tile_x
         tile_ptr += (tile_x - tile_x_mid);
-
-#else
-        UBYTE *tile_ptr = tile_ptr_at(tile_x, tile_y_start);    
 #endif
 
-        while (tile_y_start != tile_y_end)
-        {
-            UBYTE tile = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
-
-            if (tile & hit_flag)
-            {
+        UBYTE tile = tile_col_test_range_y(hit_flag, tile_x, tile_y_start, tile_y_end);
+        if (tile) {
 #ifdef FEAT_PLATFORM_SLOPES
-                // Handle case when moving up a slope and top contains a solid collision
-                //   e.g.
-                //
-                //    /EX
-                //   /XXX
-                //
-                //  Tile `E` would block movement up slope without these checks
-                if ((tile_y_start == plat_slope_y) &&
-                    ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
-                     (IS_ON_SLOPE(prev_on_slope)  && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
-                {
-                    tile_y_start--;
-                    tile_ptr -= image_tile_width;
-                    continue;
-                }               
+            // Handle case when moving up a slope and top contains a solid collision
+            //   e.g.
+            //
+            //    /EX
+            //   /XXX
+            //
+            //  Tile `E` would block movement up slope without these checks
+            if ((tile_hit_y == plat_slope_y) &&
+                ((IS_ON_SLOPE(plat_on_slope) && (IS_SLOPE_LEFT(plat_on_slope) != moving_right)) ||
+                    (IS_ON_SLOPE(prev_on_slope)  && (IS_SLOPE_LEFT(prev_on_slope) != moving_right))))
+            {
+                goto gotoXReposition;
+            }               
 #endif
-                if (moving_right)
-                {
-                    new_x = TILE_TO_SUBPX(tile_x) - bounds_edge - 1;
-                }
-                else
-                {
-                    new_x = TILE_TO_SUBPX(tile_x + 1) - bounds_edge + 1;
-                }
-
-                plat_vel_x = 0;
-                plat_col = wall;
-                plat_last_wall = wall;
-#ifdef FEAT_PLATFORM_WALL_JUMP
-                plat_wc_val = plat_coyote_max + 1;
-#endif
-                break;
+            if (moving_right)
+            {
+                new_x = TILE_TO_SUBPX(tile_hit_x) - bounds_edge - 1;
             }
-            tile_y_start--;
-            tile_ptr -= image_tile_width;
+            else
+            {
+                new_x = TILE_TO_SUBPX(tile_hit_x + 1) - bounds_edge + 1;
+            }
+
+            plat_vel_x = 0;
+            plat_col = wall;
+            plat_last_wall = wall;
+#ifdef FEAT_PLATFORM_WALL_JUMP
+            plat_wc_val = plat_coyote_max + 1;
+#endif
         }
 
     gotoXReposition:
@@ -2031,99 +2018,78 @@ void move_and_collide(UBYTE mask) BANKED
 
             UBYTE tile_x = SUBPX_TO_TILE(x_mid_coord);
 
-            tile_ptr = tile_ptr_at(tile_x, tile_y_start);
+            UBYTE col = tile_col_test_range_y(0x60, tile_x, tile_y_start, new_tile_y);
+            if (col) {
+                const UBYTE slope_type = (col & COLLISION_SLOPE);
+                UBYTE x_offset = SUBPX_TILE_REMAINDER(x_mid_coord);
+                WORD offset = 0;
 
-            while (tile_y_start <= new_tile_y)
-            {
-                UBYTE col = safe_read_tile_ptr(tile_ptr, tile_x, tile_y_start);
-
-                if (IS_ON_SLOPE(col))
-                {
-                    const UBYTE slope_type = (col & COLLISION_SLOPE);
-                    UBYTE x_offset = SUBPX_TILE_REMAINDER(x_mid_coord);
-                    WORD offset = 0;
-
-                    switch (slope_type) {
-                        case COLLISION_SLOPE_45_RIGHT:
-                            offset = (PX_TO_SUBPX(8) - x_offset) - sp_bounds_bottom;
-                            break;
-                        case COLLISION_SLOPE_225_RIGHT_BOT:
-                            offset = (PX_TO_SUBPX(8) - DIV_2(x_offset)) - sp_bounds_bottom;
-                            break;
-                        case COLLISION_SLOPE_225_RIGHT_TOP:
-                            offset = (PX_TO_SUBPX(4) - DIV_2(x_offset)) - sp_bounds_bottom;
-                            break;
-                        case COLLISION_SLOPE_45_LEFT:
-                            offset = x_offset - sp_bounds_bottom;
-                            break;
-                        case COLLISION_SLOPE_225_LEFT_BOT:
-                            offset = DIV_2(x_offset) - sp_bounds_bottom + PX_TO_SUBPX(4);
-                            break;
-                        case COLLISION_SLOPE_225_LEFT_TOP:
-                            offset = DIV_2(x_offset) - sp_bounds_bottom;
-                            break;
-                    }
-
-                    UWORD slope_y_coord = TILE_TO_SUBPX(tile_y_start) + offset - 1;
-
-                    // If going downwards into a slope, don't snap to it unless
-                    // we've actually collided
-                    if (!prev_grounded && slope_y_coord > new_y)
-                    {
-                        tile_y_start++;
-                        tile_ptr += image_tile_width;
-                        continue;
-                    }
-                    // If we are moving up a slope, check for top collision
-                    UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + sp_bounds_top);
-                    UBYTE tile_x_i = tile_x_start;
-                    while (tile_x_i != tile_x_end)
-                    {
-                        if (tile_at(tile_x_i, slope_top_tile_y) & COLLISION_BOTTOM)
-                        {
-                            plat_vel_y = 0;
-                            plat_vel_x = 0;
-                            PLAYER.pos.x -= plat_delta_x;
-                            plat_grounded = TRUE;
-                            plat_next_state = GROUND_STATE;
-                            plat_on_slope = col;
-                            plat_slope_y = tile_y_start;
-                            goto gotoActorCol;
-                        }
-                        tile_x_i++;
-                    }
-
-                    PLAYER.pos.y = slope_y_coord;
-                    plat_vel_y = 0;
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-                    plat_drop_frames = 0;
-#endif
-                    plat_grounded = TRUE;
-                    if (plat_state != DASH_STATE)
-                    {
-                        plat_next_state = GROUND_STATE;
-                    }
-                    plat_on_slope = col;
-                    plat_slope_y = tile_y_start;
-                    goto gotoActorCol;
+                switch (slope_type) {
+                    case COLLISION_SLOPE_45_RIGHT:
+                        offset = (PX_TO_SUBPX(8) - x_offset) - sp_bounds_bottom;
+                        break;
+                    case COLLISION_SLOPE_225_RIGHT_BOT:
+                        offset = (PX_TO_SUBPX(8) - DIV_2(x_offset)) - sp_bounds_bottom;
+                        break;
+                    case COLLISION_SLOPE_225_RIGHT_TOP:
+                        offset = (PX_TO_SUBPX(4) - DIV_2(x_offset)) - sp_bounds_bottom;
+                        break;
+                    case COLLISION_SLOPE_45_LEFT:
+                        offset = x_offset - sp_bounds_bottom;
+                        break;
+                    case COLLISION_SLOPE_225_LEFT_BOT:
+                        offset = DIV_2(x_offset) - sp_bounds_bottom + PX_TO_SUBPX(4);
+                        break;
+                    case COLLISION_SLOPE_225_LEFT_TOP:
+                        offset = DIV_2(x_offset) - sp_bounds_bottom;
+                        break;
                 }
-                tile_y_start++;
-                tile_ptr += image_tile_width;
-            }
 
-            // Restore tile_ptr / new_tile_y
-            tile_ptr -= image_tile_width;
-            tile_ptr -= (tile_x - tile_x_start); 
-            if (tile_y_offset) {
-                new_tile_y--;
-                tile_ptr -= image_tile_width;
-            }
+                UWORD slope_y_coord = TILE_TO_SUBPX(tile_hit_y) + offset - 1;
 
-            UBYTE tile_x_i = tile_x_start;
-#else
+                // If going downwards into a slope, don't snap to it unless
+                // we've actually collided
+                if (!prev_grounded && slope_y_coord > new_y)
+                {
+                    goto gotoYReposition;
+                }
+                // If we are moving up a slope, check for top collision
+                UBYTE slope_top_tile_y = SUBPX_TO_TILE(slope_y_coord + sp_bounds_top);
+                UBYTE tile_x_i = tile_x_start;
+                while (tile_x_i != tile_x_end)
+                {
+                    if (tile_at(tile_x_i, slope_top_tile_y) & COLLISION_BOTTOM)
+                    {
+                        plat_vel_y = 0;
+                        plat_vel_x = 0;
+                        PLAYER.pos.x -= plat_delta_x;
+                        plat_grounded = TRUE;
+                        plat_next_state = GROUND_STATE;
+                        plat_on_slope = col;
+                        plat_slope_y = tile_hit_y;
+                        goto gotoActorCol;
+                    }
+                    tile_x_i++;
+                }
+
+                PLAYER.pos.y = slope_y_coord;
+                plat_vel_y = 0;
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+                plat_drop_frames = 0;
+#endif
+                plat_grounded = TRUE;
+                if (plat_state != DASH_STATE)
+                {
+                    plat_next_state = GROUND_STATE;
+                }
+                plat_on_slope = col;
+                plat_slope_y = tile_hit_y;
+                goto gotoActorCol;
+            }
+#endif
+
             UBYTE tile_x_i = tile_x_start;
             tile_ptr = tile_ptr_at(tile_x_i, new_tile_y);            
-#endif
 
             // Check collisions from left to right with the bottom of the player
             while (tile_x_i != tile_x_end)

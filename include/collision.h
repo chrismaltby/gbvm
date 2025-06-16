@@ -22,6 +22,9 @@ extern unsigned char *collision_ptr;
 extern UBYTE image_tile_width;
 extern UBYTE image_tile_height;
 
+extern UBYTE tile_hit_x;
+extern UBYTE tile_hit_y;
+
 /**
  * Check if point is within positioned bounding box.
  *
@@ -83,5 +86,9 @@ inline UBYTE safe_read_tile_ptr(UBYTE *ptr, UBYTE tx, UBYTE ty) {
         return COLLISION_ALL;
     }
 }
+
+
+UBYTE tile_col_test_range_y(UBYTE tile_mask, UBYTE tx, UBYTE ty_start, UBYTE ty_end) NONBANKED;
+UBYTE tile_col_test_range_x(UBYTE tile_mask, UBYTE ty, UBYTE tx_start, UBYTE tx_end) NONBANKED;
 
 #endif
