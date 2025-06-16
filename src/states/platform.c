@@ -2125,33 +2125,29 @@ gotoAfterSlopeY:
         else if (plat_delta_y < 0)
         {
             // Moving Upward
-            UBYTE tile_x_i = tile_x_start;
             UBYTE tile_y = SUBPX_TO_TILE(new_y + sp_bounds_top);
-            while (tile_x_i != tile_x_end)
+            UBYTE tile = tile_col_test_range_x(COLLISION_BOTTOM, tile_y, tile_x_start, tile_x_end);
+
+            if (tile)
             {
-                if (tile_at(tile_x_i, tile_y) & COLLISION_BOTTOM)
+                // Hit the ceiling
+                new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_hit_y + 1) - PLAYER.bounds.top) + 1;
+                plat_vel_y = 0;
+                // MP Test: Attempting stuff to stop the player from continuing
+                // upward
+                if (plat_actor_attached)
                 {
-                    // Hit the ceiling
-                    new_y = PX_TO_SUBPX((UBYTE)TILE_TO_PX(tile_y + 1) - PLAYER.bounds.top) + 1;
-                    plat_vel_y = 0;
-                    // MP Test: Attempting stuff to stop the player from continuing
-                    // upward
-                    if (plat_actor_attached)
+                    plat_temp_y = plat_last_actor->pos.y;
+                    if (plat_last_actor->bounds.top > 0)
                     {
-                        plat_temp_y = plat_last_actor->pos.y;
-                        if (plat_last_actor->bounds.top > 0)
-                        {
-                            plat_temp_y += plat_last_actor->bounds.top + plat_last_actor->bounds.bottom << 5;
-                        }
-                        new_y = plat_temp_y;
+                        plat_temp_y += plat_last_actor->bounds.top + plat_last_actor->bounds.bottom << 5;
                     }
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-                    plat_ct_val = 0;
-#endif
-                    plat_next_state = FALL_STATE;
-                    break;
+                    new_y = plat_temp_y;
                 }
-                tile_x_i++;
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+                plat_ct_val = 0;
+#endif
+                plat_next_state = FALL_STATE;
             }
             PLAYER.pos.y = new_y;
         }
