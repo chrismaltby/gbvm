@@ -2005,14 +2005,12 @@ void move_and_collide(UBYTE mask) BANKED
 #endif
 
         UBYTE tile_x_start = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_left);
-        UBYTE tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right) + 1;
+        UBYTE tile_x_end = SUBPX_TO_TILE(PLAYER.pos.x + sp_bounds_right);
 
         if (plat_delta_y >= 0)
         {
             // Moving Downward
-            UBYTE *tile_ptr;
             UBYTE tile;
-
             UBYTE new_tile_y = SUBPX_TO_TILE(new_y + sp_bounds_bottom);
 
 #ifdef FEAT_PLATFORM_SLOPES
