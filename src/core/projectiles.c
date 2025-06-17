@@ -66,10 +66,10 @@ void projectiles_update(void) NONBANKED {
 
         if (IS_FRAME_EVEN) {
             actor_t *hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL, FALSE);
-            if (hit_actor && (hit_actor->collision_group & projectile->def.collision_mask)) {
+            if (hit_actor && (hit_actor->def.collision_group & projectile->def.collision_mask)) {
                 // Hit! - Fire collision script here
-                if ((hit_actor->script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
-                    script_execute(hit_actor->script.bank, hit_actor->script.ptr, &(hit_actor->hscript_hit), 1, (UWORD)(projectile->def.collision_group));
+                if ((hit_actor->def.script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
+                    script_execute(hit_actor->def.script.bank, hit_actor->def.script.ptr, &(hit_actor->hscript_hit), 1, (UWORD)(projectile->def.collision_group));
                 }
                 if (!projectile->def.strong) {
                     // Remove projectile

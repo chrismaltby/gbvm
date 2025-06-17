@@ -13,8 +13,8 @@ BANKREF(VM_SCENE)
 
 void vm_scene_push(void) OLDCALL BANKED {
     scene_stack_ptr->scene = current_scene;
-    scene_stack_ptr->pos = PLAYER.pos;
-    scene_stack_ptr->dir = PLAYER.dir;
+    scene_stack_ptr->pos = PLAYER.def.pos;
+    scene_stack_ptr->dir = PLAYER.def.dir;
     scene_stack_ptr++;
 }
 
@@ -23,8 +23,8 @@ static void raise_change_scene_exception(void) {
     vm_exception_params_length = sizeof(far_ptr_t);
     vm_exception_params_bank = 1; // any bank
     vm_exception_params_offset = &scene_stack_ptr->scene;
-    PLAYER.pos = scene_stack_ptr->pos;
-    PLAYER.dir = scene_stack_ptr->dir;
+    PLAYER.def.pos = scene_stack_ptr->pos;
+    PLAYER.def.dir = scene_stack_ptr->dir;
 }
 
 void vm_scene_pop(void) OLDCALL BANKED {

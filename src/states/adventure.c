@@ -73,59 +73,59 @@ void adventure_update(void) BANKED {
 
     if (player_moving) {
         point16_t new_pos;
-        new_pos.x = PLAYER.pos.x;
-        new_pos.y = PLAYER.pos.y;
+        new_pos.x = PLAYER.def.pos.x;
+        new_pos.y = PLAYER.def.pos.y;
         point_translate_angle(&new_pos, angle, PLAYER.move_speed);
 
         // Step X
-        tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-        tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
+        tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.y) + PLAYER.def.bounds.top);
+        tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.y) + PLAYER.def.bounds.bottom) + 1;
         if (angle < ANGLE_180DEG) {
-            UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.right);
+            UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.def.bounds.right);
             while (tile_start != tile_end) {
 
                 if (tile_at(tile_x, tile_start) & COLLISION_LEFT) {
-                    new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;
+                    new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.def.bounds.right) - 1;
                     break;
                 }
                 tile_start++;
             }
-            PLAYER.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.bounds.right - 1), new_pos.x);
+            PLAYER.def.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.def.bounds.right - 1), new_pos.x);
         } else {
-            UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.left);
+            UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.def.bounds.left);
             while (tile_start != tile_end) {
                 if (tile_at(tile_x, tile_start) & COLLISION_RIGHT) {
-                    new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.bounds.left) + 1;
+                    new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.def.bounds.left) + 1;
                     break;
                 }
                 tile_start++;
             }
-            PLAYER.pos.x = MAX(0, (WORD)new_pos.x);
+            PLAYER.def.pos.x = MAX(0, (WORD)new_pos.x);
         }
 
         // Step Y
-        tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-        tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
+        tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.x) + PLAYER.def.bounds.left);
+        tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.x) + PLAYER.def.bounds.right) + 1;
         if (angle > ANGLE_90DEG && angle < ANGLE_270DEG) {
-            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.bottom);
+            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.def.bounds.bottom);
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y) & COLLISION_TOP) {
-                    new_pos.y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+                    new_pos.y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.def.bounds.bottom) - 1;
                     break;
                 }
                 tile_start++;
             }
-            PLAYER.pos.y = new_pos.y;
+            PLAYER.def.pos.y = new_pos.y;
         } else {
-            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.top);
+            UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.def.bounds.top);
             while (tile_start != tile_end) {
                 if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-                    new_pos.y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.bounds.top) + 1;
+                    new_pos.y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.def.bounds.top) + 1;
                     break;
                 }
                 tile_start++;
             }
-            PLAYER.pos.y = new_pos.y;
+            PLAYER.def.pos.y = new_pos.y;
         }
     }
 
@@ -138,7 +138,7 @@ void adventure_update(void) BANKED {
     hit_actor = NULL;
     if (IS_FRAME_ODD) {
         // Check for trigger collisions
-        if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE)) {
+        if (trigger_activate_at_intersection(&PLAYER.def.bounds, &PLAYER.def.pos, FALSE)) {
             // Landed on a trigger
             return;
         }

@@ -28,7 +28,7 @@ void shmup_init(void) BANKED {
     camera_deadzone_x = 0;
     camera_deadzone_y = 0;
 
-    shooter_direction = PLAYER.dir;
+    shooter_direction = PLAYER.def.dir;
 
     if (shooter_direction == DIR_LEFT) {
         // Right to left scrolling
@@ -80,108 +80,108 @@ void shmup_update(void) BANKED {
     }
 
     // Set animation if direction has changed
-    if (new_dir != PLAYER.dir) {
+    if (new_dir != PLAYER.def.dir) {
         actor_set_dir(&PLAYER, new_dir, player_moving);
     }
 
     // Move player from input
     if (player_moving) {
         point16_t new_pos;
-        new_pos.x = PLAYER.pos.x;
-        new_pos.y = PLAYER.pos.y;
-        point_translate_dir(&new_pos, PLAYER.dir, PLAYER.move_speed);
+        new_pos.x = PLAYER.def.pos.x;
+        new_pos.y = PLAYER.def.pos.y;
+        point_translate_dir(&new_pos, PLAYER.def.dir, PLAYER.def.move_speed);
 
         // Check for tile collisions
         if (IS_DIR_HORIZONTAL(shooter_direction)) {
             // Step Y
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.left);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right) + 1;
-            if (PLAYER.dir == DIR_DOWN) {
-                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.bottom);
+            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.x) + PLAYER.def.bounds.left);
+            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.x) + PLAYER.def.bounds.right) + 1;
+            if (PLAYER.def.dir == DIR_DOWN) {
+                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.def.bounds.bottom);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_start, tile_y) & COLLISION_TOP) {
-                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.bounds.bottom) - 1;
+                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX(tile_y) - PLAYER.def.bounds.bottom) - 1;
                         break;
                     }
                     tile_start++;
                 }
-                PLAYER.pos.y = new_pos.y;
+                PLAYER.def.pos.y = new_pos.y;
             } else {
-                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.bounds.top);
+                UBYTE tile_y = PX_TO_TILE(SUBPX_TO_PX(new_pos.y) + PLAYER.def.bounds.top);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_start, tile_y) & COLLISION_BOTTOM) {
-                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.bounds.top) + 1;
+                        new_pos.y = PX_TO_SUBPX(TILE_TO_PX((UBYTE)(tile_y + 1)) - PLAYER.def.bounds.top) + 1;
                         break;
                     }
                     tile_start++;
                 }
-                PLAYER.pos.y = new_pos.y;
+                PLAYER.def.pos.y = new_pos.y;
             }
         } else {
             // Step X
-            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top);
-            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom) + 1;
-            if (PLAYER.dir == DIR_RIGHT) {
-                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.right);
+            tile_start = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.y) + PLAYER.def.bounds.top);
+            tile_end   = PX_TO_TILE(SUBPX_TO_PX(PLAYER.def.pos.y) + PLAYER.def.bounds.bottom) + 1;
+            if (PLAYER.def.dir == DIR_RIGHT) {
+                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.def.bounds.right);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_x, tile_start) & COLLISION_LEFT) {
-                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.bounds.right) - 1;           
+                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x) - PLAYER.def.bounds.right) - 1;           
                         break;
                     }
                     tile_start++;
                 }
-                PLAYER.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.bounds.right - 1), new_pos.x);
+                PLAYER.def.pos.x = MIN(PX_TO_SUBPX(image_width - PLAYER.def.bounds.right - 1), new_pos.x);
             } else {
-                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.bounds.left);
+                UBYTE tile_x = PX_TO_TILE(SUBPX_TO_PX(new_pos.x) + PLAYER.def.bounds.left);
                 while (tile_start != tile_end) {
                     if (tile_at(tile_x, tile_start) & COLLISION_RIGHT) {
-                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.bounds.left) + 1;         
+                        new_pos.x = PX_TO_SUBPX(TILE_TO_PX(tile_x + 1) - PLAYER.def.bounds.left) + 1;         
                         break;
                     }
                     tile_start++;
                 }
-                PLAYER.pos.x = MAX(0, (WORD)new_pos.x);
+                PLAYER.def.pos.x = MAX(0, (WORD)new_pos.x);
             }
         }
     }
 
     // Auto scroll background
     if (!shooter_reached_end) {
-        point_translate_dir(&PLAYER.pos, shooter_direction, shooter_scroll_speed);
+        point_translate_dir(&PLAYER.def.pos, shooter_direction, shooter_scroll_speed);
 
         // Check if reached end of screen
-        if ((shooter_direction == DIR_RIGHT) && (PLAYER.pos.x > shooter_dest)) {
+        if ((shooter_direction == DIR_RIGHT) && (PLAYER.def.pos.x > shooter_dest)) {
             shooter_reached_end = TRUE;
-            PLAYER.pos.x = shooter_dest;
-        } else if ((shooter_direction == DIR_LEFT) && (PLAYER.pos.x < shooter_dest)) {
+            PLAYER.def.pos.x = shooter_dest;
+        } else if ((shooter_direction == DIR_LEFT) && (PLAYER.def.pos.x < shooter_dest)) {
             shooter_reached_end = TRUE;
-            PLAYER.pos.x = shooter_dest;
-        } else if ((shooter_direction == DIR_DOWN) && (PLAYER.pos.y > shooter_dest)) {
+            PLAYER.def.pos.x = shooter_dest;
+        } else if ((shooter_direction == DIR_DOWN) && (PLAYER.def.pos.y > shooter_dest)) {
             shooter_reached_end = TRUE;
-            PLAYER.pos.y = shooter_dest;
-        } else if ((shooter_direction == DIR_UP) && (PLAYER.pos.y < shooter_dest)) {
+            PLAYER.def.pos.y = shooter_dest;
+        } else if ((shooter_direction == DIR_UP) && (PLAYER.def.pos.y < shooter_dest)) {
             shooter_reached_end = TRUE;
-            PLAYER.pos.y = shooter_dest;
+            PLAYER.def.pos.y = shooter_dest;
         }
     }
 
     if (IS_FRAME_ODD) {
         // Check for trigger collisions
-        if (trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE)) {
+        if (trigger_activate_at_intersection(&PLAYER.def.bounds, &PLAYER.def.pos, FALSE)) {
             // Landed on a trigger
             return;
         }
 
         // Check for actor collisions
         hit_actor = actor_overlapping_player(FALSE);
-        if (hit_actor != NULL && hit_actor->collision_group) {
+        if (hit_actor != NULL && hit_actor->def.collision_group) {
             player_register_collision_with(hit_actor);
         } else if (INPUT_A_PRESSED) {
             if (!hit_actor) {
                 hit_actor = actor_in_front_of_player(8, TRUE);
             }
-            if (hit_actor && !hit_actor->collision_group && hit_actor->script.bank) {
-                script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
+            if (hit_actor && !hit_actor->def.collision_group && hit_actor->def.script.bank) {
+                script_execute(hit_actor->def.script.bank, hit_actor->def.script.ptr, 0, 1, 0);
             }
         }
     }

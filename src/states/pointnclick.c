@@ -22,7 +22,7 @@ void pointnclick_init(void) BANKED {
     camera_offset_y = 0;
     camera_deadzone_x = POINT_N_CLICK_CAMERA_DEADZONE;
     camera_deadzone_y = POINT_N_CLICK_CAMERA_DEADZONE;
-    PLAYER.dir = DIR_RIGHT;
+    PLAYER.def.dir = DIR_RIGHT;
     actor_set_anim(&PLAYER, ANIM_CURSOR);
 }
 
@@ -63,23 +63,23 @@ void pointnclick_update(void) BANKED {
 
     // Move cursor
     if (player_moving) {
-        point_translate_angle(&(PLAYER.pos), angle, PLAYER.move_speed);
+        point_translate_angle(&(PLAYER.def.pos), angle, PLAYER.def.move_speed);
         // Clamp X
-        if (SUBPX_TO_PX(PLAYER.pos.x) - PLAYER.bounds.left > image_width) {
-            PLAYER.pos.x = PX_TO_SUBPX(PLAYER.bounds.left);
-        } else if (SUBPX_TO_PX(PLAYER.pos.x) + PLAYER.bounds.right > image_width) {
-            PLAYER.pos.x = PX_TO_SUBPX(image_width - PLAYER.bounds.right);
+        if (SUBPX_TO_PX(PLAYER.def.pos.x) - PLAYER.def.bounds.left > image_width) {
+            PLAYER.def.pos.x = PX_TO_SUBPX(PLAYER.def.bounds.left);
+        } else if (SUBPX_TO_PX(PLAYER.def.pos.x) + PLAYER.def.bounds.right > image_width) {
+            PLAYER.def.pos.x = PX_TO_SUBPX(image_width - PLAYER.def.bounds.right);
         }
         // Clamp Y
-        if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.top > image_height) {
-            PLAYER.pos.y = -PX_TO_SUBPX(PLAYER.bounds.top);
-        } else if (SUBPX_TO_PX(PLAYER.pos.y) + PLAYER.bounds.bottom > image_height) {
-            PLAYER.pos.y = PX_TO_SUBPX(image_height - PLAYER.bounds.bottom);
+        if (SUBPX_TO_PX(PLAYER.def.pos.y) + PLAYER.def.bounds.top > image_height) {
+            PLAYER.def.pos.y = -PX_TO_SUBPX(PLAYER.def.bounds.top);
+        } else if (SUBPX_TO_PX(PLAYER.def.pos.y) + PLAYER.def.bounds.bottom > image_height) {
+            PLAYER.def.pos.y = PX_TO_SUBPX(image_height - PLAYER.def.bounds.bottom);
         }             
     }
 
     // Check for trigger collisions
-    hit_trigger = trigger_at_intersection(&PLAYER.bounds, &PLAYER.pos);
+    hit_trigger = trigger_at_intersection(&PLAYER.def.bounds, &PLAYER.def.pos);
 
     // Check for actor collisions
     hit_actor = actor_overlapping_player(FALSE);
@@ -87,7 +87,7 @@ void pointnclick_update(void) BANKED {
     is_hover_trigger = (hit_trigger != NO_TRIGGER_COLLISON)
         && (triggers[hit_trigger].script.bank);
 
-    is_hover_actor = hit_actor && hit_actor->script.bank;
+    is_hover_actor = hit_actor && hit_actor->def.script.bank;
 
     // Set cursor animation
     if (is_hover_trigger || is_hover_actor) {
@@ -100,7 +100,7 @@ void pointnclick_update(void) BANKED {
         player_moving = FALSE;
         if (is_hover_actor) {
             // Run actor script
-            script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
+            script_execute(hit_actor->def.script.bank, hit_actor->def.script.ptr, 0, 1, 0);
         }
         else if (is_hover_trigger) {
             // Run trigger script

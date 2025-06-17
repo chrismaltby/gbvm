@@ -55,26 +55,6 @@ void load_init(void) BANKED {
     scene_stack_ptr = scene_stack;
 }
 
-void load_actor_from_def(actor_t* actor, actor_def_t* actor_def) BANKED {
-    memset(actor, 0, sizeof(actor_t));
-    actor->pinned = actor_def->pinned;
-    actor->hidden = actor_def->hidden;
-    actor->disabled = actor_def->disabled;
-    actor->anim_noloop = actor_def->anim_noloop;
-    actor->collision_enabled = actor_def->collision_enabled;
-    actor->persistent = actor_def->persistent;
-    actor->pos = actor_def->pos;
-    actor->dir = actor_def->dir;
-    actor->bounds = actor_def->bounds;
-    actor->anim_tick = actor_def->anim_tick;
-    actor->move_speed = actor_def->move_speed;
-    actor->reserve_tiles = actor_def->reserve_tiles;
-    actor->sprite = actor_def->sprite;
-    actor->script = actor_def->script;
-    actor->script_update = actor_def->script_update;
-    actor->collision_group = actor_def->collision_group;
-}
-
 void load_bkg_tileset(const tileset_t* tiles, UBYTE bank) BANKED {
     if ((!bank) || (!tiles)) return;
 
@@ -243,15 +223,15 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
 
     if (scene_type != SCENE_TYPE_LOGO) {
         // Load player
-        PLAYER.sprite = scn.player_sprite;
+        PLAYER.def.sprite = scn.player_sprite;
         UBYTE n_loaded = load_sprite(PLAYER.base_tile = 0, scn.player_sprite.ptr, scn.player_sprite.bank);
         allocated_sprite_tiles = (n_loaded > scn.reserve_tiles) ? n_loaded : scn.reserve_tiles;
         load_animations(scn.player_sprite.ptr, scn.player_sprite.bank, ANIM_SET_DEFAULT, PLAYER.animations);
-        load_bounds(scn.player_sprite.ptr, scn.player_sprite.bank, &PLAYER.bounds);
+        load_bounds(scn.player_sprite.ptr, scn.player_sprite.bank, &PLAYER.def.bounds);
     } else {
         // no player on logo, but still some little amount of actors may be present
         PLAYER.base_tile = allocated_sprite_tiles = 0x68;
-        PLAYER.sprite = spritesheet_none_far;
+        PLAYER.def.sprite = spritesheet_none_far;
         memset(PLAYER.animations, 0, sizeof(PLAYER.animations));
     }
 
@@ -272,7 +252,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
         camera_reset();
 
         // Copy scene player hit scripts to player actor
-        memcpy(&PLAYER.script, &scn.script_p_hit1, sizeof(far_ptr_t));
+        memcpy(&PLAYER.def.script, &scn.script_p_hit1, sizeof(far_ptr_t));
 
         player_moving = FALSE;
 
@@ -281,36 +261,37 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
         actors_inactive_head = NULL;
 
         // Add player to inactive, then activate
-        PLAYER.active = FALSE;
+        PLAYER.def.active = FALSE;
         actors_active_tail = &PLAYER;
         DL_PUSH_HEAD(actors_inactive_head, actors_active_tail);
         activate_actor(&PLAYER);
 
         // Add other actors, activate pinned
         if (actors_len != 0) {
-            actor_def_t actor_def_temp_ram;
             actor_def_t* p_actor_def = scn.actors.ptr;
             actor_t * actor = actors + 1;
             for (i = 0; i < actors_len-1; i++, p_actor_def++, actor++) {
-                MemcpyBanked(&actor_def_temp_ram, p_actor_def, sizeof(actor_def_t), scn.actors.bank);
-                load_actor_from_def(actor, &actor_def_temp_ram);
-                if (actor->reserve_tiles) {
+                // Clear actor RAM-only values
+                memset(((uint8_t*)actor) + sizeof(actor_def_t), 0, sizeof(actor_t) - sizeof(actor_def_t));
+                // Copy actor ROM values from actor_def
+                MemcpyBanked(&actor->def, p_actor_def, sizeof(actor_def_t), scn.actors.bank);
+                if (actor->def.reserve_tiles) {
                     // exclusive sprites allocated separately to avoid overwriting if modified
                     actor->base_tile = allocated_sprite_tiles;
-                    UBYTE n_loaded = load_sprite(allocated_sprite_tiles, actor->sprite.ptr, actor->sprite.bank);
-                    allocated_sprite_tiles += (n_loaded > actor->reserve_tiles) ? n_loaded : actor->reserve_tiles;
+                    UBYTE n_loaded = load_sprite(allocated_sprite_tiles, actor->def.sprite.ptr, actor->def.sprite.bank);
+                    allocated_sprite_tiles += (n_loaded > actor->def.reserve_tiles) ? n_loaded : actor->def.reserve_tiles;
                 } else {
                     // resolve and set base_tile for each actor
-                    UBYTE idx = IndexOfFarPtr(scn.sprites.ptr, scn.sprites.bank, sprites_len, &actor->sprite);
+                    UBYTE idx = IndexOfFarPtr(scn.sprites.ptr, scn.sprites.bank, sprites_len, &actor->def.sprite);
                     actor->base_tile = (idx < sprites_len) ? scene_sprites_base_tiles[idx] : 0;
                 }
-                load_animations((void *)actor->sprite.ptr, actor->sprite.bank, ANIM_SET_DEFAULT, actor->animations);
+                load_animations((void *)actor->def.sprite.ptr, actor->def.sprite.bank, ANIM_SET_DEFAULT, actor->animations);
                 // add to inactive list by default
-                actor->active = FALSE;
+                actor->def.active = FALSE;
                 DL_PUSH_HEAD(actors_inactive_head, actor);
 
                 // activate if the actor is pinned or persistent
-                if ((actor->pinned) || (actor->persistent)) activate_actor(actor);
+                if ((actor->def.pinned) || (actor->def.persistent)) activate_actor(actor);
             }
         }
 
@@ -320,7 +301,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
             actor_t * actor = actors + 1;
             for (i = actors_len - 1; i != 0; i--, actor++) {
                 // exclusive sprites allocated separately to avoid overwriting if modified
-                if (actor->reserve_tiles) load_sprite(actor->base_tile, actor->sprite.ptr, actor->sprite.bank);
+                if (actor->def.reserve_tiles) load_sprite(actor->base_tile, actor->def.sprite.ptr, actor->def.sprite.bank);
             }
         }
         // set actors idle
@@ -360,17 +341,17 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
 }
 
 void load_player(void) BANKED {
-    PLAYER.pos.x = start_scene_x;
-    PLAYER.pos.y = start_scene_y;
-    PLAYER.dir = start_scene_dir;
-    PLAYER.move_speed = start_player_move_speed;
-    PLAYER.anim_tick = start_player_anim_tick;
+    PLAYER.def.pos.x = start_scene_x;
+    PLAYER.def.pos.y = start_scene_y;
+    PLAYER.def.dir = start_scene_dir;
+    PLAYER.def.move_speed = start_player_move_speed;
+    PLAYER.def.anim_tick = start_player_anim_tick;
     PLAYER.frame = 0;
     PLAYER.frame_start = 0;
     PLAYER.frame_end = 2;
-    PLAYER.pinned = FALSE;
-    PLAYER.collision_group = COLLISION_GROUP_PLAYER;
-    PLAYER.collision_enabled = TRUE;
+    PLAYER.def.pinned = FALSE;
+    PLAYER.def.collision_group = COLLISION_GROUP_PLAYER;
+    PLAYER.def.collision_enabled = TRUE;
 }
 
 void load_emote(const unsigned char *tiles, UBYTE bank) BANKED {
