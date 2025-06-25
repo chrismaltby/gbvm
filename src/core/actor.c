@@ -25,11 +25,11 @@
 #define EMOTE_BOUNCE_FRAMES        15
 #define ANIM_PAUSED                255
 
-#define TILE16_OFFSET              64u
-#define SCREEN_TILE16_W            10u
-#define SCREEN_TILE16_H            9u
-#define ACTOR_BOUNDS_TILE16        6u
-#define ACTOR_BOUNDS_TILE16_HALF   3u
+#define OFFSCREEN_TILE_OFFSET      64u
+#define SCREEN_TILE_W              20u
+#define SCREEN_TILE_H              18u
+#define ACTOR_BOUNDS_TILE          12u
+#define ACTOR_BOUNDS_TILE_HALF     6u
 
 BANKREF(ACTOR)
 
@@ -77,15 +77,15 @@ void player_init(void) BANKED {
 void actors_update(void) NONBANKED {
     UBYTE _save = CURRENT_BANK;
     static actor_t *actor;
-    static uint8_t screen_tile16_x, screen_tile16_y;
-    static uint8_t actor_tile16_x, actor_tile16_y;
+    static uint8_t screen_tile_x, screen_tile_y;
+    static uint8_t actor_tile_x, actor_tile_y;
 
     // Convert scroll pos to 16px tile coordinates
     // allowing full range of scene to be represented in 7 bits
     // offset by 64 to allow signed comparisons on
     // unsigned int values (is faster)
-    screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
-    screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
+    screen_tile_x = PX_TO_TILE(draw_scroll_x) + OFFSCREEN_TILE_OFFSET;
+    screen_tile_y = PX_TO_TILE(draw_scroll_y) + OFFSCREEN_TILE_OFFSET;
 
     if (emote_actor) {
         SWITCH_ROM(emote_actor->sprite.bank);
@@ -121,18 +121,18 @@ void actors_update(void) NONBANKED {
             // Bottom right coordinate of actor in 16px tile coordinates
             // Subtract bounding box estimate width/height
             // and offset by 64 to allow signed comparisons with screen tiles
-            actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
-            actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+            actor_tile_x = SUBPX_TO_TILE(actor->pos.x) + ACTOR_BOUNDS_TILE_HALF + OFFSCREEN_TILE_OFFSET;
+            actor_tile_y = SUBPX_TO_TILE(actor->pos.y) + ACTOR_BOUNDS_TILE_HALF + OFFSCREEN_TILE_OFFSET;
 
             if (
                 // Actor right edge < screen left edge
-                (actor_tile16_x < screen_tile16_x) ||
+                (actor_tile_x < screen_tile_x) ||
                 // Actor left edge > screen right edge
-                ((actor_tile16_x - (ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_W)) > screen_tile16_x) ||
+                ((actor_tile_x - (ACTOR_BOUNDS_TILE + SCREEN_TILE_W)) > screen_tile_x) ||
                 // Actor bottom edge < screen top edge
-                (actor_tile16_y < screen_tile16_y) ||
+                (actor_tile_y < screen_tile_y) ||
                 // Actor top edge > screen bottom edge
-                ((actor_tile16_y - (ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H)) > screen_tile16_y)
+                ((actor_tile_y - (ACTOR_BOUNDS_TILE + SCREEN_TILE_H)) > screen_tile_y)
             ) {
                 if (actor->persistent) {
                     actor = actor->prev;
@@ -262,16 +262,17 @@ void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
     UBYTE y_max = y + SCREEN_TILE_REFRES_H;
 
     while (actor) {
-        UBYTE tx_left   = SUBPX_TO_TILE(actor->pos.x + actor->bounds.left);
-        UBYTE tx_right  = SUBPX_TO_TILE(actor->pos.x + actor->bounds.right);
-        if ((tx_left == x) || (tx_right == x)) {
-            UBYTE ty_top    = SUBPX_TO_TILE(actor->pos.y + actor->bounds.top);
-            UBYTE ty_bottom = SUBPX_TO_TILE(actor->pos.y + actor->bounds.bottom);
-            if (ty_bottom >= y && ty_top <= y_max) {
+        actor_t *next = actor->next;        
+        if ( // Left or right edge is in column x
+            ((SUBPX_TO_TILE(actor->pos.x + actor->bounds.left ) == x) ||
+             (SUBPX_TO_TILE(actor->pos.x + actor->bounds.right) == x)) &&
+            // Bottom is below start of column y
+            SUBPX_TO_TILE(actor->pos.y + actor->bounds.bottom) >= y &&
+            // Top is above end of column y
+            SUBPX_TO_TILE(actor->pos.y + actor->bounds.top) <= y_max) {    
                 activate_actor(actor);
-            }
         }
-        actor = actor->next;
+        actor = next;
     }
 }
 
@@ -320,7 +321,7 @@ actor_t *actor_at_tile(UBYTE tx, UBYTE ty, UBYTE inc_noclip) BANKED {
 }
 
 actor_t *actor_in_front_of_player(UBYTE grid_size, UBYTE inc_noclip) BANKED {
-    point16_t offset;
+    upoint16_t offset;
     offset.x = PLAYER.pos.x;
     offset.y = PLAYER.pos.y;
     point_translate_dir_word(&offset, PLAYER.dir, PX_TO_SUBPX(grid_size));
@@ -346,7 +347,7 @@ actor_t *actor_overlapping_player(UBYTE inc_noclip) BANKED {
     return NULL;
 }
 
-actor_t *actor_overlapping_bb(rect16_t *bb, point16_t *offset, actor_t *ignore, UBYTE inc_noclip) BANKED {
+actor_t *actor_overlapping_bb(rect16_t *bb, upoint16_t *offset, actor_t *ignore, UBYTE inc_noclip) BANKED {
     actor_t *actor = &PLAYER;
 
     while (actor) {
@@ -370,7 +371,11 @@ void actors_handle_player_collision(void) BANKED {
         if (player_collision_actor->collision_group) {
             // Execute scene player hit scripts based on actor's collision group
             if (PLAYER.script.bank) {
-                script_execute(PLAYER.script.bank, PLAYER.script.ptr, 0, 1, (UWORD)(player_collision_actor->collision_group));
+                script_execute(
+                    PLAYER.script.bank,
+                    PLAYER.script.ptr, 0, 1,
+                    (UWORD)(player_collision_actor->collision_group & COLLISION_GROUP_MASK)
+                );
             }
             // Execute actor's onHit player script
             if (player_collision_actor->script.bank) {

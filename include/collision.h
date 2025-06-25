@@ -29,7 +29,7 @@ extern UBYTE tile_hit_y;
  * @param point Pointer to position to look for within bounding box
  * @return Point is within bounding box
  */
-inline UBYTE bb_contains(rect16_t *bb, point16_t *offset, point16_t *point) {
+inline UBYTE bb_contains(rect16_t *bb, upoint16_t *offset, upoint16_t *point) {
     if ((point->x < offset->x + bb->left) || 
         (point->x > offset->x + bb->right)) return FALSE;
     if ((point->y < offset->y + bb->top) || 
@@ -46,9 +46,15 @@ inline UBYTE bb_contains(rect16_t *bb, point16_t *offset, point16_t *point) {
  * @param offset_b Pointer to position offset for bounding box B
  * @return Positioned bounding boxes intersect
  */
-inline UBYTE bb_intersects(rect16_t *bb_a, point16_t *offset_a, rect16_t *bb_b, point16_t *offset_b) {
-    if ((offset_b->x + bb_b->left   > offset_a->x + bb_a->right) ||
-        (offset_b->x + bb_b->right  < offset_a->x + bb_a->left)) return FALSE;
+inline UBYTE bb_intersects(rect16_t *bb_a, upoint16_t *offset_a, rect16_t *bb_b, upoint16_t *offset_b) {
+    UWORD b_left = offset_b->x + bb_b->left;
+    UWORD a_right = offset_a->x + bb_a->right;
+    if (SUBPX_TO_TILE(b_left) > SUBPX_TO_TILE(a_right)) return FALSE;
+    UWORD b_right = offset_b->x + bb_b->right;
+    UWORD a_left = offset_a->x + bb_a->left;
+    if (SUBPX_TO_TILE(b_right) < SUBPX_TO_TILE(a_left)) return FALSE;
+    if ((b_left  > a_right) ||
+        (b_right < a_left)) return FALSE;    
     if ((offset_b->y + bb_b->top    > offset_a->y + bb_a->bottom) ||
         (offset_b->y + bb_b->bottom < offset_a->y + bb_a->top)) return FALSE;
     return TRUE;

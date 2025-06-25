@@ -12,19 +12,25 @@
 #include "parallax.h"
 #include "collision.h"
 
+#define COLLISION_GROUP_NONE 0x0
+#define COLLISION_GROUP_PLAYER 0x1
+#define COLLISION_GROUP_1 0x2
+#define COLLISION_GROUP_2 0x4
+#define COLLISION_GROUP_3 0x8
+#define COLLISION_GROUP_MASK 0xF
+
+#define COLLISION_GROUP_FLAG_1 0x10
+#define COLLISION_GROUP_FLAG_2 0x20
+#define COLLISION_GROUP_FLAG_3 0x40
+#define COLLISION_GROUP_FLAG_4 0x80
+#define COLLISION_GROUP_FLAG_PLATFORM COLLISION_GROUP_FLAG_3
+#define COLLISION_GROUP_FLAG_SOLID COLLISION_GROUP_FLAG_4
+
 typedef enum {
     LCD_simple,
     LCD_parallax,
     LCD_fullscreen
 } LCD_isr_e;
-
-typedef enum {
-    COLLISION_GROUP_NONE = 0,
-    COLLISION_GROUP_PLAYER = 1,
-    COLLISION_GROUP_1 = 2,
-    COLLISION_GROUP_2 = 4,
-    COLLISION_GROUP_3 = 8,
-} collision_group_e;
 
 typedef struct animation_t
 {
@@ -42,7 +48,7 @@ typedef struct actor_t
     bool collision_enabled    : 1;
     bool movement_interrupt   : 1;
     bool persistent           : 1;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
     rect16_t bounds;
     uint8_t base_tile;
@@ -59,7 +65,7 @@ typedef struct actor_t
     uint16_t hscript_update, hscript_hit;
 
     // Collisions
-    collision_group_e collision_group;
+    uint8_t collision_group;
 
     // Linked list
     struct actor_t *next;
@@ -127,13 +133,13 @@ typedef struct projectile_def_t
     uint8_t anim_tick;
     uint8_t move_speed;
     uint16_t initial_offset;
-    collision_group_e collision_group;
+    uint8_t collision_group;
     uint8_t collision_mask;
 } projectile_def_t;
 
 typedef struct projectile_t
 {
-    point16_t pos;
+    upoint16_t pos;
     point16_t delta_pos;
     uint8_t frame;
     uint8_t frame_start;
@@ -157,7 +163,7 @@ typedef struct font_desc_t {
 
 typedef struct scene_stack_item_t {
     far_ptr_t scene;
-    point16_t pos;
+    upoint16_t pos;
     direction_e dir;
 } scene_stack_item_t;
 

@@ -88,8 +88,16 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             params->Y = SUBPX_SNAP_TILE(params->Y + actor->pos.y);
         }
 
+       // Prevent overflowing off left/top of screen
+        if (!(actor->pos.x&0x8000) && (params->X&0x8000)) {
+            params->X = 0;
+        }
+        if (!(actor->pos.y&0x8000) && (params->Y&0x8000)) {
+            params->Y = 0;
+        }
+
         // Check for collisions in path
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_WALLS)) {
             if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
                 // Check for horizontal collision
                 if (actor->pos.x != params->X) {
@@ -164,7 +172,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
 
         // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
             point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
             THIS->flags = 0;
             actor_set_anim_idle(actor);
@@ -198,7 +206,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
 
         // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
             point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
             THIS->flags = 0;
             actor_set_anim_idle(actor);

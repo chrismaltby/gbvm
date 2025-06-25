@@ -25,8 +25,8 @@ _script_s5t4_interact::
                     .R_REF      .ARG0
                     .R_OPERATOR '*'
                     .R_STOP
-                VM_SET_INT16            _pl_vel_y, .ARG1
-                VM_SET_INT16            _pl_vel_x, .ARG0
+                VM_SET_INT16            _plat_vel_y, .ARG1
+                VM_SET_INT16            _plat_vel_x, .ARG0
         
                 VM_POP                  5
 

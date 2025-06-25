@@ -65,13 +65,13 @@ void pointnclick_update(void) BANKED {
     if (player_moving) {
         point_translate_angle(&(PLAYER.pos), angle, PLAYER.move_speed);
         // Clamp X
-        if (PLAYER.pos.x + PLAYER.bounds.left < 0) {
+        if (PLAYER.pos.x + PLAYER.bounds.left > image_width_subpx) {
             PLAYER.pos.x = -PLAYER.bounds.left;
         } else if (PLAYER.pos.x + PLAYER.bounds.right > image_width_subpx) {
             PLAYER.pos.x = image_width_subpx - PLAYER.bounds.right;
         }
         // Clamp Y
-        if (PLAYER.pos.y + PLAYER.bounds.top < 0) {
+        if (PLAYER.pos.y + PLAYER.bounds.top > image_height_subpx) {
             PLAYER.pos.y = -PLAYER.bounds.top;
         } else if (PLAYER.pos.y + PLAYER.bounds.bottom > image_height_subpx) {
             PLAYER.pos.y = image_height_subpx - PLAYER.bounds.bottom;
