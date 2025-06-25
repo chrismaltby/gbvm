@@ -72,7 +72,7 @@ void adventure_update(void) BANKED {
     }
 
     if (player_moving) {
-        point16_t new_pos;
+        upoint16_t new_pos;
         new_pos.x = PLAYER.pos.x;
         new_pos.y = PLAYER.pos.y;
         point_translate_angle(&new_pos, angle, PLAYER.move_speed);

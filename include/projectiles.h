@@ -16,6 +16,6 @@ void projectiles_init(void) BANKED;
 void projectiles_update(void) NONBANKED;
 void projectiles_render(void) NONBANKED;
 
-void projectile_launch(UBYTE index, point16_t *pos, UBYTE angle) BANKED;
+void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED;
 
 #endif

@@ -3,7 +3,7 @@
 .include "vm.i"
 .include "data/game_globals.i"
 
-.globl _pl_vel_y, b_wait_frames, _wait_frames, b_camera_shake_frames, _camera_shake_frames
+.globl _plat_vel_y, b_wait_frames, _wait_frames, b_camera_shake_frames, _camera_shake_frames
 
 .area _CODE_255
 
@@ -69,7 +69,7 @@ _actor_turnip_1_interact::
         VM_ACTOR_SET_FLAGS      .LOCAL_ACTOR, 0, .ACTOR_FLAG_ANIM_NOLOOP
 
         ; Player Bounce
-        VM_SET_CONST_INT16      _pl_vel_y, -8192
+        VM_SET_CONST_INT16      _plat_vel_y, -8192
 
         ; Wait 30 frames
         VM_SET_CONST            .LOCAL_TMP3_WAIT_ARGS, 30

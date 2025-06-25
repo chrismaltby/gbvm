@@ -41,7 +41,7 @@ UBYTE trigger_activate_at(UBYTE tx, UBYTE ty, UBYTE force) BANKED {
     return FALSE;
 }
 
-UBYTE trigger_activate_at_intersection(rect16_t *bb, point16_t *offset, UBYTE force) BANKED {
+UBYTE trigger_activate_at_intersection(rect16_t *bb, upoint16_t *offset, UBYTE force) BANKED {
     UBYTE hit_trigger = trigger_at_intersection(bb, offset);
 
     // Don't reactivate trigger if not changed tile

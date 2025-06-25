@@ -9,7 +9,7 @@
 BANKREF(VM_PROJECTILE)
 
 typedef struct projectile_launch_t {
-    point16_t pos;
+    upoint16_t pos;
     uint16_t angle;
 } projectile_launch_t;
 
