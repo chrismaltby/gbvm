@@ -74,7 +74,6 @@ inline void player_register_collision_with(actor_t *actor) {
     player_collision_actor = actor;
 }
 void actors_handle_player_collision(void) BANKED;
-UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos, col_check_dir_e check_dir) BANKED;
 void activate_actors_in_row(UBYTE x, UBYTE y) BANKED;
 void activate_actors_in_col(UBYTE x, UBYTE y) BANKED;
 void player_init(void) BANKED;

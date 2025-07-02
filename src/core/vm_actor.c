@@ -50,6 +50,77 @@ typedef struct gbs_farptr_t {
     const void * DATA;
 } gbs_farptr_t;
 
+static UWORD check_collision_in_direction(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos, col_check_dir_e check_dir) {
+    UBYTE tx1, ty1, tx2, ty2, tt;
+    switch (check_dir) {
+        case CHECK_DIR_LEFT:  // Check left
+            tx1 = SUBPX_TO_TILE(start_x + bounds->left);
+            tx2 = SUBPX_TO_TILE(end_pos + bounds->left) - 1;
+            ty1 = SUBPX_TO_TILE(start_y + bounds->top);
+            ty2 = SUBPX_TO_TILE(start_y + bounds->bottom) + 1;
+            while (tx1 != tx2) {
+                tt = ty1;
+                while (tt != ty2) {
+                    if (tile_at(tx1, tt) & COLLISION_RIGHT) {
+                        return TILE_TO_SUBPX(tx1 + 1) - bounds->left;
+                    }
+                    tt++;
+                }
+                tx1--;
+            }
+            return end_pos;
+        case CHECK_DIR_RIGHT:  // Check right
+            tx1 = SUBPX_TO_TILE(start_x + bounds->right);
+            tx2 = SUBPX_TO_TILE(end_pos + bounds->right) + 1;
+            ty1 = SUBPX_TO_TILE(start_y + bounds->top);
+            ty2 = SUBPX_TO_TILE(start_y + bounds->bottom) + 1;
+            while (tx1 != tx2) {
+                tt = ty1;
+                while (tt != ty2) {
+                    if (tile_at(tx1, tt) & COLLISION_LEFT) {
+                        return TILE_TO_SUBPX(tx1) - (bounds->right + PX_TO_SUBPX(1));
+                    }
+                    tt++;
+                }
+                tx1++;
+            }
+            return end_pos;
+        case CHECK_DIR_UP:  // Check up
+            ty1 = SUBPX_TO_TILE(start_y + bounds->top);
+            ty2 = SUBPX_TO_TILE(end_pos + bounds->top) - 1;
+            tx1 = SUBPX_TO_TILE(start_x + bounds->left);
+            tx2 = SUBPX_TO_TILE(start_x + bounds->right) + 1;
+            while (ty1 != ty2) {
+                tt = tx1;
+                while (tt != tx2) {
+                    if (tile_at(tt, ty1) & COLLISION_BOTTOM) {
+                        return TILE_TO_SUBPX(ty1 + 1) - bounds->top;
+                    }
+                    tt++;
+                }
+                ty1--;
+            }
+            return end_pos;
+        case CHECK_DIR_DOWN:  // Check down
+            ty1 = SUBPX_TO_TILE(start_y + bounds->bottom);
+            ty2 = SUBPX_TO_TILE(end_pos + bounds->bottom) + 1;
+            tx1 = SUBPX_TO_TILE(start_x + bounds->left);
+            tx2 = SUBPX_TO_TILE(start_x + bounds->right) + 1;
+            while (ty1 != ty2) {
+                tt = tx1;
+                while (tt != tx2) {
+                    if (tile_at(tt, ty1) & COLLISION_TOP) {
+                        return TILE_TO_SUBPX(ty1) - (bounds->bottom + PX_TO_SUBPX(1));
+                    }
+                    tt++;
+                }
+                ty1++;
+            }
+            return end_pos;
+    }
+    return end_pos;
+}
+
 void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
