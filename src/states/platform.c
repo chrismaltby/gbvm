@@ -2,6 +2,7 @@
 
 #include "states/platform.h"
 
+#include <string.h>
 #include "actor.h"
 #include "camera.h"
 #include "collision.h"
@@ -331,6 +332,7 @@ void handle_horizontal_input(void) BANKED;
 void move_and_collide(UBYTE mask) BANKED;
 void plat_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void plat_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
+void plat_callback_reset(void);
 void plat_callback_execute(UBYTE i) BANKED;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
@@ -438,6 +440,8 @@ inline void plat_restore_default_anim_state(void)
 
 void platform_init(void) BANKED
 {
+    plat_callback_reset();
+
     // Initialize Camera
     camera_offset_x = 0;
     camera_offset_y = 0;
@@ -2346,6 +2350,11 @@ void plat_callback_detach(SCRIPT_CTX *THIS) OLDCALL BANKED
     UWORD *slot = VM_REF_TO_PTR(FN_ARG0);
     plat_events[*slot].script_bank = NULL;
     plat_events[*slot].script_addr = NULL;
+}
+
+inline void plat_callback_reset(void)
+{
+    memset(plat_events, 0, sizeof(plat_events));
 }
 
 void plat_callback_execute(UBYTE i) BANKED
