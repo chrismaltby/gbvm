@@ -1676,14 +1676,6 @@ void player_set_jump_anim(void) BANKED
         {
             PLAYER.dir = DIR_RIGHT;
         }
-        else if (plat_vel_x < 0)
-        {
-            PLAYER.dir = DIR_LEFT;
-        }
-        else if (plat_vel_x > 0)
-        {
-            PLAYER.dir = DIR_RIGHT;
-        }
     }
 
     if (PLAYER.dir == DIR_LEFT)
