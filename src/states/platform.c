@@ -203,7 +203,6 @@ WORD plat_jump_vel;            // Jump velocity applied on the first frame of ju
 WORD plat_grav;                // Gravity applied to the player
 WORD plat_hold_grav;           // Gravity applied to the player while holding jump
 WORD plat_max_fall_vel;        // Maximum fall velocity
-BYTE plat_camera_deadzone_x;   // Camera deadzone x
 UBYTE plat_camera_block;       // Limit the player's movement to the camera's edges
 UBYTE plat_drop_through_active;// Drop-through is active
 WORD plat_jump_hold_vel;       // Jump velocity applied while holding jump
@@ -288,6 +287,7 @@ WORD plat_jump_reduction_vel;  // Holds the current jump reduction value based o
 WORD *plat_edge_left;          // Pointer to the camera scroll x minimum value
 WORD *plat_edge_right;         // Pointer to the camera scroll x maximum value
 WORD plat_stage_left;          // Stores default scroll x minimum value
+BYTE plat_camera_deadzone_x;   // Default camera deadzone x - used to restore camera after dash
 
 // Ground
 UBYTE plat_grounded;           // Tracks whether the player is on the ground or not
@@ -407,7 +407,7 @@ void platform_init(void) BANKED
     // Initialize Camera
     camera_offset_x = 0;
     camera_offset_y = 0;
-    camera_deadzone_x = plat_camera_deadzone_x;
+    plat_camera_deadzone_x = camera_deadzone_x;
     camera_deadzone_y = PLATFORM_CAMERA_DEADZONE_Y;
     if ((camera_settings & CAMERA_LOCK_X_FLAG))
     {
@@ -1792,6 +1792,7 @@ void dash_init(void) BANKED
     }
 
     plat_is_actor_attached = FALSE;
+    plat_camera_deadzone_x = camera_deadzone_x;
     camera_deadzone_x = plat_dash_deadzone;
     plat_dash_cooldown_timer = plat_dash_ready_frames + plat_dash_frames;
 #ifndef FEAT_PLATFORM_DASH_USE_GRAVITY
