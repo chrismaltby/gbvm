@@ -113,6 +113,17 @@
 #define COLLISION_SLOPE_225_LEFT_TOP 0x70
 #define COLLISION_SLOPE 0xF0
 
+#define PLATFORM_ANIM_OVERRIDES_SET \
+    defined(PLATFORM_FALL_ANIM) || \
+    (defined(FEAT_PLATFORM_FLOAT) && defined(PLATFORM_FLOAT_ANIM)) || \
+    (defined(FEAT_PLATFORM_JUMP) && defined(PLATFORM_JUMP_ANIM)) || \
+    (defined(FEAT_PLATFORM_RUN) && defined(PLATFORM_RUN_ANIM)) || \
+    (defined(FEAT_PLATFORM_LADDERS) && defined(PLATFORM_LADDERS_ANIM)) || \
+    (defined(FEAT_PLATFORM_DASH) && defined(PLATFORM_DASH_ANIM)) || \
+    (defined(FEAT_PLATFORM_WALL_JUMP) && defined(FEAT_PLATFORM_JUMP) && defined(PLATFORM_WALL_JUMP_ANIM)) || \
+    (defined(FEAT_PLATFORM_KNOCKBACK) && defined(PLATFORM_KNOCKBACK_ANIM)) || \
+    (defined(FEAT_PLATFORM_BLANK) && defined(PLATFORM_BLANK_ANIM))
+
 // End of Constants -----------------------------------------------------------
 
 // Macros ---------------------------------------------------------------------
@@ -301,6 +312,9 @@ UBYTE did_interact_actor;      // Tracks whether the player interacted with an a
 UBYTE plat_ladder_block_h;     // Track if player has released horizontal input since joining the ladder
 UBYTE plat_ladder_block_v;     // Track if player has released vertical input since leaving the ladder
 
+// Animation
+UBYTE plat_anim_dirty;         // Tracks whether the player animation has been modified from the default
+
 // Variables for plugins
 BYTE plat_run_stage;           // Tracks the stage of running based on the run type
 UBYTE plat_jump_type;          // Tracks the type of jumping, from the ground, in the air, or off the wall
@@ -400,6 +414,26 @@ inline UBYTE dash_input_pressed(void)
 
 #endif
 
+#if PLATFORM_ANIM_OVERRIDES_SET
+
+inline void plat_set_player_anim_state(UBYTE anim)
+{
+    load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, anim, PLAYER.animations);
+    actor_reset_anim(&PLAYER);
+    plat_anim_dirty = TRUE;
+}
+
+inline void plat_restore_default_anim_state(void)
+{
+    if (plat_anim_dirty) {
+        load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
+        actor_reset_anim(&PLAYER);  
+        plat_anim_dirty = FALSE;             
+    }
+}
+
+#endif
+
 // End of Function Definitions ------------------------------------------------
 
 void platform_init(void) BANKED
@@ -453,6 +487,7 @@ void platform_init(void) BANKED
     plat_run_stage = RUN_STAGE_NONE;
     plat_nocontrol_h_timer = 0;
     did_interact_actor = FALSE;
+    plat_anim_dirty = FALSE;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
     plat_drop_timer = 0;
@@ -513,30 +548,18 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
-#ifdef PLATFORM_FALL_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(FALL_END);
             break;
         }
 
 #ifdef FEAT_PLATFORM_FLOAT
         case FLOAT_STATE: {
-#ifdef PLATFORM_FLOAT_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(FLOAT_END);
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_JUMP        
         case JUMP_STATE: {
-#ifdef PLATFORM_JUMP_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(JUMP_END);
             break;
         }
@@ -547,10 +570,6 @@ void platform_update(void) BANKED
         }
 #ifdef FEAT_PLATFORM_RUN
         case RUN_STATE: {
-#ifdef PLATFORM_RUN_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(RUN_END);
             break;
         }  
@@ -558,20 +577,12 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
             plat_ladder_block_v = TRUE;
-#ifdef PLATFORM_LADDERS_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(LADDER_END);
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
-#ifdef PLATFORM_DASH_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(DASH_END);
             break;
         }
@@ -579,20 +590,12 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
             plat_callback_execute(WALL_END);
-#ifdef PLATFORM_WALL_JUMP_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
             plat_vel_x = 0;
-#ifdef PLATFORM_KNOCKBACK_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(KNOCKBACK_END);
             break;
         }
@@ -601,10 +604,6 @@ void platform_update(void) BANKED
         case BLANK_STATE: {
             plat_vel_x = 0;
             plat_vel_y = 0;
-#ifdef PLATFORM_BLANK_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif
             plat_callback_execute(BLANK_END);
             break;
         }
@@ -621,8 +620,9 @@ void platform_update(void) BANKED
             plat_grounded = FALSE;
             plat_is_actor_attached = FALSE;
 #ifdef PLATFORM_FALL_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_FALL_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_FALL_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(FALL_INIT);
             break;
@@ -631,8 +631,9 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_FLOAT
         case FLOAT_STATE: {
 #ifdef PLATFORM_FLOAT_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_FLOAT_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_FLOAT_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(FLOAT_INIT);
             break;
@@ -667,10 +668,13 @@ void platform_update(void) BANKED
 #endif
                 plat_jump_vel_per_frame += boost_ratio * (plat_run_boost >> 7);
             }
+
 #ifdef PLATFORM_JUMP_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_JUMP_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_JUMP_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+            plat_restore_default_anim_state();
 #endif
+
             plat_callback_execute(JUMP_INIT);
             break;
         }
@@ -692,6 +696,9 @@ void platform_update(void) BANKED
             plat_extra_jumps_counter = plat_extra_jumps;
 #endif
             plat_jump_reduction_vel = 0;
+#if PLATFORM_ANIM_OVERRIDES_SET
+            plat_restore_default_anim_state();
+#endif
             actor_set_dir(&PLAYER, PLAYER.dir, TRUE);
             plat_callback_execute(GROUND_INIT);
             break;
@@ -699,9 +706,10 @@ void platform_update(void) BANKED
 #ifdef FEAT_PLATFORM_RUN
         case RUN_STATE: {
 #ifdef PLATFORM_RUN_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_RUN_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
-#endif            
+            plat_set_player_anim_state(PLATFORM_RUN_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+            plat_restore_default_anim_state();
+#endif
             plat_callback_execute(RUN_INIT);
             break;
         }  
@@ -711,8 +719,9 @@ void platform_update(void) BANKED
             plat_jump_type = JUMP_TYPE_NONE;
             plat_ladder_block_h = TRUE;
 #ifdef PLATFORM_LADDERS_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_LADDERS_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_LADDERS_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(LADDER_INIT);
             break;
@@ -732,8 +741,9 @@ void platform_update(void) BANKED
                 return;
             }
 #ifdef PLATFORM_DASH_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_DASH_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_DASH_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(DASH_INIT);
             break;
@@ -744,8 +754,9 @@ void platform_update(void) BANKED
             plat_jump_type = JUMP_TYPE_NONE;
             plat_run_stage = RUN_STAGE_NONE;
 #ifdef PLATFORM_WALL_JUMP_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_WALL_JUMP_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_WALL_JUMP_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(WALL_INIT);
             break;
@@ -762,8 +773,9 @@ void platform_update(void) BANKED
             plat_knockback_timer = plat_knockback_frames;
             plat_drop_timer = 0;
 #ifdef PLATFORM_KNOCKBACK_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_KNOCKBACK_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_KNOCKBACK_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(KNOCKBACK_INIT);
             break;
@@ -777,8 +789,9 @@ void platform_update(void) BANKED
             plat_run_stage = RUN_STAGE_NONE;
             plat_jump_type = JUMP_TYPE_NONE;
 #ifdef PLATFORM_BLANK_ANIM
-            load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, PLATFORM_BLANK_ANIM, PLAYER.animations);
-            actor_reset_anim(&PLAYER);
+            plat_set_player_anim_state(PLATFORM_BLANK_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+            plat_restore_default_anim_state();
 #endif
             plat_callback_execute(BLANK_INIT);
             break;
