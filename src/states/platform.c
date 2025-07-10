@@ -121,7 +121,7 @@
     (defined(FEAT_PLATFORM_RUN) && defined(PLATFORM_RUN_ANIM)) || \
     (defined(FEAT_PLATFORM_LADDERS) && defined(PLATFORM_LADDERS_ANIM)) || \
     (defined(FEAT_PLATFORM_DASH) && defined(PLATFORM_DASH_ANIM)) || \
-    (defined(FEAT_PLATFORM_WALL_JUMP) && defined(FEAT_PLATFORM_JUMP) && defined(PLATFORM_WALL_JUMP_ANIM)) || \
+    (defined(FEAT_PLATFORM_WALL_JUMP) && defined(FEAT_PLATFORM_JUMP) && defined(PLATFORM_WALL_SLIDE_ANIM)) || \
     (defined(FEAT_PLATFORM_KNOCKBACK) && defined(PLATFORM_KNOCKBACK_ANIM)) || \
     (defined(FEAT_PLATFORM_BLANK) && defined(PLATFORM_BLANK_ANIM))
 
@@ -757,8 +757,8 @@ void platform_update(void) BANKED
         case WALL_STATE: {
             plat_jump_type = JUMP_TYPE_NONE;
             plat_run_stage = RUN_STAGE_NONE;
-#ifdef PLATFORM_WALL_JUMP_ANIM
-            plat_set_player_anim_state(PLATFORM_WALL_JUMP_ANIM);
+#ifdef PLATFORM_WALL_SLIDE_ANIM
+            plat_set_player_anim_state(PLATFORM_WALL_SLIDE_ANIM);
 #elif PLATFORM_ANIM_OVERRIDES_SET  
             plat_restore_default_anim_state();
 #endif
