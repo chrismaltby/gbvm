@@ -1386,6 +1386,11 @@ void platform_update(void) BANKED
                 PLAYER.pos.y = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) - PLAYER.bounds.bottom - 1;
                 break;
             }
+#if defined(FEAT_PLATFORM_LADDERS_HOP) && defined(FEAT_PLATFORM_JUMP)
+            else {
+                plat_next_state = JUMP_STATE;
+            }
+#endif
         }
         else if (INPUT_DOWN)
         {
