@@ -49,7 +49,7 @@ void actors_init(void) BANKED;
 void actors_update(void) NONBANKED;
 void deactivate_actor(actor_t *actor) BANKED;
 void activate_actor(actor_t *actor) BANKED;
-void actor_set_frames(actor_t *actor, UBYTE frame_start, UBYTE frame_end) BANKED;
+void actor_set_frames(actor_t *actor, UBYTE frame_start, UBYTE frame_end) NONBANKED;
 void actor_set_frame_offset(actor_t *actor, UBYTE frame_offset) BANKED;
 UBYTE actor_get_frame_offset(actor_t *actor) BANKED;
 actor_t *actor_at_tile(UBYTE tx, UBYTE ty, UBYTE inc_noclip) BANKED;

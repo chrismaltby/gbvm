@@ -187,7 +187,7 @@ void actors_update(void) NONBANKED {
     SWITCH_ROM(_save);
 }
 
-void deactivate_actor(actor_t *actor) BANKED {
+static void deactivate_actor_impl(actor_t *actor) {
 #ifdef STRICT
     // Check exists in inactive list
     UBYTE found = 0;
@@ -213,7 +213,11 @@ void deactivate_actor(actor_t *actor) BANKED {
     }
 }
 
-void activate_actor(actor_t *actor) BANKED {
+void deactivate_actor(actor_t *actor) BANKED {
+    deactivate_actor_impl(actor);
+}
+
+static void activate_actor_impl(actor_t *actor) {
 #ifdef STRICT
     // Check exists in inactive list
     UBYTE found = 0;
@@ -238,9 +242,12 @@ void activate_actor(actor_t *actor) BANKED {
     actor->hscript_hit = SCRIPT_TERMINATED;
 }
 
+void activate_actor(actor_t *actor) BANKED {
+    activate_actor_impl(actor);
+}
+
 void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
-    static actor_t *actor;
-    actor = actors_inactive_head;
+    actor_t *actor = actors_inactive_head;
 
     while (actor) {
         UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
@@ -248,7 +255,7 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
             UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
             if ((tx + 1 > x) && (tx < x + SCREEN_TILE_REFRES_W)) {
                 actor_t * next = actor->next;
-                activate_actor(actor);
+                activate_actor_impl(actor);
                 actor = next;
                 continue;
             }
@@ -270,13 +277,13 @@ void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
             SUBPX_TO_TILE(actor->pos.y + actor->bounds.bottom) >= y &&
             // Top is above end of column y
             SUBPX_TO_TILE(actor->pos.y + actor->bounds.top) <= y_max) {    
-                activate_actor(actor);
+                activate_actor_impl(actor);
         }
         actor = next;
     }
 }
 
-void actor_set_frames(actor_t *actor, UBYTE frame_start, UBYTE frame_end) BANKED {
+void actor_set_frames(actor_t *actor, UBYTE frame_start, UBYTE frame_end) NONBANKED {
     if ((actor->frame_start != frame_start) || (actor->frame_end != frame_end)) {
         actor->frame = frame_start;
         actor->frame_start = frame_start;
