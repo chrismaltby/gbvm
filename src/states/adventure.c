@@ -20,10 +20,10 @@
 // Feature Flags --------------------------------------------------------------
 // Optional feature flags, set in 'state_defines.h'
 
-// #define FEAT_ADVENTURE_BLANK
-// #define FEAT_ADVENTURE_DASH
-// #define FEAT_ADVENTURE_RUN
-// #define FEAT_ADVENTURE_KNOCKBACK
+#define FEAT_ADVENTURE_BLANK
+#define FEAT_ADVENTURE_DASH
+#define FEAT_ADVENTURE_RUN
+#define FEAT_ADVENTURE_KNOCKBACK
 
 // End of Feature Flags -------------------------------------------------------
 
@@ -42,6 +42,12 @@
 #define COL_CHECK_WALLS 0x10
 #define COL_CHECK_ALL COL_CHECK_X | COL_CHECK_Y | COL_CHECK_ACTORS | COL_CHECK_TRIGGERS | COL_CHECK_WALLS
 
+#define ADVENTURE_ANIM_OVERRIDES_SET \
+    (defined(FEAT_ADVENTURE_RUN) && defined(ADVENTURE_RUN_ANIM)) || \
+    (defined(FEAT_ADVENTURE_DASH) && defined(ADVENTURE_DASH_ANIM)) || \
+    (defined(FEAT_ADVENTURE_KNOCKBACK) && defined(ADVENTURE_KNOCKBACK_ANIM)) || \
+    (defined(FEAT_ADVENTURE_BLANK) && defined(ADVENTURE_BLANK_ANIM))
+
 // End of Constants -----------------------------------------------------------
 
 // Macros ---------------------------------------------------------------------
@@ -51,11 +57,19 @@
 // End of Macros --------------------------------------------------------------
 
 // Type Definitions -----------------------------------------------------------
+typedef enum
+{
+    GROUND_STATE = 0,
+    DASH_STATE,
+    KNOCKBACK_STATE,
+    BLANK_STATE,
+    RUN_STATE,
+} state_e;
 
 typedef enum
 {
-    IDLE_INIT = 0,
-    IDLE_END,
+    GROUND_INIT = 0,
+    GROUND_END,
     DASH_INIT,
     DASH_END,
     KNOCKBACK_INIT,
@@ -76,12 +90,19 @@ WORD adv_walk_vel;            // Maximum velocity while walking
 WORD adv_run_vel;             // Maximum velocity while running
 WORD adv_dec;
 WORD adv_acc;
+WORD adv_knockback_vel_x;     // Knockback velocity in the x direction
+WORD adv_knockback_vel_y;     // Knockback velocity in the y direction
+UBYTE adv_knockback_frames;   // Number of frames for knockback
 
 // End of Engine Fields -------------------------------------------------------
 
 // Runtime State --------------------------------------------------------------
 
 script_event_t adv_events[CALLBACK_SIZE];
+
+// State machine
+state_e adv_state;            // Current adventure state
+state_e adv_next_state;       // Next frame's adventure state
 
 WORD adv_vel_x;               // Tracks the player's x-velocity between frames
 WORD adv_vel_y;               // Tracks the player's y-velocity between frames
@@ -90,6 +111,12 @@ WORD adv_vel_y;               // Tracks the player's y-velocity between frames
 static direction_e facing_dir = DIR_DOWN;
 static point16_t delta;
 static point16_t movement_delta;
+
+// Counters
+UBYTE adv_knockback_timer;    // Current Knockback frame
+
+// Animation
+UBYTE adv_anim_dirty;         // Tracks whether the player animation has been modified from the default
 
 // Solid actors
 actor_t *adv_attached_actor;  // The last actor the player hit, and that they were attached to
@@ -113,6 +140,26 @@ void adv_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void adv_callback_reset(void);
 static void adv_callback_execute(UBYTE i);
 
+#if ADVENTURE_ANIM_OVERRIDES_SET
+
+inline void adv_set_player_anim_state(UBYTE anim)
+{
+    load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, anim, PLAYER.animations);
+    actor_reset_anim(&PLAYER);
+    adv_anim_dirty = TRUE;
+}
+
+inline void adv_restore_default_anim_state(void)
+{
+    if (adv_anim_dirty) {
+        load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
+        actor_reset_anim(&PLAYER);  
+        adv_anim_dirty = FALSE;             
+    }
+}
+
+#endif
+
 // End of Function Definitions ------------------------------------------------
 
 void adventure_init(void) BANKED {
@@ -135,18 +182,82 @@ void adventure_init(void) BANKED {
     adv_dec = 1024;
     adv_acc = 1024;
     adv_walk_vel = 3200;
+
+    adv_state = GROUND_STATE;
 }
 
 void adventure_update(void) BANKED {
-    UBYTE player_moving = 0;
+  // State transitions
 
-    // // Update facing_dir only on single cardinal input (ignore diagonals)
-    // if ((INPUT_LEFT ^ INPUT_RIGHT) && !INPUT_UP && !INPUT_DOWN) {
-    //     facing_dir = INPUT_LEFT ? DIR_LEFT : DIR_RIGHT;
-    // } else if ((INPUT_UP ^ INPUT_DOWN) && !INPUT_LEFT && !INPUT_RIGHT) {
-    //     facing_dir = INPUT_UP ? DIR_UP : DIR_DOWN;
-    // }
-    
+    if (adv_state != adv_next_state)
+    {
+        // Exit state
+        switch (adv_state)
+        {
+            case GROUND_STATE: {
+                adv_callback_execute(GROUND_END);
+                break;
+            }
+#ifdef FEAT_ADVENTURE_KNOCKBACK
+            case KNOCKBACK_STATE: {
+                adv_vel_x = 0;
+                adv_callback_execute(KNOCKBACK_END);
+                break;
+            }
+#endif
+#ifdef FEAT_ADVENTURE_BLANK
+            case BLANK_STATE: {
+                adv_vel_x = 0;
+                adv_vel_y = 0;
+                adv_callback_execute(BLANK_END);
+                break;
+            }
+#endif
+        }
+
+        adv_state = adv_next_state;
+
+        // Enter state
+        switch (adv_state)
+        {
+            case GROUND_STATE: {
+#if ADVENTURE_ANIM_OVERRIDES_SET
+                adv_restore_default_anim_state();
+#endif
+                adv_callback_execute(GROUND_INIT);
+                break;
+            }
+#ifdef FEAT_ADVENTURE_KNOCKBACK
+            case KNOCKBACK_STATE: {
+                adv_vel_x = PLAYER.dir == DIR_RIGHT ? -adv_knockback_vel_x : adv_knockback_vel_x;
+                adv_vel_y = -adv_knockback_vel_y;
+                adv_knockback_timer = adv_knockback_frames;
+#ifdef ADVENTURE_KNOCKBACK_ANIM
+                adv_set_player_anim_state(ADVENTURE_KNOCKBACK_ANIM);
+#elif ADVENTURE_ANIM_OVERRIDES_SET
+                adv_restore_default_anim_state();
+#endif
+                adv_callback_execute(KNOCKBACK_INIT);
+                break;
+            }
+#endif
+#ifdef FEAT_ADVENTURE_BLANK
+            case BLANK_STATE: {
+                adv_vel_x = 0;
+                adv_vel_y = 0;
+#ifdef ADVENTURE_BLANK_ANIM
+                adv_set_player_anim_state(ADVENTURE_BLANK_ANIM);
+#elif ADVENTURE_ANIM_OVERRIDES_SET
+                adv_restore_default_anim_state();
+#endif
+                adv_callback_execute(BLANK_INIT);
+                break;
+            }
+#endif      
+        }  
+    }
+
+    UBYTE player_moving = FALSE;
 
    if (INPUT_LEFT && (facing_dir == DIR_LEFT || facing_dir == DIR_NONE)) {
       facing_dir = DIR_LEFT;
@@ -222,58 +333,6 @@ void adventure_update(void) BANKED {
     }
     adv_deceleration();
 
-
-    // // Compute movement angle
-    // if (INPUT_LEFT) {
-    //     player_moving = TRUE;
-    //     if (INPUT_UP) {
-    //         angle = ANGLE_315DEG;
-    //     } else if (INPUT_DOWN) {
-    //         angle = ANGLE_225DEG;
-    //     } else {
-    //         angle = ANGLE_270DEG;
-    //     }
-    // } else if (INPUT_RIGHT) {
-    //     player_moving = TRUE;
-    //     if (INPUT_UP) {
-    //         angle = ANGLE_45DEG;
-    //     } else if (INPUT_DOWN) {
-    //         angle = ANGLE_135DEG;
-    //     } else {
-    //         angle = ANGLE_90DEG;
-    //     }
-    // } else if (INPUT_UP) {
-    //     player_moving = TRUE;
-    //     angle = ANGLE_0DEG;
-    // } else if (INPUT_DOWN) {
-    //     player_moving = TRUE;
-    //     angle = ANGLE_180DEG;
-    // }
-    // else {
-    //     adv_deceleration();
-    // }
-
-
-
-    // if (player_moving) {
-    //     // upoint16_t new_pos;
-
-    //     point_translate_angle_to_delta(&movement_delta, angle, PLAYER.move_speed);
-
-    //     adv_vel_x += movement_delta.x;
-    //     adv_vel_y -= movement_delta.y; // @todo fix this should be positive, maybe angle is wrong, maybe translate angle fn wrong
-
-
-    
-    // // } else {
-    // //     delta.x = 0;
-    // //     delta.y = 0;
-
-    //     // adv_vel_x = movement_delta.x;
-    //     // adv_vel_y = movement_delta.y;
-
-    // }
-
     if (collision_dir != DIR_NONE) {
         WORD delta_mp_x = adv_attached_actor->pos.x - adv_attached_prev_x;
         WORD delta_mp_y = adv_attached_actor->pos.y - adv_attached_prev_y;
@@ -292,7 +351,6 @@ void adventure_update(void) BANKED {
             adv_vel_x = delta_mp_x;
         }
     }
-
 
     delta.x = VEL_TO_SUBPX(adv_vel_x);
     delta.y = VEL_TO_SUBPX(adv_vel_y);
@@ -503,9 +561,6 @@ static void adv_callback_execute(UBYTE i)
 }
 
 static void adv_deceleration(void) {
-  ///////////////////////////
-  //  Deceleration
-  ///////////////////////////
   if (!(INPUT_LEFT | INPUT_RIGHT)) {
     if (adv_vel_x > adv_dec) {
       adv_vel_x -= adv_dec;
