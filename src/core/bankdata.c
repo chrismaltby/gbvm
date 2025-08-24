@@ -101,17 +101,24 @@ __endasm;
 
 void ReadBankedFarPtr(far_ptr_t * dest, const unsigned char *ptr, UBYTE bank) NONBANKED NAKED {
     dest; ptr; bank;
+// shady version, saved 4 bytes
 __asm
-    ldh a, (__current_bank)
-    ld  (#__save), a
-
-    ldhl sp, #2
+	ldhl sp, #2
     ld  a, (hl)
-    ldh	(__current_bank), a
-    ld  (_rROMB0), a
-
-    ld h, b
+	
+	ld h, b
     ld l, c
+	
+	ld b, a 
+	
+    ldh a, (__current_bank)
+    ld  c, a ; C stores the previous bank
+    
+	ld a, b
+	ld b, #0x20 ; the address range 0x2000-0x3fff allows to switch bank when writing to it, by writing loading 0x20 into D, DE will always be in this range
+	
+    ldh	(__current_bank), a
+    ld  (BC), a ; equivalent to ld  (_rROMB0), a
 
     .rept 2
       ld  a, (hl+)
@@ -121,19 +128,56 @@ __asm
     ld  a, (hl)
     ld  (de), a
 
-    ld  a, (#__save)
+    ld  a, c
     ldh (__current_bank), a
-    ld  (_rROMB0), a
+    ld  (BC), a ; equivalent to ld  (_rROMB0), a
 
     pop hl
     inc sp
     jp  (hl)
 __endasm;
+/*
+// non shady version, only save 2 bytes
+// it can be used if you want to add support for 8MiB MBC5 (B can be used to store the upper byte of the bank)
+__asm
+	ldhl sp, #2
+    ld  a, (hl)
+	
+	ld h, b
+    ld l, c
+	
+	ld b, a 
+	
+    ldh a, (__current_bank)
+    ld  c, a ; C stores the previous bank
+    
+	ld a, b
+	
+    ldh	(__current_bank), a
+    ld  (_rROMB0), a ;
+    .rept 2
+      ld  a, (hl+)
+      ld  (de), a
+      inc de
+    .endm
+    ld  a, (hl)
+    ld  (de), a
+
+    ld  a, c
+    ldh (__current_bank), a
+    ld  (_rROMB0), a ;
+
+    pop hl
+    inc sp
+    jp  (hl)
+__endasm;
+*/
+
 }
 
 UWORD ReadBankedUWORD(const unsigned char *ptr, UBYTE bank) NONBANKED NAKED {
     ptr; bank;
-// shady version
+// shady version, saves 6 bytes
 __asm
     ld  c, a
 	
@@ -160,7 +204,8 @@ __endasm;
 
 
 /*
-// here is a less shady version just in case you want to add support of 8MiB MBC5
+// non shady version, saves 4 bytes
+// it can be used if you want to add support for 8MiB MBC5 (B can be used to store the upper byte of the bank)
 __asm
     ld  c, a
 	
@@ -202,7 +247,8 @@ void MemcpyVRAMBanked(void* to, const void* from, size_t n, UBYTE bank) NONBANKE
 
 UBYTE IndexOfFarPtr(const far_ptr_t * list, UBYTE bank, UBYTE count, const far_ptr_t * item) NONBANKED {
     far_ptr_t v;
-    for (UBYTE i = 0; i != count; i++, list++) {
+	list += count;
+    for (UBYTE i = count; i != 0; i--, list--) {
         ReadBankedFarPtr(&v, (void *)list, bank);
         if ((v.bank == item->bank) && (v.ptr == item->ptr)) return i;
     }
