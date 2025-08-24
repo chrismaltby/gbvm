@@ -133,22 +133,25 @@ __endasm;
 
 UWORD ReadBankedUWORD(const unsigned char *ptr, UBYTE bank) NONBANKED NAKED {
     ptr; bank;
+// new version
 __asm
     ld  c, a
+	
+	ld h, d
+    ld l, e
+	
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ld  e, a
 
     ld  a, c
     ldh	(__current_bank), a
     ld  (_rROMB0), a
 
-    ld h, d
-    ld l, e
     ld a, (hl+)
     ld c, a
     ld b, (hl)
-
-    ld  a, (#__save)
+   
+    ld  a, e
     ldh (__current_bank), a
     ld  (_rROMB0), a
     ret
