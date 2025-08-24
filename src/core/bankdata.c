@@ -133,7 +133,7 @@ __endasm;
 
 UWORD ReadBankedUWORD(const unsigned char *ptr, UBYTE bank) NONBANKED NAKED {
     ptr; bank;
-// new version
+// shady version
 __asm
     ld  c, a
 	
@@ -142,10 +142,11 @@ __asm
 	
     ldh a, (__current_bank)
     ld  e, a
-
+	ld  d, #0x20 ; the address range 0x2000-0x3fff allows to switch bank when writing to it, by writing loading 0x20 into D, DE will always be in this range
+	
     ld  a, c
     ldh	(__current_bank), a
-    ld  (_rROMB0), a
+    ld  (DE), a ; because of how DE is set, this is equivalent to ld (_rROMB0), a
 
     ld a, (hl+)
     ld c, a
@@ -153,7 +154,7 @@ __asm
    
     ld  a, e
     ldh (__current_bank), a
-    ld  (_rROMB0), a
+    ld  (DE), a ; because of how DE is set, this is equivalent to ld (_rROMB0), a
     ret
 __endasm;
 }
