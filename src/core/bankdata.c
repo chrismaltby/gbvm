@@ -157,6 +157,33 @@ __asm
     ld  (DE), a ; because of how DE is set, this is equivalent to ld (_rROMB0), a
     ret
 __endasm;
+
+
+/*
+// here is a less shady version just in case you want to add support of 8MiB MBC5
+__asm
+    ld  c, a
+	
+	ld h, d
+    ld l, e
+	
+    ldh a, (__current_bank)
+    ld  e, a
+	
+    ld  a, c
+    ldh	(__current_bank), a
+    ld  (_rROMB0), a
+
+    ld a, (hl+)
+    ld c, a
+    ld b, (hl)
+   
+    ld  a, e
+    ldh (__current_bank), a
+    ld  (_rROMB0), a
+    ret
+__endasm;
+*/
 }
 
 void MemcpyBanked(void* to, const void* from, size_t n, UBYTE bank) NONBANKED {
