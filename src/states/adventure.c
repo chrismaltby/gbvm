@@ -393,67 +393,59 @@ static void move_and_collide(UBYTE mask)
         UWORD new_x = PLAYER.pos.x + delta.x;
         // Step X
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-        UBYTE tile_end   = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        UBYTE tile_end   = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom);
         if (delta.x > 0) {
             UBYTE tile_x = SUBPX_TO_TILE(new_x + PLAYER.bounds.right);
-            while (tile_start != tile_end) {
-                UBYTE tile = tile_at(tile_x, tile_start);
-                if (tile & COLLISION_LEFT) {
-                    new_x = TILE_TO_SUBPX(tile_x) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
-                    adv_vel_x = 0;
-                    if (tile & COLLISION_SLOPE && delta.y == 0) {
-                        if (tile & COLLISION_TOP) {
-                            WORD target_y = TILE_TO_SUBPX(tile_start) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
-                            if (PLAYER.pos.y < target_y + MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.y -= VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.y < target_y) {
-                                    PLAYER.pos.y = target_y;
-                                }
-                            }
-                        } else if (tile & COLLISION_BOTTOM) {
-                            UWORD target_y = TILE_TO_SUBPX(tile_start + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.top);
-                            if (PLAYER.pos.y > target_y - MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.y += VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.y > target_y) {
-                                    PLAYER.pos.y = target_y;
-                                }
+            UBYTE tile = tile_col_test_range_y(COLLISION_LEFT, tile_x, tile_start, tile_end);
+            if (tile) {
+                new_x = TILE_TO_SUBPX(tile_x) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
+                adv_vel_x = 0;
+                if (tile & COLLISION_SLOPE && delta.y == 0) {
+                    if (tile & COLLISION_TOP) {
+                        UWORD target_y = TILE_TO_SUBPX(tile_hit_y) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
+                        if (PLAYER.pos.y < target_y + MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.y -= VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.y < target_y) {
+                                PLAYER.pos.y = target_y;
                             }
                         }
-                    } 
-                    break;
-                }
-                tile_start++;
+                    } else if (tile & COLLISION_BOTTOM) {
+                        UWORD target_y = TILE_TO_SUBPX(tile_hit_y + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.top);
+                        if (PLAYER.pos.y > target_y - MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.y += VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.y > target_y) {
+                                PLAYER.pos.y = target_y;
+                            }
+                        }
+                    }
+                } 
             }
             PLAYER.pos.x = MIN(image_width_subpx - EXCLUSIVE_OFFSET(PLAYER.bounds.right), new_x);
         } else if (delta.x < 0) {
             UBYTE tile_x = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
-            while (tile_start != tile_end) {
-                UBYTE tile = tile_at(tile_x, tile_start);
-                if (tile & COLLISION_RIGHT) {
-                    new_x = TILE_TO_SUBPX(tile_x + 1) - PLAYER.bounds.left;
-                    adv_vel_x = 0;
-                    if (tile & COLLISION_SLOPE && delta.y == 0) {
-                        if (tile & COLLISION_TOP) {
-                            UWORD target_y = TILE_TO_SUBPX(tile_start) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
-                            if (PLAYER.pos.y < target_y + MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.y -= VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.y < target_y) {
-                                    PLAYER.pos.y = target_y;
-                                }
-                            }
-                        } else if (tile & COLLISION_BOTTOM) {
-                            UWORD target_y = TILE_TO_SUBPX(tile_start + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.top);
-                            if (PLAYER.pos.y > target_y - MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.y += VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.y > target_y) {
-                                    PLAYER.pos.y = target_y;
-                                }
+            UBYTE tile = tile_col_test_range_y(COLLISION_RIGHT, tile_x, tile_start, tile_end);
+            if (tile) {
+                new_x = TILE_TO_SUBPX(tile_x + 1) - PLAYER.bounds.left;
+                adv_vel_x = 0;
+                if (tile & COLLISION_SLOPE && delta.y == 0) {
+                    if (tile & COLLISION_TOP) {
+                        UWORD target_y = TILE_TO_SUBPX(tile_hit_y) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
+                        if (PLAYER.pos.y < target_y + MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.y -= VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.y < target_y) {
+                                PLAYER.pos.y = target_y;
                             }
                         }
-                    }                    
-                    break;
+                    } else if (tile & COLLISION_BOTTOM) {
+                        UWORD target_y = TILE_TO_SUBPX(tile_hit_y + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.top);
+                        if (PLAYER.pos.y > target_y - MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.y += VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.y > target_y) {
+                                PLAYER.pos.y = target_y;
+                            }
+                        }
+                    }
                 }
-                tile_start++;
             }
             PLAYER.pos.x = new_x;
         }
@@ -466,67 +458,59 @@ static void move_and_collide(UBYTE mask)
 
         // Step Y
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left);
-        UBYTE tile_end   = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.right) + 1;
+        UBYTE tile_end   = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.right);
         if (delta.y > 0) {
             UBYTE tile_y = SUBPX_TO_TILE(new_y + PLAYER.bounds.bottom);
-            while (tile_start != tile_end) {
-                UBYTE tile = tile_at(tile_start, tile_y);
-                if (tile & COLLISION_TOP) {
-                    new_y = TILE_TO_SUBPX(tile_y) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
-                    adv_vel_y = 0;
-                    if (tile & COLLISION_SLOPE && delta.x == 0) {
-                        if (tile & COLLISION_LEFT) {
-                            WORD target_x = TILE_TO_SUBPX(tile_start) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
-                            if (PLAYER.pos.x < target_x + MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.x < target_x) {
-                                    PLAYER.pos.x = target_x;   
-                                }
-                            }                            
-                        } else if (tile & COLLISION_RIGHT) {
-                            UWORD target_x = TILE_TO_SUBPX(tile_start + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
-                            if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.x > target_x) {
-                                    PLAYER.pos.x = target_x;   
-                                }
+            UBYTE tile = tile_col_test_range_x(COLLISION_TOP, tile_y, tile_start, tile_end);
+            if (tile) {
+                new_y = TILE_TO_SUBPX(tile_y) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
+                adv_vel_y = 0;
+                if (tile & COLLISION_SLOPE && delta.x == 0) {
+                    if (tile & COLLISION_LEFT) {
+                        UWORD target_x = TILE_TO_SUBPX(tile_hit_x) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
+                        if (PLAYER.pos.x < target_x + MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.x < target_x) {
+                                PLAYER.pos.x = target_x;   
                             }
-                        }                        
-                    }
-                    break;
+                        }                            
+                    } else if (tile & COLLISION_RIGHT) {
+                        UWORD target_x = TILE_TO_SUBPX(tile_hit_x + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
+                        if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.x > target_x) {
+                                PLAYER.pos.x = target_x;   
+                            }
+                        }
+                    }                        
                 }
-                tile_start++;
             }
             PLAYER.pos.y = new_y;
         } else if (delta.y < 0) {
             UBYTE tile_y = SUBPX_TO_TILE(new_y + PLAYER.bounds.top);
-            while (tile_start != tile_end) {
-                UBYTE tile = tile_at(tile_start, tile_y);
-                if (tile & COLLISION_BOTTOM) {
-                    new_y = TILE_TO_SUBPX(tile_y + 1) - PLAYER.bounds.top;
-                    adv_vel_y = 0;
-                    if (tile & COLLISION_SLOPE && delta.x == 0) {
-                        if (tile & COLLISION_LEFT) {
-                            WORD target_x = TILE_TO_SUBPX(tile_start) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
-                            if (PLAYER.pos.x < target_x + MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.x < target_x) {
-                                    PLAYER.pos.x = target_x;   
-                                }  
-                            }                          
-                        } else if (tile & COLLISION_RIGHT) {
-                            UWORD target_x = TILE_TO_SUBPX(tile_start + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
-                            if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
-                                PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
-                                if (PLAYER.pos.x > target_x) {
-                                    PLAYER.pos.x = target_x;   
-                                }
+            UBYTE tile = tile_col_test_range_x(COLLISION_BOTTOM, tile_y, tile_start, tile_end);
+            if (tile) {            
+                new_y = TILE_TO_SUBPX(tile_y + 1) - PLAYER.bounds.top;
+                adv_vel_y = 0;
+                if (tile & COLLISION_SLOPE && delta.x == 0) {
+                    if (tile & COLLISION_LEFT) {
+                        UWORD target_x = TILE_TO_SUBPX(tile_hit_x) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
+                        if (PLAYER.pos.x < target_x + MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.x < target_x) {
+                                PLAYER.pos.x = target_x;   
+                            }  
+                        }                          
+                    } else if (tile & COLLISION_RIGHT) {
+                        UWORD target_x = TILE_TO_SUBPX(tile_hit_x + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
+                        if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
+                            PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
+                            if (PLAYER.pos.x > target_x) {
+                                PLAYER.pos.x = target_x;   
                             }
                         }
-                    }                    
-                    break;
+                    }
                 }
-                tile_start++;
             }
             PLAYER.pos.y = new_y;
         }
