@@ -425,7 +425,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
     }
 }
 
-void ui_update(void) NONBANKED {
+void ui_update(void) BANKED {
     UBYTE flag = FALSE;
 
     // y should always move first

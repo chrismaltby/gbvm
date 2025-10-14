@@ -79,7 +79,7 @@ extern UBYTE text_palette;
 #endif
 
 void ui_init(void) BANKED;
-void ui_update(void) NONBANKED;  // critical path, NONBANKED for speed
+void ui_update(void) BANKED;
 
 void ui_load_tiles(void) BANKED;
 
