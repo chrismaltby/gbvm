@@ -261,122 +261,136 @@ void adventure_update(void) BANKED {
         }  
     }
 
-    UBYTE player_moving = FALSE;
 
-   if (INPUT_LEFT && (facing_dir == DIR_LEFT || facing_dir == DIR_NONE)) {
-      facing_dir = DIR_LEFT;
-      player_moving = TRUE;
-      if (INPUT_UP) {
-        adv_vel_x -= adv_acc;
-        adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-        adv_vel_y -= adv_acc;
-        adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-      } else if (INPUT_DOWN) {
-        adv_vel_x -= adv_acc;
-        adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-        adv_vel_y += adv_walk_vel;
-        adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-      } else {
-        adv_vel_x -= adv_acc;
-        adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-      }
-    } else if (INPUT_RIGHT && (facing_dir == DIR_RIGHT || facing_dir == DIR_NONE)) {
-      facing_dir = DIR_RIGHT;
-      player_moving = TRUE;
-      if (INPUT_UP) {
-        adv_vel_x += adv_acc;
-        adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-        adv_vel_y -= adv_acc;
-        adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+    // STATE MACHINE =======================================================
 
-      } else if (INPUT_DOWN) {
-        adv_vel_x += adv_acc;
-        adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-        adv_vel_y += adv_acc;
-        adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-      } else {
-        adv_vel_x += adv_acc;
-        adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-      }
-    } else if (INPUT_UP && (facing_dir == DIR_UP || facing_dir == DIR_NONE)) {
-      facing_dir = DIR_UP;
-      player_moving = TRUE;
-      if (INPUT_LEFT) {
-        adv_vel_x -= adv_acc;
-        adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-        adv_vel_y -= adv_acc;
-        adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-      } else if (INPUT_RIGHT) {
-        adv_vel_x += adv_acc;
-        adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-        adv_vel_y -= adv_acc;
-        adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-      } else {
-        adv_vel_y -= adv_acc;
-        adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-      }
-    } else if (INPUT_DOWN && (facing_dir == DIR_DOWN || facing_dir == DIR_NONE)) {
-      facing_dir = DIR_DOWN;
-      player_moving = TRUE;
-      if (INPUT_LEFT) {
-        adv_vel_x -= adv_acc;
-        adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-        adv_vel_y += adv_acc;
-        adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-      } else if (INPUT_RIGHT) {
-        adv_vel_x += adv_acc;
-        adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-        adv_vel_y += adv_acc;
-        adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-      } else {
-        adv_vel_y += adv_acc;
-        adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-      }
-    } else {
-      facing_dir = DIR_NONE;
-    }
-    adv_deceleration();
+    switch (adv_state)
+    {
+        case GROUND_STATE:
+        case RUN_STATE: {
 
-    if (collision_dir != DIR_NONE) {
-        WORD delta_mp_x = adv_attached_actor->pos.x - adv_attached_prev_x;
-        WORD delta_mp_y = adv_attached_actor->pos.y - adv_attached_prev_y;
-        adv_attached_prev_x = adv_attached_actor->pos.x;
-        adv_attached_prev_y = adv_attached_actor->pos.y;
+            UBYTE player_moving = FALSE;
 
-        if (collision_dir == DIR_DOWN && delta_mp_y > adv_vel_y) {
-            // PLAYER IS GOING UP
-            adv_vel_y = delta_mp_y;
-        } else if (collision_dir == DIR_UP && delta_mp_y < adv_vel_y) {
-            // PLAYER IS GOING DOWN
-            adv_vel_y = delta_mp_y;
-        } else if (collision_dir == DIR_LEFT && delta_mp_x < adv_vel_x) {
-            adv_vel_x = delta_mp_x;
-        } else if (collision_dir == DIR_RIGHT && delta_mp_x > adv_vel_x) {
-            adv_vel_x = delta_mp_x;
+            if (INPUT_LEFT && (facing_dir == DIR_LEFT || facing_dir == DIR_NONE)) {
+                facing_dir = DIR_LEFT;
+                player_moving = TRUE;
+                if (INPUT_UP) {
+                    adv_vel_x -= adv_acc;
+                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+                    adv_vel_y -= adv_acc;
+                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+                } else if (INPUT_DOWN) {
+                    adv_vel_x -= adv_acc;
+                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+                    adv_vel_y += adv_walk_vel;
+                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+                } else {
+                    adv_vel_x -= adv_acc;
+                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+                }
+            } else if (INPUT_RIGHT && (facing_dir == DIR_RIGHT || facing_dir == DIR_NONE)) {
+                facing_dir = DIR_RIGHT;
+                player_moving = TRUE;
+                if (INPUT_UP) {
+                    adv_vel_x += adv_acc;
+                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+                    adv_vel_y -= adv_acc;
+                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+
+                } else if (INPUT_DOWN) {
+                    adv_vel_x += adv_acc;
+                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+                    adv_vel_y += adv_acc;
+                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+                } else {
+                    adv_vel_x += adv_acc;
+                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+                }
+            } else if (INPUT_UP && (facing_dir == DIR_UP || facing_dir == DIR_NONE)) {
+                facing_dir = DIR_UP;
+                player_moving = TRUE;
+                if (INPUT_LEFT) {
+                    adv_vel_x -= adv_acc;
+                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+                    adv_vel_y -= adv_acc;
+                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+                } else if (INPUT_RIGHT) {
+                    adv_vel_x += adv_acc;
+                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+                    adv_vel_y -= adv_acc;
+                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+                } else {
+                    adv_vel_y -= adv_acc;
+                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+                }
+            } else if (INPUT_DOWN && (facing_dir == DIR_DOWN || facing_dir == DIR_NONE)) {
+                facing_dir = DIR_DOWN;
+                player_moving = TRUE;
+                if (INPUT_LEFT) {
+                    adv_vel_x -= adv_acc;
+                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+                    adv_vel_y += adv_acc;
+                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+                } else if (INPUT_RIGHT) {
+                    adv_vel_x += adv_acc;
+                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+                    adv_vel_y += adv_acc;
+                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+                } else {
+                    adv_vel_y += adv_acc;
+                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+                }
+            } else {
+                facing_dir = DIR_NONE;
+            }
+
+            adv_deceleration();
+
+            if (collision_dir != DIR_NONE) {
+                WORD delta_mp_x = adv_attached_actor->pos.x - adv_attached_prev_x;
+                WORD delta_mp_y = adv_attached_actor->pos.y - adv_attached_prev_y;
+                adv_attached_prev_x = adv_attached_actor->pos.x;
+                adv_attached_prev_y = adv_attached_actor->pos.y;
+
+                if (collision_dir == DIR_DOWN && delta_mp_y > adv_vel_y) {
+                    // PLAYER IS GOING UP
+                    adv_vel_y = delta_mp_y;
+                } else if (collision_dir == DIR_UP && delta_mp_y < adv_vel_y) {
+                    // PLAYER IS GOING DOWN
+                    adv_vel_y = delta_mp_y;
+                } else if (collision_dir == DIR_LEFT && delta_mp_x < adv_vel_x) {
+                    adv_vel_x = delta_mp_x;
+                } else if (collision_dir == DIR_RIGHT && delta_mp_x > adv_vel_x) {
+                    adv_vel_x = delta_mp_x;
+                }
+            }
+
+            delta.x = VEL_TO_SUBPX(adv_vel_x);
+            delta.y = VEL_TO_SUBPX(adv_vel_y);
+
+            move_and_collide(COL_CHECK_ALL);
+
+            if (INPUT_A_PRESSED) {
+                actor_t *hit_actor = adv_attached_actor;
+                if (!hit_actor) {
+                    hit_actor = actor_in_front_of_player(8, TRUE);
+                }
+                if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank) {
+                    actor_set_dir(hit_actor, FLIPPED_DIR(PLAYER.dir), FALSE);
+                    script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
+                }
+            }
+
+            // Facing and animation update
+            if (player_moving) {
+                actor_set_dir(&PLAYER, facing_dir, TRUE);
+            } else {
+                actor_set_anim_idle(&PLAYER);
+            }
+            
+            break;
         }
-    }
 
-    delta.x = VEL_TO_SUBPX(adv_vel_x);
-    delta.y = VEL_TO_SUBPX(adv_vel_y);
-
-    move_and_collide(COL_CHECK_ALL);
-
-    if (INPUT_A_PRESSED) {
-        actor_t *hit_actor = adv_attached_actor;
-        if (!hit_actor) {
-            hit_actor = actor_in_front_of_player(8, TRUE);
-        }
-        if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank) {
-            actor_set_dir(hit_actor, FLIPPED_DIR(PLAYER.dir), FALSE);
-            script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
-        }
-    }
-
-    // Facing and animation update
-    if (player_moving) {
-        actor_set_dir(&PLAYER, facing_dir, TRUE);
-    } else {
-        actor_set_anim_idle(&PLAYER);
     }
 }
 
