@@ -419,6 +419,7 @@ static void move_and_collide(UBYTE mask)
                     if (tile & COLLISION_TOP) {
                         UWORD target_y = TILE_TO_SUBPX(tile_hit_y) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
                         if (PLAYER.pos.y < target_y + MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.y -= VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.y < target_y) {
                                 PLAYER.pos.y = target_y;
@@ -427,6 +428,7 @@ static void move_and_collide(UBYTE mask)
                     } else if (tile & COLLISION_BOTTOM) {
                         UWORD target_y = TILE_TO_SUBPX(tile_hit_y + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.top);
                         if (PLAYER.pos.y > target_y - MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.y += VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.y > target_y) {
                                 PLAYER.pos.y = target_y;
@@ -446,6 +448,7 @@ static void move_and_collide(UBYTE mask)
                     if (tile & COLLISION_TOP) {
                         UWORD target_y = TILE_TO_SUBPX(tile_hit_y) - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
                         if (PLAYER.pos.y < target_y + MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.y -= VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.y < target_y) {
                                 PLAYER.pos.y = target_y;
@@ -454,6 +457,7 @@ static void move_and_collide(UBYTE mask)
                     } else if (tile & COLLISION_BOTTOM) {
                         UWORD target_y = TILE_TO_SUBPX(tile_hit_y + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.top);
                         if (PLAYER.pos.y > target_y - MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.y += VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.y > target_y) {
                                 PLAYER.pos.y = target_y;
@@ -484,6 +488,7 @@ static void move_and_collide(UBYTE mask)
                     if (tile & COLLISION_LEFT) {
                         UWORD target_x = TILE_TO_SUBPX(tile_hit_x) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
                         if (PLAYER.pos.x < target_x + MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x < target_x) {
                                 PLAYER.pos.x = target_x;   
@@ -492,6 +497,7 @@ static void move_and_collide(UBYTE mask)
                     } else if (tile & COLLISION_RIGHT) {
                         UWORD target_x = TILE_TO_SUBPX(tile_hit_x + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
                         if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x > target_x) {
                                 PLAYER.pos.x = target_x;   
@@ -511,6 +517,7 @@ static void move_and_collide(UBYTE mask)
                     if (tile & COLLISION_LEFT) {
                         UWORD target_x = TILE_TO_SUBPX(tile_hit_x) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
                         if (PLAYER.pos.x < target_x + MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x < target_x) {
                                 PLAYER.pos.x = target_x;   
@@ -519,6 +526,7 @@ static void move_and_collide(UBYTE mask)
                     } else if (tile & COLLISION_RIGHT) {
                         UWORD target_x = TILE_TO_SUBPX(tile_hit_x + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
                         if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
+                            adv_attached_actor = NULL;
                             PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x > target_x) {
                                 PLAYER.pos.x = target_x;   
