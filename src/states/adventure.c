@@ -367,6 +367,7 @@ void adventure_update(void) BANKED {
             hit_actor = actor_in_front_of_player(8, TRUE);
         }
         if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank) {
+            actor_set_dir(hit_actor, FLIPPED_DIR(PLAYER.dir), FALSE);
             script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
         }
     }
