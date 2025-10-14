@@ -19,6 +19,9 @@ _scene_setup_init::
 
         VM_RESERVE              4
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; If Color Supported
         VM_GET_UINT8            .LOCAL_TMP0_IS_CGB, __is_CGB
         VM_IF_CONST             .NE, .LOCAL_TMP0_IS_CGB, 1, 1$, 0

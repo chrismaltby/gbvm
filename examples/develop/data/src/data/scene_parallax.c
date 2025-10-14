@@ -24,6 +24,12 @@ const struct scene_t scene_parallax = {
     .parallax_rows = {
         PARALLAX_STEP(0, 10, 6), PARALLAX_STEP(10, 14, 3), PARALLAX_STEP(14, 0, 0)
     },
+    .scroll_bounds = {
+        .left = 0,
+        .top = 0,
+        .right = 480,
+        .bottom = 0
+    },
     .palette = TO_FAR_PTR_T(palette_4),
     .sprite_palette = TO_FAR_PTR_T(palette_6),
     .reserve_tiles = 0,

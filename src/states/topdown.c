@@ -39,6 +39,7 @@ void topdown_update(void) BANKED {
     actor_t *hit_actor;
     UBYTE tile_start, tile_end;
     direction_e new_dir = DIR_NONE;
+    static UWORD max_pos = 0;
 
     // Is player on an 8x8px tile?
     if ((topdown_grid == 16 && ON_16PX_GRID(PLAYER.pos)) ||
@@ -133,7 +134,40 @@ void topdown_update(void) BANKED {
                 }
             }
         }
+
+        // Calculate max position for movement clamping
+        UBYTE tile_offset = (topdown_grid == 16) ? 2 : 1;
+        if (PLAYER.dir == DIR_RIGHT) {
+            max_pos = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.x) + tile_offset);
+        } else if (PLAYER.dir == DIR_LEFT) {
+            max_pos = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.x) - tile_offset);
+        } else if (PLAYER.dir == DIR_DOWN) {
+            max_pos = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.y) + tile_offset);
+        } else if (PLAYER.dir == DIR_UP) {
+            max_pos = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.y) - tile_offset);
+        }
     }
 
-    if (player_moving) point_translate_dir(&PLAYER.pos, PLAYER.dir, PLAYER.move_speed);
+    if (player_moving) {
+        point_translate_dir(&PLAYER.pos, PLAYER.dir, PLAYER.move_speed);
+
+        // Clamp to grid
+        if (PLAYER.dir == DIR_RIGHT) {
+            if (PLAYER.pos.x > max_pos) {
+                PLAYER.pos.x = max_pos;
+            }
+        } else if (PLAYER.dir == DIR_LEFT) {
+            if (PLAYER.pos.x < max_pos) {
+                PLAYER.pos.x = max_pos;
+            }
+        } else if (PLAYER.dir == DIR_DOWN) {
+            if (PLAYER.pos.y > max_pos) {
+                PLAYER.pos.y = max_pos;
+            }
+        } else if (PLAYER.dir == DIR_UP) {
+            if (PLAYER.pos.y < max_pos) {
+                PLAYER.pos.y = max_pos;
+            }
+        }
+    }
 }

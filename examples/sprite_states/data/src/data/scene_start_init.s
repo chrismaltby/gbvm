@@ -14,6 +14,9 @@ ___bank_scene_start_init = 255
 _scene_start_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Input Script Attach
         VM_CONTEXT_PREPARE      1, ___bank_script_input, _script_input
         VM_INPUT_ATTACH         128, ^/(1 | .OVERRIDE_DEFAULT)/

@@ -19,6 +19,9 @@ _scene_title_screen_init::
 
         VM_RESERVE              5
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Music Play
         VM_MUSIC_PLAY           ___bank_song_rulz_intro_0_Data, _song_rulz_intro_0_Data, .MUSIC_NO_LOOP
 

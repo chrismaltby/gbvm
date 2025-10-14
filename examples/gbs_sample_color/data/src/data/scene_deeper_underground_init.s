@@ -31,6 +31,9 @@ _scene_deeper_underground_init::
 
 2$:
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Call Script: common/ui/Init Menu
         VM_CALL_FAR             ___bank_script_init_menu, _script_init_menu
 

@@ -14,6 +14,9 @@ ___bank_test_scene_init = 255
 _test_scene_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Wait 1 Frames
         VM_IDLE
 

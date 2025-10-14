@@ -42,6 +42,9 @@ GBVM$scene_underground_init$0a586506_2101_49ce_b244_cbe2df8b39a0$3509d273_bf7e_4
 
 GBVM_END$scene_underground_init$b1d1a0dd_3c32_4881_ad85_a1cb42386bf4 = .
 .globl GBVM_END$scene_underground_init$b1d1a0dd_3c32_4881_ad85_a1cb42386bf4
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_underground_init$02ae19dc_29ba_438b_9437_712f79c5c758$3509d273_bf7e_4946_89ce_a489df5a449d$scene$3509d273_bf7e_4946_89ce_a489df5a449d$script = .
 .globl GBVM$scene_underground_init$02ae19dc_29ba_438b_9437_712f79c5c758$3509d273_bf7e_4946_89ce_a489df5a449d$scene$3509d273_bf7e_4946_89ce_a489df5a449d$script
         ; Call Script: Init Menu

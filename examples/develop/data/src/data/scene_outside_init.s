@@ -14,6 +14,9 @@ ___bank_scene_outside_init = 255
 _scene_outside_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_outside_init$da5d7bc4_ae28_4992_ab12_dcdcb3e1055e$2017e4bb_16d3_47bc_a86c_9c47e1860e0c$scene$2017e4bb_16d3_47bc_a86c_9c47e1860e0c$script = .
 .globl GBVM$scene_outside_init$da5d7bc4_ae28_4992_ab12_dcdcb3e1055e$2017e4bb_16d3_47bc_a86c_9c47e1860e0c$scene$2017e4bb_16d3_47bc_a86c_9c47e1860e0c$script
         ; Timer Start

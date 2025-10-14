@@ -14,6 +14,9 @@ ___bank_scene_digits_init = 255
 _scene_digits_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_digits_init$autofade$04fc3521_5d48_4c5b_8d2b_3ac18309bc01$scene$04fc3521_5d48_4c5b_8d2b_3ac18309bc01$script = .
 .globl GBVM$scene_digits_init$autofade$04fc3521_5d48_4c5b_8d2b_3ac18309bc01$scene$04fc3521_5d48_4c5b_8d2b_3ac18309bc01$script
         ; Wait 1 Frames

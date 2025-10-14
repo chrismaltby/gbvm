@@ -14,6 +14,9 @@ ___bank_scene_parallax_init = 255
 _scene_parallax_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_parallax_init$autofade$88f214e9_8604_47da_97a3_8400850cde77$scene$88f214e9_8604_47da_97a3_8400850cde77$script = .
 .globl GBVM$scene_parallax_init$autofade$88f214e9_8604_47da_97a3_8400850cde77$scene$88f214e9_8604_47da_97a3_8400850cde77$script
         ; Wait 1 Frames

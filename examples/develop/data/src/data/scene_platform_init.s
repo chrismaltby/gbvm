@@ -24,6 +24,9 @@ GBVM$scene_platform_init$b4ae3fd9_1713_4957_9133_a4eddcdbf9d6$f8f027ef_b818_4038
         VM_PUSH_REFERENCE       VAR_S5A5_DEFEATED ; Variable V1
         VM_CALL_FAR             ___bank_script_turnip_init, _script_turnip_init
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_platform_init$192c2a18_2d20_48b7_9d6f_83e8eb407b82$f8f027ef_b818_4038_9eda_0ac477facb41$scene$f8f027ef_b818_4038_9eda_0ac477facb41$script = .
 .globl GBVM$scene_platform_init$192c2a18_2d20_48b7_9d6f_83e8eb407b82$f8f027ef_b818_4038_9eda_0ac477facb41$scene$f8f027ef_b818_4038_9eda_0ac477facb41$script
         ; Call Script: Init Menu
