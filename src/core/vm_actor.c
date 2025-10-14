@@ -50,6 +50,78 @@ typedef struct gbs_farptr_t {
     const void * DATA;
 } gbs_farptr_t;
 
+static UWORD check_actor_collision_horizontal(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos, actor_t *ignore) {
+    upoint16_t test_pos;
+    test_pos.y = start_y;
+    
+    if (start_x > end_pos) {
+        // Moving left - check from start to end
+        for (UWORD x = start_x; x > end_pos; x -= ONE_TILE_DISTANCE) {
+            test_pos.x = x;
+            if (actor_overlapping_bb(bounds, &test_pos, ignore, FALSE)) {
+                // Found collision, return position just before collision
+                return x + ONE_TILE_DISTANCE;
+            }
+        }
+    } else {
+        // Moving right - check from start to end
+        for (UWORD x = start_x; x < end_pos; x += ONE_TILE_DISTANCE) {
+            test_pos.x = x;
+            if (actor_overlapping_bb(bounds, &test_pos, ignore, FALSE)) {
+                // Found collision, return position just before collision
+                return (x > ONE_TILE_DISTANCE) ? (x - ONE_TILE_DISTANCE) : 0;
+            }
+        }
+    }
+    
+    // Check final position
+    test_pos.x = end_pos;
+    if (actor_overlapping_bb(bounds, &test_pos, ignore, FALSE)) {
+        // Collision at destination, return closest safe position
+        return (start_x > end_pos) ? 
+               end_pos + ONE_TILE_DISTANCE : 
+               (end_pos > ONE_TILE_DISTANCE) ? (end_pos - ONE_TILE_DISTANCE) : 0;
+    }
+    
+    return end_pos;
+}
+
+static UWORD check_actor_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos, actor_t *ignore) {
+    upoint16_t test_pos;
+    test_pos.x = start_x;
+    
+    if (start_y > end_pos) {
+        // Moving up - check from start to end
+        for (UWORD y = start_y; y > end_pos; y -= ONE_TILE_DISTANCE) {
+            test_pos.y = y;
+            if (actor_overlapping_bb(bounds, &test_pos, ignore, FALSE)) {
+                // Found collision, return position just before collision
+                return y + ONE_TILE_DISTANCE;
+            }
+        }
+    } else {
+        // Moving down - check from start to end
+        for (UWORD y = start_y; y < end_pos; y += ONE_TILE_DISTANCE) {
+            test_pos.y = y;
+            if (actor_overlapping_bb(bounds, &test_pos, ignore, FALSE)) {
+                // Found collision, return position just before collision
+                return (y > ONE_TILE_DISTANCE) ? (y - ONE_TILE_DISTANCE) : 0;
+            }
+        }
+    }
+    
+    // Check final position
+    test_pos.y = end_pos;
+    if (actor_overlapping_bb(bounds, &test_pos, ignore, FALSE)) {
+        // Collision at destination, return closest safe position
+        return (start_y > end_pos) ? 
+               end_pos + ONE_TILE_DISTANCE : 
+               (end_pos > ONE_TILE_DISTANCE) ? (end_pos - ONE_TILE_DISTANCE) : 0;
+    }
+    
+    return end_pos;
+}
+
 static UWORD check_collision_horizontal(UWORD start_x, UWORD start_y, rect16_t *bounds, UWORD end_pos) {
     UBYTE tx1, ty1, tx2, ty2;
     ty1 = SUBPX_TO_TILE(start_y + bounds->top);
@@ -178,6 +250,29 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             }
         }
 
+        // Check for actor collisions in path
+        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS)) {
+            if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
+                // Check for horizontal actor collision
+                if (actor->pos.x != params->X) {
+                    params->X = check_actor_collision_horizontal(actor->pos.x, actor->pos.y, &actor->bounds, params->X, actor);
+                }
+                // Check for vertical actor collision
+                if (actor->pos.y != params->Y) {
+                    params->Y = check_actor_collision_vertical(params->X, actor->pos.y, &actor->bounds, params->Y, actor);
+                }
+            } else {
+                // Check for vertical actor collision
+                if (actor->pos.y != params->Y) {
+                    params->Y = check_actor_collision_vertical(actor->pos.x, actor->pos.y, &actor->bounds, params->Y, actor);
+                }
+                // Check for horizontal actor collision
+                if (actor->pos.x != params->X) {
+                    params->X = check_actor_collision_horizontal(actor->pos.x, params->Y, &actor->bounds, params->X, actor);
+                }
+            }
+        }
+
         // Actor already at destination
         if ((actor->pos.x != params->X)) {
             SET_FLAG(THIS->flags, MOVE_NEEDED_H);
@@ -199,6 +294,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             // Move up
             SET_FLAG(THIS->flags, MOVE_DIR_V);
         }
+
+        THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+        return;
     }
 
     // Interrupt actor movement
@@ -226,14 +324,6 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         // Move actor
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
 
-        // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
-            point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
-            THIS->flags = 0;
-            actor_set_anim_idle(actor);
-            return;
-        }
-
         // If first frame moving in this direction update actor direction
         if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_H)) {
             SET_FLAG(THIS->flags, MOVE_ACTIVE_H);
@@ -259,14 +349,6 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // Move actor
         point_translate_dir(&actor->pos, new_dir, actor->move_speed);
-
-        // Check for actor collision
-        if (CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE)) {
-            point_translate_dir(&actor->pos, FLIPPED_DIR(new_dir), actor->move_speed);
-            THIS->flags = 0;
-            actor_set_anim_idle(actor);
-            return;
-        }
 
         // If first frame moving in this direction update actor direction
         if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_V)) {
