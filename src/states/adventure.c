@@ -55,6 +55,7 @@
 // Macros ---------------------------------------------------------------------
 
 #define VEL_TO_SUBPX(v) ((((v) & 0x8000) ? (((v) >> 8) | 0xFF00) : ((v) >> 8)) << 1)
+#define DELTA_TO_VEL(v) ((v) << 8)
 
 // End of Macros --------------------------------------------------------------
 
@@ -347,21 +348,20 @@ void adventure_update(void) BANKED {
             adv_deceleration();
 
             if (collision_dir != DIR_NONE) {
+                // Push away from attached solid actor
                 WORD delta_mp_x = adv_attached_actor->pos.x - adv_attached_prev_x;
                 WORD delta_mp_y = adv_attached_actor->pos.y - adv_attached_prev_y;
                 adv_attached_prev_x = adv_attached_actor->pos.x;
                 adv_attached_prev_y = adv_attached_actor->pos.y;
-
+                
                 if (collision_dir == DIR_DOWN && delta_mp_y > adv_vel_y) {
-                    // PLAYER IS GOING UP
-                    adv_vel_y = delta_mp_y;
+                    adv_vel_y = MAX(0, DELTA_TO_VEL(delta_mp_y));
                 } else if (collision_dir == DIR_UP && delta_mp_y < adv_vel_y) {
-                    // PLAYER IS GOING DOWN
-                    adv_vel_y = delta_mp_y;
+                    adv_vel_y = MIN(0, DELTA_TO_VEL(delta_mp_y));
                 } else if (collision_dir == DIR_LEFT && delta_mp_x < adv_vel_x) {
-                    adv_vel_x = delta_mp_x;
+                    adv_vel_x = MIN(0, DELTA_TO_VEL(delta_mp_x));
                 } else if (collision_dir == DIR_RIGHT && delta_mp_x > adv_vel_x) {
-                    adv_vel_x = delta_mp_x;
+                    adv_vel_x = MAX(0, DELTA_TO_VEL(delta_mp_x));
                 }
             }
 
