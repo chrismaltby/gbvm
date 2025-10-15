@@ -138,6 +138,7 @@ UWORD adv_pos_y; // Used for debugging position @TODO remove this
 // Function Definitions -------------------------------------------------------
 
 static void move_and_collide(UBYTE mask);
+static void handle_dir_input(void);
 static void adv_deceleration(void);
 
 void adv_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
@@ -270,81 +271,7 @@ void adventure_update(void) BANKED {
         case GROUND_STATE:
         case RUN_STATE: {
 
-            UBYTE player_moving = FALSE;
-
-            if (INPUT_LEFT && (facing_dir == DIR_LEFT || facing_dir == DIR_NONE)) {
-                facing_dir = DIR_LEFT;
-                player_moving = TRUE;
-                if (INPUT_UP) {
-                    adv_vel_x -= adv_acc;
-                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-                    adv_vel_y -= adv_acc;
-                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-                } else if (INPUT_DOWN) {
-                    adv_vel_x -= adv_acc;
-                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-                    adv_vel_y += adv_walk_vel;
-                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-                } else {
-                    adv_vel_x -= adv_acc;
-                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-                }
-            } else if (INPUT_RIGHT && (facing_dir == DIR_RIGHT || facing_dir == DIR_NONE)) {
-                facing_dir = DIR_RIGHT;
-                player_moving = TRUE;
-                if (INPUT_UP) {
-                    adv_vel_x += adv_acc;
-                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-                    adv_vel_y -= adv_acc;
-                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-
-                } else if (INPUT_DOWN) {
-                    adv_vel_x += adv_acc;
-                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-                    adv_vel_y += adv_acc;
-                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-                } else {
-                    adv_vel_x += adv_acc;
-                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-                }
-            } else if (INPUT_UP && (facing_dir == DIR_UP || facing_dir == DIR_NONE)) {
-                facing_dir = DIR_UP;
-                player_moving = TRUE;
-                if (INPUT_LEFT) {
-                    adv_vel_x -= adv_acc;
-                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-                    adv_vel_y -= adv_acc;
-                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-                } else if (INPUT_RIGHT) {
-                    adv_vel_x += adv_acc;
-                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-                    adv_vel_y -= adv_acc;
-                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-                } else {
-                    adv_vel_y -= adv_acc;
-                    adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-                }
-            } else if (INPUT_DOWN && (facing_dir == DIR_DOWN || facing_dir == DIR_NONE)) {
-                facing_dir = DIR_DOWN;
-                player_moving = TRUE;
-                if (INPUT_LEFT) {
-                    adv_vel_x -= adv_acc;
-                    adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-                    adv_vel_y += adv_acc;
-                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-                } else if (INPUT_RIGHT) {
-                    adv_vel_x += adv_acc;
-                    adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-                    adv_vel_y += adv_acc;
-                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-                } else {
-                    adv_vel_y += adv_acc;
-                    adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-                }
-            } else {
-                facing_dir = DIR_NONE;
-            }
-
+            handle_dir_input();
             adv_deceleration();
 
             if (collision_dir != DIR_NONE) {
@@ -382,7 +309,7 @@ void adventure_update(void) BANKED {
             }
 
             // Facing and animation update
-            if (player_moving) {
+            if (joy & INPUT_DPAD) {
                 actor_set_dir(&PLAYER, facing_dir, TRUE);
             } else {
                 actor_set_anim_idle(&PLAYER);
@@ -391,6 +318,78 @@ void adventure_update(void) BANKED {
             break;
         }
 
+    }
+}
+
+static void handle_dir_input(void)
+{
+    if (INPUT_LEFT && (facing_dir == DIR_LEFT || facing_dir == DIR_NONE)) {
+        facing_dir = DIR_LEFT;
+        if (INPUT_UP) {
+            adv_vel_x -= adv_acc;
+            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+            adv_vel_y -= adv_acc;
+            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+        } else if (INPUT_DOWN) {
+            adv_vel_x -= adv_acc;
+            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+            adv_vel_y += adv_walk_vel;
+            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+        } else {
+            adv_vel_x -= adv_acc;
+            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+        }
+    } else if (INPUT_RIGHT && (facing_dir == DIR_RIGHT || facing_dir == DIR_NONE)) {
+        facing_dir = DIR_RIGHT;
+        if (INPUT_UP) {
+            adv_vel_x += adv_acc;
+            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+            adv_vel_y -= adv_acc;
+            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+
+        } else if (INPUT_DOWN) {
+            adv_vel_x += adv_acc;
+            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+            adv_vel_y += adv_acc;
+            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+        } else {
+            adv_vel_x += adv_acc;
+            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+        }
+    } else if (INPUT_UP && (facing_dir == DIR_UP || facing_dir == DIR_NONE)) {
+        facing_dir = DIR_UP;
+        if (INPUT_LEFT) {
+            adv_vel_x -= adv_acc;
+            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+            adv_vel_y -= adv_acc;
+            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+        } else if (INPUT_RIGHT) {
+            adv_vel_x += adv_acc;
+            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+            adv_vel_y -= adv_acc;
+            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+        } else {
+            adv_vel_y -= adv_acc;
+            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+        }
+    } else if (INPUT_DOWN && (facing_dir == DIR_DOWN || facing_dir == DIR_NONE)) {
+        facing_dir = DIR_DOWN;
+        if (INPUT_LEFT) {
+            adv_vel_x -= adv_acc;
+            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
+            adv_vel_y += adv_acc;
+            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+        } else if (INPUT_RIGHT) {
+            adv_vel_x += adv_acc;
+            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+            adv_vel_y += adv_acc;
+            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+        } else {
+            adv_vel_y += adv_acc;
+            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
+        }
+    } else {
+        facing_dir = DIR_NONE;
     }
 }
 
