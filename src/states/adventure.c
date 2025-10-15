@@ -50,6 +50,21 @@
     (defined(FEAT_ADVENTURE_KNOCKBACK) && defined(ADVENTURE_KNOCKBACK_ANIM)) || \
     (defined(FEAT_ADVENTURE_BLANK) && defined(ADVENTURE_BLANK_ANIM))
 
+#define MOVE_TYPE_4_WAY 0
+#define MOVE_TYPE_8_WAY 1
+
+#define DIR_PRIORITY_NONE 0
+#define DIR_PRIORITY_HORIZONTAL 1
+#define DIR_PRIORITY_VERTICAL 2
+
+#ifndef INPUT_ADVENTURE_INTERACT
+#define INPUT_ADVENTURE_INTERACT INPUT_A
+#endif
+
+#ifndef INPUT_ADVENTURE_MOVE_TYPE
+#define INPUT_ADVENTURE_MOVE_TYPE MOVE_TYPE_8_WAY
+#endif
+
 // End of Constants -----------------------------------------------------------
 
 // Macros ---------------------------------------------------------------------
@@ -92,7 +107,8 @@ typedef enum
 WORD adv_walk_vel;            // Maximum velocity while walking
 WORD adv_run_vel;             // Maximum velocity while running
 WORD adv_dec;
-WORD adv_acc;
+WORD adv_turn_acc;
+WORD adv_walk_acc;
 WORD adv_knockback_vel_x;     // Knockback velocity in the x direction
 WORD adv_knockback_vel_y;     // Knockback velocity in the y direction
 UBYTE adv_knockback_frames;   // Number of frames for knockback
@@ -174,6 +190,7 @@ void adventure_init(void) BANKED {
     camera_offset_y = 0;
     camera_deadzone_x = ADVENTURE_CAMERA_DEADZONE;
     camera_deadzone_y = ADVENTURE_CAMERA_DEADZONE;
+
     // Initialize facing direction
     facing_dir = DIR_DOWN;
     delta.x  = 0;
@@ -185,9 +202,6 @@ void adventure_init(void) BANKED {
 
     collision_dir = DIR_NONE;
     // @TODO - should be set in engine.json
-    adv_dec = 1024;
-    adv_acc = 1024;
-    adv_walk_vel = 3200;
 
     adv_state = GROUND_STATE;
 }
@@ -297,7 +311,7 @@ void adventure_update(void) BANKED {
 
             move_and_collide(COL_CHECK_ALL);
 
-            if (INPUT_A_PRESSED) {
+            if (INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)) {
                 actor_t *hit_actor = adv_attached_actor;
                 if (!hit_actor) {
                     hit_actor = actor_in_front_of_player(8, TRUE);
@@ -321,75 +335,97 @@ void adventure_update(void) BANKED {
     }
 }
 
-static void handle_dir_input(void)
-{
-    if (INPUT_LEFT && (facing_dir == DIR_LEFT || facing_dir == DIR_NONE)) {
-        facing_dir = DIR_LEFT;
-        if (INPUT_UP) {
-            adv_vel_x -= adv_acc;
-            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-            adv_vel_y -= adv_acc;
-            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-        } else if (INPUT_DOWN) {
-            adv_vel_x -= adv_acc;
-            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-            adv_vel_y += adv_walk_vel;
-            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-        } else {
-            adv_vel_x -= adv_acc;
-            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-        }
-    } else if (INPUT_RIGHT && (facing_dir == DIR_RIGHT || facing_dir == DIR_NONE)) {
-        facing_dir = DIR_RIGHT;
-        if (INPUT_UP) {
-            adv_vel_x += adv_acc;
-            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-            adv_vel_y -= adv_acc;
-            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
+static void handle_dir_input(void) {
+    WORD target_x = 0;
+    WORD target_y = 0;
+    static UBYTE facing_priority_axis = DIR_PRIORITY_NONE;
 
-        } else if (INPUT_DOWN) {
-            adv_vel_x += adv_acc;
-            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-            adv_vel_y += adv_acc;
-            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-        } else {
-            adv_vel_x += adv_acc;
-            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
+#if INPUT_ADVENTURE_MOVE_TYPE == MOVE_TYPE_8_WAY
+    // ---------------------- 8-WAY ----------------------
+    const UBYTE left  = INPUT_LEFT;
+    const UBYTE right = INPUT_RIGHT;
+    const UBYTE up    = INPUT_UP;
+    const UBYTE down  = INPUT_DOWN;
+
+    // Determine velocity intent
+    if (left)  target_x = -adv_walk_vel;
+    if (right) target_x =  adv_walk_vel;
+    if (up)    target_y = -adv_walk_vel;
+    if (down)  target_y =  adv_walk_vel;
+
+    // Update facing priority axis
+    if ((left | right) && !(up | down)) {
+        facing_priority_axis = DIR_PRIORITY_HORIZONTAL;
+    } else if ((up | down) && !(left | right)) {
+        facing_priority_axis = DIR_PRIORITY_VERTICAL;
+    } else if (!(left | right | up | down)) {
+        facing_priority_axis = DIR_PRIORITY_NONE;
+    }
+
+    // Determine facing based on which axis was pressed first
+    if ((left | right) && (up | down)) {
+        // Both axes pressed, respect whichever axis was pressed first
+        if (facing_priority_axis == DIR_PRIORITY_HORIZONTAL) {
+            facing_dir = left ? DIR_LEFT : DIR_RIGHT;
+        } else if (facing_priority_axis == DIR_PRIORITY_VERTICAL) {
+            facing_dir = up ? DIR_UP : DIR_DOWN;
         }
-    } else if (INPUT_UP && (facing_dir == DIR_UP || facing_dir == DIR_NONE)) {
+    } else if (left) {
+        facing_dir = DIR_LEFT;
+    } else if (right) {
+        facing_dir = DIR_RIGHT;
+    } else if (up) {
         facing_dir = DIR_UP;
-        if (INPUT_LEFT) {
-            adv_vel_x -= adv_acc;
-            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-            adv_vel_y -= adv_acc;
-            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-        } else if (INPUT_RIGHT) {
-            adv_vel_x += adv_acc;
-            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-            adv_vel_y -= adv_acc;
-            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-        } else {
-            adv_vel_y -= adv_acc;
-            adv_vel_y = MAX(adv_vel_y, -adv_walk_vel);
-        }
-    } else if (INPUT_DOWN && (facing_dir == DIR_DOWN || facing_dir == DIR_NONE)) {
+    } else if (down) {
         facing_dir = DIR_DOWN;
-        if (INPUT_LEFT) {
-            adv_vel_x -= adv_acc;
-            adv_vel_x = MAX(adv_vel_x, -adv_walk_vel);
-            adv_vel_y += adv_acc;
-            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-        } else if (INPUT_RIGHT) {
-            adv_vel_x += adv_acc;
-            adv_vel_x = MIN(adv_vel_x, adv_walk_vel);
-            adv_vel_y += adv_acc;
-            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-        } else {
-            adv_vel_y += adv_acc;
-            adv_vel_y = MIN(adv_vel_y, adv_walk_vel);
-        }
     } else {
         facing_dir = DIR_NONE;
+    }
+
+#else
+    // ---------------------- 4-WAY ----------------------
+    if (INPUT_RECENT_LEFT) {
+        target_x = -adv_walk_vel;
+        facing_dir = DIR_LEFT;
+    } else if (INPUT_RECENT_RIGHT) {
+        target_x = adv_walk_vel;
+        facing_dir = DIR_RIGHT;
+    } else if (INPUT_RECENT_UP) {
+        target_y = -adv_walk_vel;
+        facing_dir = DIR_UP;
+    } else if (INPUT_RECENT_DOWN) {
+        target_y = adv_walk_vel;
+        facing_dir = DIR_DOWN;
+    } else {
+        facing_dir = DIR_NONE;
+    }
+#endif
+
+    // ---------------------- Apply Acceleration ----------------------
+    if (target_x != 0) {
+        WORD acc_x = ((target_x > 0 && adv_vel_x < 0) || (target_x < 0 && adv_vel_x > 0))
+            ? adv_turn_acc : adv_walk_acc;
+
+        if (target_x > adv_vel_x) {
+            adv_vel_x += acc_x;
+            if (adv_vel_x > adv_walk_vel) adv_vel_x = adv_walk_vel;
+        } else if (target_x < adv_vel_x) {
+            adv_vel_x -= acc_x;
+            if (adv_vel_x < -adv_walk_vel) adv_vel_x = -adv_walk_vel;
+        }
+    }
+
+    if (target_y != 0) {
+        WORD acc_y = ((target_y > 0 && adv_vel_y < 0) || (target_y < 0 && adv_vel_y > 0))
+            ? adv_turn_acc : adv_walk_acc;
+
+        if (target_y > adv_vel_y) {
+            adv_vel_y += acc_y;
+            if (adv_vel_y > adv_walk_vel) adv_vel_y = adv_walk_vel;
+        } else if (target_y < adv_vel_y) {
+            adv_vel_y -= acc_y;
+            if (adv_vel_y < -adv_walk_vel) adv_vel_y = -adv_walk_vel;
+        }
     }
 }
 
@@ -621,22 +657,45 @@ static void adv_callback_execute(UBYTE i)
 }
 
 static void adv_deceleration(void) {
-  if (!(INPUT_LEFT | INPUT_RIGHT)) {
-    if (adv_vel_x > adv_dec) {
-      adv_vel_x -= adv_dec;
-    } else if (adv_vel_x < -adv_dec) {
-      adv_vel_x += adv_dec;
-    } else {
-      adv_vel_x = 0;
+#if INPUT_ADVENTURE_MOVE_TYPE == MOVE_TYPE_8_WAY
+    if (!(INPUT_LEFT | INPUT_RIGHT)) {
+        if (adv_vel_x > adv_dec) {
+            adv_vel_x -= adv_dec;
+        } else if (adv_vel_x < -adv_dec) {
+            adv_vel_x += adv_dec;
+        } else {
+            adv_vel_x = 0;
+        }
     }
-  }
-  if (!(INPUT_UP | INPUT_DOWN)) {
-    if (adv_vel_y > adv_dec) {
-      adv_vel_y -= adv_dec;
-    } else if (adv_vel_y < -adv_dec) {
-      adv_vel_y += adv_dec;
-    } else {
-      adv_vel_y = 0;
+
+    if (!(INPUT_UP | INPUT_DOWN)) {
+        if (adv_vel_y > adv_dec) {
+            adv_vel_y -= adv_dec;
+        } else if (adv_vel_y < -adv_dec) {
+            adv_vel_y += adv_dec;
+        } else {
+            adv_vel_y = 0;
+        }
     }
-  }
+#else
+    if (!(INPUT_RECENT_LEFT | INPUT_RECENT_RIGHT)) {
+        if (adv_vel_x > adv_dec) {
+            adv_vel_x -= adv_dec;
+        } else if (adv_vel_x < -adv_dec) {
+            adv_vel_x += adv_dec;
+        } else {
+            adv_vel_x = 0;
+        }
+    }
+
+    if (!(INPUT_RECENT_UP | INPUT_RECENT_DOWN)) {
+        if (adv_vel_y > adv_dec) {
+            adv_vel_y -= adv_dec;
+        } else if (adv_vel_y < -adv_dec) {
+            adv_vel_y += adv_dec;
+        } else {
+            adv_vel_y = 0;
+        }
+    }
+#endif
 }
