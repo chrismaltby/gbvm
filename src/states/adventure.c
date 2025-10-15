@@ -22,7 +22,7 @@
 
 #define FEAT_ADVENTURE_BLANK
 #define FEAT_ADVENTURE_DASH
-#define FEAT_ADVENTURE_RUN
+// #define FEAT_ADVENTURE_RUN
 #define FEAT_ADVENTURE_KNOCKBACK
 
 // End of Feature Flags -------------------------------------------------------
@@ -59,6 +59,10 @@
 
 #ifndef INPUT_ADVENTURE_INTERACT
 #define INPUT_ADVENTURE_INTERACT INPUT_A
+#endif
+
+#ifndef INPUT_ADVENTURE_RUN
+#define INPUT_ADVENTURE_RUN INPUT_B
 #endif
 
 #ifndef INPUT_ADVENTURE_MOVE_TYPE
@@ -109,6 +113,7 @@ WORD adv_run_vel;             // Maximum velocity while running
 WORD adv_dec;
 WORD adv_turn_acc;
 WORD adv_walk_acc;
+WORD adv_run_acc;
 WORD adv_knockback_vel_x;     // Knockback velocity in the x direction
 WORD adv_knockback_vel_y;     // Knockback velocity in the y direction
 UBYTE adv_knockback_frames;   // Number of frames for knockback
@@ -218,6 +223,12 @@ void adventure_update(void) BANKED {
                 adv_callback_execute(GROUND_END);
                 break;
             }
+#ifdef FEAT_ADVENTURE_RUN
+            case RUN_STATE: {
+                adv_callback_execute(RUN_END);
+                break;
+            }
+#endif              
 #ifdef FEAT_ADVENTURE_KNOCKBACK
             case KNOCKBACK_STATE: {
                 adv_vel_x = 0;
@@ -247,6 +258,17 @@ void adventure_update(void) BANKED {
                 adv_callback_execute(GROUND_INIT);
                 break;
             }
+#ifdef FEAT_ADVENTURE_RUN
+            case RUN_STATE: {
+#ifdef ADVENTURE_RUN_ANIM
+                adv_set_player_anim_state(ADVENTURE_RUN_ANIM);
+#elif ADVENTURE_ANIM_OVERRIDES_SET
+                adv_restore_default_anim_state();
+#endif
+                adv_callback_execute(RUN_INIT);
+                break;
+            }
+#endif            
 #ifdef FEAT_ADVENTURE_KNOCKBACK
             case KNOCKBACK_STATE: {
                 adv_vel_x = PLAYER.dir == DIR_RIGHT ? -adv_knockback_vel_x : adv_knockback_vel_x;
@@ -322,6 +344,17 @@ void adventure_update(void) BANKED {
                 }
             }
 
+#ifdef FEAT_ADVENTURE_RUN
+            const UBYTE running = INPUT_ADVENTURE_RUN;
+            if (adv_state == GROUND_STATE && running) {
+                adv_next_state = RUN_STATE;
+                break;
+            } else if (adv_state == RUN_STATE && !running) {
+                adv_next_state = GROUND_STATE;
+                break;
+            }
+#endif
+
             // Facing and animation update
             if (joy & INPUT_DPAD) {
                 actor_set_dir(&PLAYER, facing_dir, TRUE);
@@ -340,6 +373,14 @@ static void handle_dir_input(void) {
     WORD target_y = 0;
     static UBYTE facing_priority_axis = DIR_PRIORITY_NONE;
 
+#ifdef FEAT_ADVENTURE_RUN
+    const WORD max_vel = (adv_state == RUN_STATE) ? adv_run_vel : adv_walk_vel;
+    const WORD base_acc = (adv_state == RUN_STATE) ? adv_run_acc : adv_walk_acc;
+#else
+    const WORD max_vel = adv_walk_vel;
+    const WORD base_acc = adv_walk_acc;    
+#endif
+
 #if INPUT_ADVENTURE_MOVE_TYPE == MOVE_TYPE_8_WAY
     // ---------------------- 8-WAY ----------------------
     const UBYTE left  = INPUT_LEFT;
@@ -348,10 +389,10 @@ static void handle_dir_input(void) {
     const UBYTE down  = INPUT_DOWN;
 
     // Determine velocity intent
-    if (left)  target_x = -adv_walk_vel;
-    if (right) target_x =  adv_walk_vel;
-    if (up)    target_y = -adv_walk_vel;
-    if (down)  target_y =  adv_walk_vel;
+    if (left)  target_x = -max_vel;
+    if (right) target_x =  max_vel;
+    if (up)    target_y = -max_vel;
+    if (down)  target_y =  max_vel;
 
     // Update facing priority axis
     if ((left | right) && !(up | down)) {
@@ -381,20 +422,19 @@ static void handle_dir_input(void) {
     } else {
         facing_dir = DIR_NONE;
     }
-
 #else
     // ---------------------- 4-WAY ----------------------
     if (INPUT_RECENT_LEFT) {
-        target_x = -adv_walk_vel;
+        target_x = -max_vel;
         facing_dir = DIR_LEFT;
     } else if (INPUT_RECENT_RIGHT) {
-        target_x = adv_walk_vel;
+        target_x =  max_vel;
         facing_dir = DIR_RIGHT;
     } else if (INPUT_RECENT_UP) {
-        target_y = -adv_walk_vel;
+        target_y = -max_vel;
         facing_dir = DIR_UP;
     } else if (INPUT_RECENT_DOWN) {
-        target_y = adv_walk_vel;
+        target_y =  max_vel;
         facing_dir = DIR_DOWN;
     } else {
         facing_dir = DIR_NONE;
@@ -404,27 +444,27 @@ static void handle_dir_input(void) {
     // ---------------------- Apply Acceleration ----------------------
     if (target_x != 0) {
         WORD acc_x = ((target_x > 0 && adv_vel_x < 0) || (target_x < 0 && adv_vel_x > 0))
-            ? adv_turn_acc : adv_walk_acc;
+            ? adv_turn_acc : base_acc;
 
         if (target_x > adv_vel_x) {
             adv_vel_x += acc_x;
-            if (adv_vel_x > adv_walk_vel) adv_vel_x = adv_walk_vel;
+            if (adv_vel_x >  max_vel) adv_vel_x =  max_vel;
         } else if (target_x < adv_vel_x) {
             adv_vel_x -= acc_x;
-            if (adv_vel_x < -adv_walk_vel) adv_vel_x = -adv_walk_vel;
+            if (adv_vel_x < -max_vel) adv_vel_x = -max_vel;
         }
     }
 
     if (target_y != 0) {
         WORD acc_y = ((target_y > 0 && adv_vel_y < 0) || (target_y < 0 && adv_vel_y > 0))
-            ? adv_turn_acc : adv_walk_acc;
+            ? adv_turn_acc : base_acc;
 
         if (target_y > adv_vel_y) {
             adv_vel_y += acc_y;
-            if (adv_vel_y > adv_walk_vel) adv_vel_y = adv_walk_vel;
+            if (adv_vel_y >  max_vel) adv_vel_y =  max_vel;
         } else if (target_y < adv_vel_y) {
             adv_vel_y -= acc_y;
-            if (adv_vel_y < -adv_walk_vel) adv_vel_y = -adv_walk_vel;
+            if (adv_vel_y < -max_vel) adv_vel_y = -max_vel;
         }
     }
 }
