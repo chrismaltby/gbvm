@@ -50,6 +50,13 @@
     (defined(FEAT_ADVENTURE_KNOCKBACK) && defined(ADVENTURE_KNOCKBACK_ANIM)) || \
     (defined(FEAT_ADVENTURE_BLANK) && defined(ADVENTURE_BLANK_ANIM))
 
+#define DASH_INPUT_INTERACT 0
+#define DASH_INPUT_DOUBLE_TAP 1
+
+#define INPUT_ADVENTURE_DASH DASH_INPUT_DOUBLE_TAP
+
+#define DOUBLE_TAP_WINDOW 15
+
 // End of Constants -----------------------------------------------------------
 
 // Macros ---------------------------------------------------------------------
@@ -95,6 +102,12 @@ WORD adv_acc;
 WORD adv_knockback_vel_x;     // Knockback velocity in the x direction
 WORD adv_knockback_vel_y;     // Knockback velocity in the y direction
 UBYTE adv_knockback_frames;   // Number of frames for knockback
+UBYTE adv_dash_active;        // Dash feature is active
+UBYTE adv_dash_mask;          // Choose if the player can dash through actors, triggers, and walls
+WORD adv_dash_dist;           // Distance of the dash
+UBYTE adv_dash_frames;        // Number of frames for dashing
+UBYTE adv_dash_ready_frames;  // Frames before the player can dash again
+UBYTE adv_dash_deadzone;      // Override camera deadzone when in dash state
 
 // End of Engine Fields -------------------------------------------------------
 
@@ -132,6 +145,13 @@ static UWORD temp_x;    // Player's position on the last frame
 UWORD adv_pos_x; // Used for debugging position @TODO remove this
 UWORD adv_pos_y; // Used for debugging position @TODO remove this
 
+// Dash
+UBYTE adv_dash_cooldown_timer;// tracks the current amount before the dash is ready
+WORD adv_dash_per_frame;      // Takes overall dash distance and holds the amount per-frame
+UBYTE adv_dash_currentframe;  // Tracks the current frame of the overall dash
+BYTE adv_tap_timer;           // Number of frames since the last time left or right button was tapped
+UBYTE adv_dash_dir;
+
 // End of Runtime State -------------------------------------------------------
 
 // Function Definitions -------------------------------------------------------
@@ -164,6 +184,31 @@ inline void adv_restore_default_anim_state(void)
 
 #endif
 
+#ifdef FEAT_ADVENTURE_DASH
+
+inline UBYTE dash_input_pressed(void)
+{
+    if (!adv_dash_active) {
+      return FALSE;
+    }
+#if INPUT_ADVENTURE_DASH == DASH_INPUT_INTERACT
+    return INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)
+#elif INPUT_ADVENTURE_DASH == DASH_INPUT_DOUBLE_TAP
+    // Double-Tap Dash
+    if (INPUT_PRESSED(INPUT_DPAD)) {
+        if (adv_tap_timer > 0 && (joy & adv_dash_dir)) {
+            return TRUE;
+        } else {
+            adv_tap_timer = DOUBLE_TAP_WINDOW;
+            adv_dash_dir = joy & INPUT_DPAD;
+        } 
+    }
+    return FALSE;
+#endif
+}
+
+#endif
+
 // End of Function Definitions ------------------------------------------------
 
 void adventure_init(void) BANKED {
@@ -188,6 +233,8 @@ void adventure_init(void) BANKED {
     adv_walk_vel = 3200;
 
     adv_state = GROUND_STATE;
+
+    adv_dash_active = TRUE;
 }
 
 void adventure_update(void) BANKED {
@@ -370,6 +417,11 @@ void adventure_update(void) BANKED {
 
             move_and_collide(COL_CHECK_ALL);
 
+            if (dash_input_pressed()) {
+                PLAYER.pos.x = 0;
+                PLAYER.pos.y = 0;
+            }
+
             if (INPUT_A_PRESSED) {
                 actor_t *hit_actor = adv_attached_actor;
                 if (!hit_actor) {
@@ -392,6 +444,12 @@ void adventure_update(void) BANKED {
         }
 
     }
+
+    // Timers
+    if (adv_tap_timer != 0) {
+        adv_tap_timer--;
+    }
+
 }
 
 static void move_and_collide(UBYTE mask)
