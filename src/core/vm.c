@@ -269,6 +269,30 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
         op = *(THIS->PC++);
         if (op < 0) {
             switch (op) {
+                // write memory indirect
+                case -10:
+                    op = *(THIS->PC++);
+                    idx = *((INT16 *)(THIS->PC));
+                    idx = *((idx < 0) ? ARGS + idx : script_memory + idx);
+                    switch ((UINT8)op) {
+                        case 'i' : *((INT8 *)(idx))  = *(--(THIS->stack_ptr)); break;
+                        case 'u' : *((UINT8 *)(idx)) = *(--(THIS->stack_ptr)); break;
+                        case 'I' : *((INT16 *)(idx)) = *(--(THIS->stack_ptr)); break;
+                    }
+                    THIS->PC += 2;
+                    continue;
+                // read memory indirect
+                case -9:
+                    op = *(THIS->PC++);
+                    idx = *((INT16 *)(THIS->PC));
+                    idx = *((idx < 0) ? ARGS + idx : script_memory + idx);
+                    switch ((UINT8)op) {
+                        case 'i' : *(THIS->stack_ptr) = *((INT8 *)(idx));  break;
+                        case 'u' : *(THIS->stack_ptr) = *((UINT8 *)(idx)); break;
+                        case 'I' : *(THIS->stack_ptr) = *((INT16 *)(idx)); break;
+                    }
+                    THIS->PC += 2;
+                    break;
                 // write memory
                 case -8:
                     op = *(THIS->PC++);

@@ -302,6 +302,16 @@ OP_VM_RPN          = 0x15
         .db #<TYP
         .dw #ADDR
 .endm
+.macro .R_REF_MEM_IND TYP, ADDR
+        .db -9
+        .db #<TYP
+        .dw #ADDR		
+.endm
+.macro .R_REF_MEM_SET_IND TYP, ADDR
+        .db -10
+        .db #<TYP
+        .dw #ADDR		
+.endm
 .macro .R_OPERATOR ARG0
         .db ARG0
 .endm
