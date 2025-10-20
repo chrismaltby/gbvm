@@ -633,6 +633,12 @@ static void move_and_collide(UBYTE mask)
     if (mask & COL_CHECK_X)
     {
         UWORD new_x = PLAYER.pos.x + delta.x;
+
+        if (!(mask & COL_CHECK_WALLS))
+        {
+            goto finally_update_x;
+        }
+
         // Step X
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
         UBYTE tile_end   = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom);
@@ -664,7 +670,7 @@ static void move_and_collide(UBYTE mask)
                     }
                 } 
             }
-            PLAYER.pos.x = MIN(image_width_subpx - EXCLUSIVE_OFFSET(PLAYER.bounds.right), new_x);
+            new_x = MIN(image_width_subpx - EXCLUSIVE_OFFSET(PLAYER.bounds.right), new_x);
         } else if (delta.x < 0) {
             UBYTE tile_x = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
             UBYTE tile = tile_col_test_range_y(COLLISION_RIGHT, tile_x, tile_start, tile_end);
@@ -693,14 +699,21 @@ static void move_and_collide(UBYTE mask)
                     }
                 }
             }
-            PLAYER.pos.x = new_x;
         }
+
+    finally_update_x:
+        PLAYER.pos.x = new_x;
     }
 
     // Vertical Movement
     if (mask & COL_CHECK_Y)
     {
         UWORD new_y = PLAYER.pos.y + delta.y;
+
+        if (!(mask & COL_CHECK_WALLS))
+        {
+            goto finally_update_y;
+        }
 
         // Step Y
         UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left);
@@ -733,7 +746,6 @@ static void move_and_collide(UBYTE mask)
                     }                        
                 }
             }
-            PLAYER.pos.y = new_y;
         } else if (delta.y < 0) {
             UBYTE tile_y = SUBPX_TO_TILE(new_y + PLAYER.bounds.top);
             UBYTE tile = tile_col_test_range_x(COLLISION_BOTTOM, tile_y, tile_start, tile_end);
@@ -762,8 +774,10 @@ static void move_and_collide(UBYTE mask)
                     }
                 }
             }
-            PLAYER.pos.y = new_y;
         }
+
+    finally_update_y:
+        PLAYER.pos.y = new_y;
     }
 
     delta.x  = 0;
@@ -775,30 +789,25 @@ static void move_and_collide(UBYTE mask)
         hit_actor = actor_overlapping_player(FALSE);
         if (hit_actor != NULL) {
             const UBYTE is_solid = hit_actor->collision_group & COLLISION_GROUP_FLAG_SOLID;
-             if (is_solid && hit_actor != adv_attached_actor)
+             if (is_solid)
             {
+                adv_attached_actor = hit_actor;
                 adv_attached_prev_x = hit_actor->pos.x;
                 adv_attached_prev_y = hit_actor->pos.y;
-
-                if (hit_actor != adv_attached_actor) {
-                    adv_attached_actor = hit_actor;
-                    adv_attached_prev_x = hit_actor->pos.x;
-                    adv_attached_prev_y = hit_actor->pos.y;
-                    if ((temp_y + PLAYER.bounds.bottom) < (hit_actor->pos.y + hit_actor->bounds.top)) {
-                        PLAYER.pos.y += (hit_actor->pos.y + hit_actor->bounds.top) - (PLAYER.pos.y + EXCLUSIVE_OFFSET(PLAYER.bounds.bottom));
-                        collision_dir = DIR_UP;
-                    } else if ((temp_y  + PLAYER.bounds.top) > (hit_actor->pos.y + hit_actor->bounds.bottom)) {
-                        PLAYER.pos.y += (hit_actor->pos.y + EXCLUSIVE_OFFSET(hit_actor->bounds.bottom)) - (PLAYER.pos.y + PLAYER.bounds.top);
-                        collision_dir = DIR_DOWN;
-                    } else if ((temp_x + PLAYER.bounds.right) < (hit_actor->pos.x + hit_actor->bounds.left)) {
-                        PLAYER.pos.x += (hit_actor->pos.x + hit_actor->bounds.left) - (PLAYER.pos.x + EXCLUSIVE_OFFSET(PLAYER.bounds.right));
-                        collision_dir = DIR_LEFT;
-                    } else if ((temp_x + PLAYER.bounds.left) > hit_actor->pos.x + hit_actor->bounds.right) {
-                        PLAYER.pos.x += (hit_actor->pos.x + EXCLUSIVE_OFFSET(hit_actor->bounds.right)) - (PLAYER.pos.x + PLAYER.bounds.left);
-                        collision_dir = DIR_RIGHT;
-                    } else {
-                        collision_dir = hit_actor->dir;
-                    }
+                if ((temp_y + PLAYER.bounds.bottom) < (hit_actor->pos.y + hit_actor->bounds.top)) {
+                    PLAYER.pos.y += (hit_actor->pos.y + hit_actor->bounds.top) - (PLAYER.pos.y + EXCLUSIVE_OFFSET(PLAYER.bounds.bottom));
+                    collision_dir = DIR_UP;
+                } else if ((temp_y  + PLAYER.bounds.top) > (hit_actor->pos.y + hit_actor->bounds.bottom)) {
+                    PLAYER.pos.y += (hit_actor->pos.y + EXCLUSIVE_OFFSET(hit_actor->bounds.bottom)) - (PLAYER.pos.y + PLAYER.bounds.top);
+                    collision_dir = DIR_DOWN;
+                } else if ((temp_x + PLAYER.bounds.right) < (hit_actor->pos.x + hit_actor->bounds.left)) {
+                    PLAYER.pos.x += (hit_actor->pos.x + hit_actor->bounds.left) - (PLAYER.pos.x + EXCLUSIVE_OFFSET(PLAYER.bounds.right));
+                    collision_dir = DIR_LEFT;
+                } else if ((temp_x + PLAYER.bounds.left) > hit_actor->pos.x + hit_actor->bounds.right) {
+                    PLAYER.pos.x += (hit_actor->pos.x + EXCLUSIVE_OFFSET(hit_actor->bounds.right)) - (PLAYER.pos.x + PLAYER.bounds.left);
+                    collision_dir = DIR_RIGHT;
+                } else {
+                    collision_dir = hit_actor->dir;
                 }
             }
         } else {
@@ -900,24 +909,52 @@ static void dash_init(void)
     // Dash through walls - check if destination is clear
     if ((adv_dash_mask & COL_CHECK_WALLS) == 0)
     {
-        // Set new_x be the final destination of the dash (ie. the distance covered
-        // by all of the dash frames combined)
-        UWORD new_x = PLAYER.pos.x
-            + ((PLAYER.dir == DIR_RIGHT) ? adv_dash_per_frame : -adv_dash_per_frame)
-            * adv_dash_frames;
+        // Compute destination position based on dash direction
+        WORD dash_dx = 0;
+        WORD dash_dy = 0;
 
-        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom);
-        UBYTE tile_xl = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
-        UBYTE tile_xr = SUBPX_TO_TILE(new_x + PLAYER.bounds.right);
-        UBYTE col = tile_col_test_range_x(COLLISION_ALL, tile_start, tile_xl, tile_xr);
-        if (!col) {
-            col = tile_col_test_range_x(COLLISION_ALL, tile_end, tile_xl, tile_xr);
+        switch (PLAYER.dir) {
+            case DIR_LEFT:
+                dash_dx = -adv_dash_per_frame * adv_dash_frames;
+                break;
+            case DIR_RIGHT:
+                dash_dx =  adv_dash_per_frame * adv_dash_frames;
+                break;
+            case DIR_UP:
+                dash_dy = -adv_dash_per_frame * adv_dash_frames;
+                break;
+            case DIR_DOWN:
+                dash_dy =  adv_dash_per_frame * adv_dash_frames;
+                break;
         }
+
+        UWORD new_x = PLAYER.pos.x + dash_dx;
+        UWORD new_y = PLAYER.pos.y + dash_dy;
+
+        UBYTE tile_top    = SUBPX_TO_TILE(new_y + PLAYER.bounds.top);
+        UBYTE tile_bottom = SUBPX_TO_TILE(new_y + PLAYER.bounds.bottom);
+        UBYTE tile_left   = SUBPX_TO_TILE(new_x + PLAYER.bounds.left);
+        UBYTE tile_right  = SUBPX_TO_TILE(new_x + PLAYER.bounds.right);
+
+        UBYTE col = 0;
+
+        if (PLAYER.dir == DIR_LEFT || PLAYER.dir == DIR_RIGHT) {
+            col = tile_col_test_range_y(COLLISION_ALL, tile_left, tile_top, tile_bottom);
+            if (!col) {
+                col = tile_col_test_range_y(COLLISION_ALL, tile_right, tile_top, tile_bottom);
+            }
+        }
+        else {
+            col = tile_col_test_range_x(COLLISION_ALL, tile_top, tile_left, tile_right);
+            if (!col) {
+                col = tile_col_test_range_x(COLLISION_ALL, tile_bottom, tile_left, tile_right);
+            }
+        }
+
         if (col) {
             adv_next_state = GROUND_STATE;
             return;
-        }         
+        }
     }
 
     adv_is_actor_attached = FALSE;
