@@ -21,7 +21,7 @@
 // Optional feature flags, set in 'state_defines.h'
 
 #define FEAT_ADVENTURE_BLANK
-#define FEAT_ADVENTURE_DASH
+// #define FEAT_ADVENTURE_DASH
 // #define FEAT_ADVENTURE_RUN
 #define FEAT_ADVENTURE_KNOCKBACK
 
@@ -70,8 +70,6 @@
 #endif
 #define DASH_INPUT_INTERACT 0
 #define DASH_INPUT_DOUBLE_TAP 1
-
-#define INPUT_ADVENTURE_DASH DASH_INPUT_DOUBLE_TAP
 
 #define DOUBLE_TAP_WINDOW 15
 #define MAX_DELTA 127
@@ -234,7 +232,7 @@ inline UBYTE dash_input_pressed(void)
       return FALSE;
     }
 #if INPUT_ADVENTURE_DASH == DASH_INPUT_INTERACT
-    return INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)
+    return INPUT_PRESSED(INPUT_ADVENTURE_INTERACT);
 #elif INPUT_ADVENTURE_DASH == DASH_INPUT_DOUBLE_TAP
     // Double-Tap Dash
     if (INPUT_PRESSED(INPUT_DPAD)) {
@@ -272,16 +270,8 @@ void adventure_init(void) BANKED {
     adv_vel_y = 0;
 
     collision_dir = DIR_NONE;
-    // @TODO - should be set in engine.json
 
     adv_state = GROUND_STATE;
-
-    adv_dash_active = TRUE;
-    adv_dash_frames = 15;
-    adv_dash_dist = 2048;
-    adv_dash_mask = COL_CHECK_ALL;
-    adv_dash_deadzone = 32;
-
     adv_camera_deadzone = camera_deadzone_x;
 }
 
