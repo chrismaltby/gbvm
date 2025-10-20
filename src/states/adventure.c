@@ -73,7 +73,8 @@
 
 #define INPUT_ADVENTURE_DASH DASH_INPUT_DOUBLE_TAP
 
-#define DOUBLE_TAP_WINDOW 60
+#define DOUBLE_TAP_WINDOW 15
+#define MAX_DELTA 127
 
 // End of Constants -----------------------------------------------------------
 
@@ -185,7 +186,7 @@ UWORD adv_pos_y; // Used for debugging position @TODO remove this
 UBYTE adv_dash_cooldown_timer;// tracks the current amount before the dash is ready
 WORD adv_dash_per_frame;      // Takes overall dash distance and holds the amount per-frame
 UBYTE adv_dash_currentframe;  // Tracks the current frame of the overall dash
-BYTE adv_tap_timer;           // Number of frames since the last time left or right button was tapped
+UBYTE adv_tap_timer;          // Number of frames since the last time dpad button was tapped
 UBYTE adv_dash_dir;
 
 // Camera
@@ -235,14 +236,16 @@ inline UBYTE dash_input_pressed(void)
 #if INPUT_ADVENTURE_DASH == DASH_INPUT_INTERACT
     return INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)
 #elif INPUT_ADVENTURE_DASH == DASH_INPUT_DOUBLE_TAP
-    // Double-Tap Dash-
+    // Double-Tap Dash
     if (INPUT_PRESSED(INPUT_DPAD)) {
-        if (adv_tap_timer > 0 && (joy & adv_dash_dir)) {
+        UBYTE dir = joy & INPUT_DPAD;
+        if (adv_tap_timer > 0 && dir == adv_dash_dir) {
+            adv_tap_timer = 0;
             return TRUE;
         } else {
             adv_tap_timer = DOUBLE_TAP_WINDOW;
-            adv_dash_dir = joy & INPUT_DPAD;
-        } 
+            adv_dash_dir = dir;
+        }
     }
     return FALSE;
 #endif
@@ -274,8 +277,12 @@ void adventure_init(void) BANKED {
     adv_state = GROUND_STATE;
 
     adv_dash_active = TRUE;
-    adv_dash_frames = 120;
+    adv_dash_frames = 15;
     adv_dash_dist = 2048;
+    adv_dash_mask = COL_CHECK_ALL;
+    adv_dash_deadzone = 32;
+
+    adv_camera_deadzone = camera_deadzone_x;
 }
 
 void adventure_update(void) BANKED {
@@ -461,7 +468,29 @@ void adventure_update(void) BANKED {
 
 #ifdef FEAT_ADVENTURE_DASH
         case DASH_STATE: {
-            PLAYER.pos.x++;
+            WORD remaining_dash_dist = adv_dash_per_frame;
+
+            BYTE x_dir = 0;
+            BYTE y_dir = 0;
+
+            if (PLAYER.dir == DIR_RIGHT) {
+                x_dir = 1;
+            } else if (PLAYER.dir == DIR_LEFT) {
+                x_dir = -1;
+            } else if (PLAYER.dir == DIR_DOWN) {
+                y_dir = 1;
+            } else if (PLAYER.dir == DIR_UP) {
+                y_dir = -1;
+            }
+
+            while (remaining_dash_dist)
+            {
+                WORD dist = MIN(remaining_dash_dist, MAX_DELTA);
+                delta.x = dist * x_dir;
+                delta.y = dist * y_dir;
+                move_and_collide(adv_dash_mask);
+                remaining_dash_dist -= dist;
+            }
 
             COUNTER_DECREMENT_CB(adv_dash_currentframe, {
                 adv_next_state = GROUND_STATE;
@@ -485,6 +514,13 @@ void adventure_update(void) BANKED {
         adv_callback_execute(DASH_READY);
     });
 #endif
+
+    // Hone Camera after the player has dashed
+    if ((adv_state != DASH_STATE) && (camera_deadzone_x > adv_camera_deadzone))
+    {
+        camera_deadzone_x--;
+        camera_deadzone_y--;
+    }
 
 }
 
@@ -868,10 +904,6 @@ static void dash_init(void)
     // Dash through walls - check if destination is clear
     if ((adv_dash_mask & COL_CHECK_WALLS) == 0)
     {
-#ifdef FEAT_ADVENTURE_DASH_USE_GRAVITY
-        adv_next_state = FALL_STATE;
-        return;
-#else
         // Set new_x be the final destination of the dash (ie. the distance covered
         // by all of the dash frames combined)
         UWORD new_x = PLAYER.pos.x
@@ -889,17 +921,14 @@ static void dash_init(void)
         if (col) {
             adv_next_state = GROUND_STATE;
             return;
-        }     
-#endif        
+        }         
     }
 
     adv_is_actor_attached = FALSE;
     adv_camera_deadzone = camera_deadzone_x;
     camera_deadzone_x = adv_dash_deadzone;
+    camera_deadzone_y = adv_dash_deadzone;
     adv_dash_cooldown_timer = adv_dash_ready_frames + adv_dash_frames;
-#ifndef FEAT_ADVENTURE_DASH_USE_GRAVITY
-    adv_vel_y = 0;
-#endif
     adv_dash_currentframe = adv_dash_frames;
     adv_tap_timer = 0;
     adv_next_state = DASH_STATE;
