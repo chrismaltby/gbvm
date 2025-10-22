@@ -101,6 +101,7 @@
 // End of Macros --------------------------------------------------------------
 
 // Type Definitions -----------------------------------------------------------
+
 typedef enum
 {
     GROUND_STATE = 0,
@@ -132,10 +133,10 @@ typedef enum
 
 WORD adv_walk_vel;            // Maximum velocity while walking
 WORD adv_run_vel;             // Maximum velocity while running
-WORD adv_dec;
-WORD adv_turn_acc;
-WORD adv_walk_acc;
-WORD adv_run_acc;
+WORD adv_dec;                 // Deceleration value
+WORD adv_turn_acc;            // Acceleration when changing direction
+WORD adv_walk_acc;            // Acceleration when walking
+WORD adv_run_acc;             // Acceleration when running
 WORD adv_knockback_vel_x;     // Knockback velocity in the x direction
 WORD adv_knockback_vel_y;     // Knockback velocity in the y direction
 UBYTE adv_knockback_frames;   // Number of frames for knockback
@@ -179,8 +180,6 @@ UWORD adv_temp_y = 0;         // Temporary y position for the player when moving
 static direction_e collision_dir;
 static UWORD temp_y;    // Player's position on the last frame
 static UWORD temp_x;    // Player's position on the last frame
-UWORD adv_pos_x; // Used for debugging position @TODO remove this
-UWORD adv_pos_y; // Used for debugging position @TODO remove this
 
 // Dash
 UBYTE adv_dash_cooldown_timer;// tracks the current amount before the dash is ready
@@ -628,9 +627,6 @@ static void move_and_collide(UBYTE mask)
 {
     temp_x = PLAYER.pos.x;
     temp_y = PLAYER.pos.y;
-
-    adv_pos_x = PLAYER.pos.x;
-    adv_pos_y = PLAYER.pos.y;
 
     // Horizontal Movement
     if (mask & COL_CHECK_X)
