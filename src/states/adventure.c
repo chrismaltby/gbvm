@@ -279,10 +279,12 @@ void adventure_init(void) BANKED {
     collision_dir = DIR_NONE;
 
     adv_state = GROUND_STATE;
+    adv_next_state = GROUND_STATE;
     adv_camera_deadzone_x = camera_deadzone_x;
     adv_camera_deadzone_y = camera_deadzone_y;
     adv_camera_transitioning = FALSE;
     adv_dash_cooldown_timer = 0;
+    adv_knockback_timer = 0;
 }
 
 void adventure_update(void) BANKED {
@@ -312,6 +314,7 @@ void adventure_update(void) BANKED {
 #ifdef FEAT_ADVENTURE_KNOCKBACK
             case KNOCKBACK_STATE: {
                 adv_vel_x = 0;
+                adv_vel_y = 0;
                 adv_callback_execute(KNOCKBACK_END);
                 break;
             }
@@ -367,8 +370,19 @@ void adventure_update(void) BANKED {
 #endif
 #ifdef FEAT_ADVENTURE_KNOCKBACK
             case KNOCKBACK_STATE: {
-                adv_vel_x = PLAYER.dir == DIR_RIGHT ? -adv_knockback_vel_x : adv_knockback_vel_x;
-                adv_vel_y = -adv_knockback_vel_y;
+                // Knockback in opposite direction to current movement
+                if (adv_vel_x != 0) {
+                    adv_vel_x = adv_vel_x > 0 ? -adv_knockback_vel_x : adv_knockback_vel_x;
+                } else if (IS_DIR_HORIZONTAL(PLAYER.dir)) {
+                    adv_vel_x = PLAYER.dir == DIR_RIGHT ? -adv_knockback_vel_x : adv_knockback_vel_x;
+                }
+
+                if (adv_vel_y != 0) {
+                    adv_vel_y = adv_vel_y > 0 ? -adv_knockback_vel_y : adv_knockback_vel_y;
+                } else if (IS_DIR_VERTICAL(PLAYER.dir)) {
+                    adv_vel_y = PLAYER.dir == DIR_DOWN ? -adv_knockback_vel_y : adv_knockback_vel_y;
+                }
+
                 adv_knockback_timer = adv_knockback_frames;
 #ifdef ADVENTURE_KNOCKBACK_ANIM
                 adv_set_player_anim_state(ADVENTURE_KNOCKBACK_ANIM);
@@ -491,6 +505,23 @@ void adventure_update(void) BANKED {
 
         }
 #endif
+
+#ifdef FEAT_ADVENTURE_KNOCKBACK
+        case KNOCKBACK_STATE: {
+            delta.x = VEL_TO_SUBPX(adv_vel_x);
+            delta.y = VEL_TO_SUBPX(adv_vel_y);
+
+            move_and_collide(COL_CHECK_ALL);
+
+            COUNTER_DECREMENT_CB(adv_knockback_timer, {
+                adv_next_state = GROUND_STATE;
+            });
+
+            break;
+
+        }
+#endif
+
     }
 
     // Timers
