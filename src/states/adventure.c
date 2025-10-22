@@ -190,7 +190,9 @@ UBYTE adv_tap_timer;          // Number of frames since the last time dpad butto
 UBYTE adv_dash_dir;
 
 // Camera
-BYTE adv_camera_deadzone;   // Default camera deadzone - used to restore camera after dash
+BYTE adv_camera_deadzone_x;   // Default camera deadzone X - used to restore camera after dash
+BYTE adv_camera_deadzone_y;   // Default camera deadzone Y - used to restore camera after dash
+UBYTE adv_camera_transitioning; // Flag to track if we're animating back from dash deadzone
 
 // End of Runtime State -------------------------------------------------------
 
@@ -278,7 +280,9 @@ void adventure_init(void) BANKED {
     collision_dir = DIR_NONE;
 
     adv_state = GROUND_STATE;
-    adv_camera_deadzone = camera_deadzone_x;
+    adv_camera_deadzone_x = camera_deadzone_x;
+    adv_camera_deadzone_y = camera_deadzone_y;
+    adv_camera_transitioning = FALSE;
     adv_dash_cooldown_timer = 0;
 }
 
@@ -514,13 +518,24 @@ void adventure_update(void) BANKED {
     });
 #endif
 
-    // Hone Camera after the player has dashed
-    if ((adv_state != DASH_STATE) && (camera_deadzone_x > adv_camera_deadzone))
-    {
-        camera_deadzone_x--;
-        camera_deadzone_y--;
+    // Restore camera deadzone after dash
+    if (adv_camera_transitioning) {
+        if (camera_deadzone_x > adv_camera_deadzone_x) {
+            camera_deadzone_x--;
+        } else if (camera_deadzone_x < adv_camera_deadzone_x) {
+            camera_deadzone_x++;
+        }
+        
+        if (camera_deadzone_y > adv_camera_deadzone_y) {
+            camera_deadzone_y--;
+        } else if (camera_deadzone_y < adv_camera_deadzone_y) {
+            camera_deadzone_y++;
+        }
+        if (camera_deadzone_x == adv_camera_deadzone_x &&
+            camera_deadzone_y == adv_camera_deadzone_y) {
+            adv_camera_transitioning = FALSE;
+        }
     }
-
 }
 
 static void handle_dir_input(void) {
@@ -957,9 +972,11 @@ static void dash_init(void)
     }
 
     adv_is_actor_attached = FALSE;
-    adv_camera_deadzone = camera_deadzone_x;
+    adv_camera_deadzone_x = camera_deadzone_x;
+    adv_camera_deadzone_y = camera_deadzone_y;
     camera_deadzone_x = adv_dash_deadzone;
     camera_deadzone_y = adv_dash_deadzone;
+    adv_camera_transitioning = TRUE;
     adv_dash_cooldown_timer = adv_dash_ready_frames + adv_dash_frames;
     adv_dash_currentframe = adv_dash_frames;
     adv_tap_timer = 0;
