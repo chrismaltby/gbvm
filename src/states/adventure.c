@@ -425,10 +425,12 @@ void adventure_update(void) BANKED {
 
             move_and_collide(COL_CHECK_ALL);
 
+#ifdef FEAT_ADVENTURE_DASH
             if (adv_dash_cooldown_timer == 0 && dash_input_pressed()) {
                 adv_next_state = DASH_STATE;
                 break;
             }
+#endif
 
             if (INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)) {
                 actor_t *hit_actor = adv_attached_actor;
