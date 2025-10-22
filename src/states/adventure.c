@@ -20,10 +20,10 @@
 // Feature Flags --------------------------------------------------------------
 // Optional feature flags, set in 'state_defines.h'
 
-#define FEAT_ADVENTURE_BLANK
+// #define FEAT_ADVENTURE_BLANK
 // #define FEAT_ADVENTURE_DASH
 // #define FEAT_ADVENTURE_RUN
-#define FEAT_ADVENTURE_KNOCKBACK
+// #define FEAT_ADVENTURE_KNOCKBACK
 
 // End of Feature Flags -------------------------------------------------------
 
@@ -437,17 +437,6 @@ void adventure_update(void) BANKED {
             }
 #endif
 
-            if (INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)) {
-                actor_t *hit_actor = adv_attached_actor;
-                if (!hit_actor) {
-                    hit_actor = actor_in_front_of_player(8, TRUE);
-                }
-                if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank) {
-                    actor_set_dir(hit_actor, FLIPPED_DIR(PLAYER.dir), FALSE);
-                    script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
-                }
-            }
-
 #ifdef FEAT_ADVENTURE_RUN
             const UBYTE running = INPUT_ADVENTURE_RUN;
             if (adv_state == GROUND_STATE && running) {
@@ -830,6 +819,22 @@ static void move_and_collide(UBYTE mask)
             adv_attached_prev_x = 0;
             adv_attached_prev_y = 0;
         }
+
+        if (hit_actor != NULL && (hit_actor->collision_group & COLLISION_GROUP_MASK))
+        {
+            // Collision group script handling
+            player_register_collision_with(hit_actor);
+        }
+        else if (INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)) {
+            actor_t *hit_actor = adv_attached_actor;
+            if (!hit_actor) {
+                hit_actor = actor_in_front_of_player(8, TRUE);
+            }
+            if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank) {
+                actor_set_dir(hit_actor, FLIPPED_DIR(PLAYER.dir), FALSE);
+                script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
+            }
+        }        
     }
 
     if (mask & COL_CHECK_TRIGGERS)
