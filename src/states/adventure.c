@@ -573,8 +573,6 @@ static void handle_dir_input(void) {
         facing_dir = DIR_UP;
     } else if (down) {
         facing_dir = DIR_DOWN;
-    } else {
-        facing_dir = DIR_NONE;
     }
 #else
     // ---------------------- 4-WAY ----------------------
@@ -590,8 +588,6 @@ static void handle_dir_input(void) {
     } else if (INPUT_RECENT_DOWN) {
         target_y =  max_vel;
         facing_dir = DIR_DOWN;
-    } else {
-        facing_dir = DIR_NONE;
     }
 #endif
 
