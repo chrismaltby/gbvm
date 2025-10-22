@@ -279,6 +279,7 @@ void adventure_init(void) BANKED {
 
     adv_state = GROUND_STATE;
     adv_camera_deadzone = camera_deadzone_x;
+    adv_dash_cooldown_timer = 0;
 }
 
 void adventure_update(void) BANKED {
@@ -502,7 +503,7 @@ void adventure_update(void) BANKED {
 
     // Timers
 
-#ifdef FEAT_PLATFORM_DASH
+#ifdef FEAT_ADVENTURE_DASH
     COUNTER_DECREMENT(adv_tap_timer);
 
     // COUNTERS================================================================
