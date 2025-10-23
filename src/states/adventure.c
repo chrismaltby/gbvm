@@ -24,6 +24,7 @@
 // #define FEAT_ADVENTURE_DASH
 // #define FEAT_ADVENTURE_RUN
 // #define FEAT_ADVENTURE_KNOCKBACK
+// #define FEAT_ADVENTURE_PUSH
 
 // End of Feature Flags -------------------------------------------------------
 
@@ -48,7 +49,8 @@
     (defined(FEAT_ADVENTURE_RUN) && defined(ADVENTURE_RUN_ANIM)) || \
     (defined(FEAT_ADVENTURE_DASH) && defined(ADVENTURE_DASH_ANIM)) || \
     (defined(FEAT_ADVENTURE_KNOCKBACK) && defined(ADVENTURE_KNOCKBACK_ANIM)) || \
-    (defined(FEAT_ADVENTURE_BLANK) && defined(ADVENTURE_BLANK_ANIM))
+    (defined(FEAT_ADVENTURE_BLANK) && defined(ADVENTURE_BLANK_ANIM)) || \
+    (defined(FEAT_ADVENTURE_PUSH) && defined(ADVENTURE_PUSH_ANIM))
 
 #define MOVE_TYPE_4_WAY 0
 #define MOVE_TYPE_8_WAY 1
@@ -109,6 +111,7 @@ typedef enum
     KNOCKBACK_STATE,
     BLANK_STATE,
     RUN_STATE,
+    PUSH_STATE,
 } state_e;
 
 typedef enum
@@ -124,6 +127,8 @@ typedef enum
     DASH_READY,
     RUN_INIT,
     RUN_END,
+    PUSH_INIT,
+    PUSH_END,
     CALLBACK_SIZE
 } callback_e;
 
@@ -146,6 +151,7 @@ WORD adv_dash_dist;           // Distance of the dash
 UBYTE adv_dash_frames;        // Number of frames for dashing
 UBYTE adv_dash_ready_frames;  // Frames before the player can dash again
 UBYTE adv_dash_deadzone;      // Override camera deadzone when in dash state
+UBYTE adv_push_delay_frames;  // Frames before entering push state
 
 // End of Engine Fields -------------------------------------------------------
 
@@ -192,6 +198,9 @@ UBYTE adv_dash_dir;
 BYTE adv_camera_deadzone_x;   // Default camera deadzone X - used to restore camera after dash
 BYTE adv_camera_deadzone_y;   // Default camera deadzone Y - used to restore camera after dash
 UBYTE adv_camera_transitioning; // Flag to track if we're animating back from dash deadzone
+
+// Push
+UBYTE adv_push_timer;         // Number of frames pushing against a wall
 
 // End of Runtime State -------------------------------------------------------
 
@@ -285,6 +294,7 @@ void adventure_init(void) BANKED {
     adv_camera_transitioning = FALSE;
     adv_dash_cooldown_timer = 0;
     adv_knockback_timer = 0;
+    adv_push_timer = 0;
 }
 
 void adventure_update(void) BANKED {
@@ -324,6 +334,12 @@ void adventure_update(void) BANKED {
                 adv_vel_x = 0;
                 adv_vel_y = 0;
                 adv_callback_execute(BLANK_END);
+                break;
+            }
+#endif
+#ifdef FEAT_ADVENTURE_PUSH
+            case PUSH_STATE: {
+                adv_callback_execute(PUSH_END);
                 break;
             }
 #endif
@@ -405,7 +421,19 @@ void adventure_update(void) BANKED {
                 adv_callback_execute(BLANK_INIT);
                 break;
             }
-#endif      
+#endif
+#ifdef FEAT_ADVENTURE_PUSH
+            case PUSH_STATE: {
+#ifdef ADVENTURE_PUSH_ANIM
+                adv_set_player_anim_state(ADVENTURE_PUSH_ANIM);
+#elif ADVENTURE_ANIM_OVERRIDES_SET
+                adv_restore_default_anim_state();
+#endif
+                actor_set_dir(&PLAYER, facing_dir, TRUE);
+                adv_callback_execute(PUSH_INIT);
+                break;
+            }
+#endif
         }  
     }
 
@@ -441,7 +469,25 @@ void adventure_update(void) BANKED {
             delta.x = VEL_TO_SUBPX(adv_vel_x);
             delta.y = VEL_TO_SUBPX(adv_vel_y);
 
+#ifdef FEAT_ADVENTURE_PUSH
+            UWORD prev_x = PLAYER.pos.x;
+            UWORD prev_y = PLAYER.pos.y;
+#endif
+
             move_and_collide(COL_CHECK_ALL);
+
+#ifdef FEAT_ADVENTURE_PUSH
+            // Check if player is pushing against an obstacle
+            if (joy & INPUT_DPAD && prev_x == PLAYER.pos.x && prev_y == PLAYER.pos.y) {
+                if (adv_push_timer == adv_push_delay_frames) {
+                    adv_next_state = PUSH_STATE;
+                    break;
+                }                
+                adv_push_timer++;
+            } else {
+                adv_push_timer = 0;
+            }
+#endif
 
 #ifdef FEAT_ADVENTURE_DASH
             if (adv_dash_cooldown_timer == 0 && dash_input_pressed()) {
@@ -519,6 +565,35 @@ void adventure_update(void) BANKED {
 
             break;
 
+        }
+#endif
+
+#ifdef FEAT_ADVENTURE_PUSH
+        case PUSH_STATE: {
+  
+            delta.x = 0;
+            delta.y = 0;
+            
+            move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+            
+            // Exit push state if not continuing to hold against the wall
+            UBYTE pressing_away = FALSE;
+            if (PLAYER.dir == DIR_LEFT && !INPUT_LEFT) {
+                pressing_away = TRUE;
+            } else if (PLAYER.dir == DIR_RIGHT && !INPUT_RIGHT) {
+                pressing_away = TRUE;
+            } else if (PLAYER.dir == DIR_UP && !INPUT_UP) {
+                pressing_away = TRUE;
+            } else if (PLAYER.dir == DIR_DOWN && !INPUT_DOWN) {
+                pressing_away = TRUE;
+            }
+            
+            if (pressing_away) {
+                adv_next_state = GROUND_STATE;
+                break;
+            }
+            
+            break;
         }
 #endif
 
