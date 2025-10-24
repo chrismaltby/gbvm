@@ -658,6 +658,12 @@ static void handle_dir_input(void) {
     if (up)    target_y = -max_vel;
     if (down)  target_y =  max_vel;
 
+    if (target_x && target_y) {
+        // Approximate diagonal movement normalization
+        target_x = (target_x >> 1) + (target_x >> 2);  
+        target_y = (target_y >> 1) + (target_y >> 2);  
+    }
+
     // Update facing priority axis
     if ((left | right) && !(up | down)) {
         facing_priority_axis = DIR_PRIORITY_HORIZONTAL;
