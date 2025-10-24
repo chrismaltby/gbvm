@@ -277,7 +277,7 @@ void adventure_init(void) BANKED {
     camera_deadzone_y = ADVENTURE_CAMERA_DEADZONE;
 
     // Initialize facing direction
-    facing_dir = DIR_DOWN;
+    facing_dir = PLAYER.dir;
     delta.x  = 0;
     delta.y  = 0;
     movement_delta.x = 0;
@@ -672,7 +672,7 @@ static void handle_dir_input(void) {
         // Both axes pressed, respect whichever axis was pressed first
         if (facing_priority_axis == DIR_PRIORITY_HORIZONTAL) {
             facing_dir = left ? DIR_LEFT : DIR_RIGHT;
-        } else if (facing_priority_axis == DIR_PRIORITY_VERTICAL) {
+        } else {
             facing_dir = up ? DIR_UP : DIR_DOWN;
         }
     } else if (left) {
