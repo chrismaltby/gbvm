@@ -1512,6 +1512,55 @@ static void state_update_fall(void) {
     }
 #endif
 
+#ifdef FEAT_PLATFORM_JUMP
+    // FALL -> JUMP check
+    if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+    {
+#ifdef FEAT_PLATFORM_WALL_JUMP
+        // Wall Jump
+        if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
+        {
+            plat_jump_type = JUMP_TYPE_WALL;
+            plat_wall_jump_counter--;
+            plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
+            plat_vel_x += (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+        if (plat_coyote_timer != 0)
+        {
+            // Coyote Time Jump
+            plat_jump_type = JUMP_TYPE_GROUND;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+        if (plat_extra_jumps_counter != 0)
+        {
+            // Double Jump
+            plat_jump_type = JUMP_TYPE_DOUBLE;
+            if (plat_extra_jumps_counter != UNLIMITED_JUMPS)
+            {
+                plat_extra_jumps_counter--;
+            }
+            plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
+            plat_jump_reduction_vel += plat_jump_reduction;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+#endif
+
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+        // Setting the Jump Buffer when jump is pressed while not on ground
+        plat_jump_buffer_timer = plat_jump_buffer_frames;
+#endif
+
+    }
+#endif
+
     // Vertical Movement ----------------------------------------------
 
 #ifdef FEAT_PLATFORM_FLOAT
@@ -1586,55 +1635,6 @@ static void state_update_fall(void) {
                 return;
             }
         }
-    }
-#endif
-
-#ifdef FEAT_PLATFORM_JUMP
-    // FALL -> JUMP check
-    if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
-    {
-#ifdef FEAT_PLATFORM_WALL_JUMP
-        // Wall Jump
-        if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
-        {
-            plat_jump_type = JUMP_TYPE_WALL;
-            plat_wall_jump_counter--;
-            plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
-            plat_vel_x += (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
-            plat_next_state = JUMP_STATE;
-            return;
-        }
-#endif
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-        if (plat_coyote_timer != 0)
-        {
-            // Coyote Time Jump
-            plat_jump_type = JUMP_TYPE_GROUND;
-            plat_next_state = JUMP_STATE;
-            return;
-        }
-#endif
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-        if (plat_extra_jumps_counter != 0)
-        {
-            // Double Jump
-            plat_jump_type = JUMP_TYPE_DOUBLE;
-            if (plat_extra_jumps_counter != UNLIMITED_JUMPS)
-            {
-                plat_extra_jumps_counter--;
-            }
-            plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
-            plat_jump_reduction_vel += plat_jump_reduction;
-            plat_next_state = JUMP_STATE;
-            return;
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-        // Setting the Jump Buffer when jump is pressed while not on ground
-        plat_jump_buffer_timer = plat_jump_buffer_frames;
-#endif
-
     }
 #endif
 
