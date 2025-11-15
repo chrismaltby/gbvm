@@ -242,7 +242,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // Check for actor collision
         actor_t *hit_actor;
-        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE))) {
+        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) {
             actor->pos.x = hit_actor->pos.x +
                 (new_dir == DIR_LEFT
                     ? hit_actor->bounds.right - actor->bounds.left + 1
@@ -281,7 +281,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // Check for actor collision
         actor_t *hit_actor;
-        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor, FALSE))) { 
+        if (test_actors && (hit_actor = actor_overlapping_bb(&actor->bounds, &actor->pos, actor))) { 
             actor->pos.y = hit_actor->pos.y +
                 (new_dir == DIR_UP
                     ? hit_actor->bounds.bottom - actor->bounds.top + 1

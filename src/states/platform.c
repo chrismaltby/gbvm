@@ -2218,7 +2218,7 @@ finally_check_actor_col:
     if (mask & COL_CHECK_ACTORS)
     {
         actor_t *hit_actor;
-        hit_actor = actor_overlapping_player(FALSE);
+        hit_actor = actor_overlapping_player();
 
         // Handle platform actor attachment
         if (hit_actor != NULL) {

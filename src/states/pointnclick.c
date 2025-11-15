@@ -82,7 +82,7 @@ void pointnclick_update(void) BANKED {
     hit_trigger = trigger_at_intersection(&PLAYER.bounds, &PLAYER.pos);
 
     // Check for actor collisions
-    hit_actor = actor_overlapping_player(FALSE);
+    hit_actor = actor_overlapping_player();
 
     is_hover_trigger = (hit_trigger != NO_TRIGGER_COLLISON)
         && (triggers[hit_trigger].script.bank);

@@ -446,7 +446,7 @@ void shmup_update(void) BANKED {
 
     } else {
         // Check for actor collisions on even frames
-        hit_actor = actor_overlapping_player(FALSE);
+        hit_actor = actor_overlapping_player();
         if (hit_actor != NULL && (hit_actor->collision_group & COLLISION_GROUP_MASK)) {
             player_register_collision_with(hit_actor);
         }

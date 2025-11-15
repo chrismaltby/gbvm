@@ -332,14 +332,25 @@ actor_t *actor_in_front_of_player(UBYTE grid_size, UBYTE inc_noclip) BANKED {
     offset.x = PLAYER.pos.x;
     offset.y = PLAYER.pos.y;
     point_translate_dir_word(&offset, PLAYER.dir, PX_TO_SUBPX(grid_size));
-    return actor_overlapping_bb(&PLAYER.bounds, &offset, &PLAYER, inc_noclip);
+    if(inc_noclip)
+    {
+        return actor_overlapping_bb_inc_noclip(&PLAYER.bounds, &offset, &PLAYER);
+    }
+    else
+    {
+        return actor_overlapping_bb(&PLAYER.bounds, &offset, &PLAYER);
+    }
 }
 
-actor_t *actor_overlapping_player(UBYTE inc_noclip) BANKED {
-    return actor_overlapping_player_from(NULL, inc_noclip);
+actor_t *actor_overlapping_player(void) BANKED {
+    return actor_overlapping_player_from(NULL);
 }
 
-actor_t *actor_overlapping_player_from(actor_t *start_actor, UBYTE inc_noclip) BANKED {
+actor_t *actor_overlapping_player_inc_noclip(void) BANKED {
+    return actor_overlapping_player_from_inc_noclip(NULL);
+}
+
+actor_t *actor_overlapping_player_from(actor_t *start_actor) BANKED {
     actor_t *actor = start_actor ? start_actor->prev : PLAYER.prev;
 
     const UWORD a_left   = PLAYER.pos.x + PLAYER.bounds.left;
@@ -348,7 +359,7 @@ actor_t *actor_overlapping_player_from(actor_t *start_actor, UBYTE inc_noclip) B
     const UWORD a_bottom = PLAYER.pos.y + PLAYER.bounds.bottom;
 
     while (actor) {
-        if (!inc_noclip && !actor->collision_enabled) {
+        if (!actor->collision_enabled) {
             actor = actor->prev;
             continue;
         }
@@ -364,7 +375,27 @@ actor_t *actor_overlapping_player_from(actor_t *start_actor, UBYTE inc_noclip) B
     return NULL;
 }
 
-actor_t *actor_overlapping_bb(rect16_t *bb, upoint16_t *offset, actor_t *ignore, UBYTE inc_noclip) BANKED {
+actor_t *actor_overlapping_player_from_inc_noclip(actor_t *start_actor) BANKED {
+    actor_t *actor = start_actor ? start_actor->prev : PLAYER.prev;
+
+    const UWORD a_left   = PLAYER.pos.x + PLAYER.bounds.left;
+    const UWORD a_right  = PLAYER.pos.x + PLAYER.bounds.right;
+    const UWORD a_top    = PLAYER.pos.y + PLAYER.bounds.top;
+    const UWORD a_bottom = PLAYER.pos.y + PLAYER.bounds.bottom;
+
+    while (actor) {
+        if ((actor->pos.x + actor->bounds.left)   > a_right)  { actor = actor->prev; continue; }
+        if ((actor->pos.x + actor->bounds.right)  < a_left)   { actor = actor->prev; continue; }
+        if ((actor->pos.y + actor->bounds.top)    > a_bottom) { actor = actor->prev; continue; }
+        if ((actor->pos.y + actor->bounds.bottom) < a_top)    { actor = actor->prev; continue; }
+
+        return actor;
+    }
+
+    return NULL;
+}
+
+actor_t *actor_overlapping_bb(rect16_t *bb, upoint16_t *offset, actor_t *ignore) BANKED {
     actor_t *actor = &PLAYER;
 
     const UWORD a_left   = offset->x + bb->left;
@@ -373,7 +404,32 @@ actor_t *actor_overlapping_bb(rect16_t *bb, upoint16_t *offset, actor_t *ignore,
     const UWORD a_bottom = offset->y + bb->bottom;
 
     while (actor) {
-        if (actor == ignore || (!inc_noclip && !actor->collision_enabled)) {
+        if (actor == ignore || !actor->collision_enabled) {
+            actor = actor->prev;
+            continue;
+        }
+
+        if ((actor->pos.x + actor->bounds.left)   > a_right)  { actor = actor->prev; continue; }
+        if ((actor->pos.x + actor->bounds.right)  < a_left)   { actor = actor->prev; continue; }
+        if ((actor->pos.y + actor->bounds.top)    > a_bottom) { actor = actor->prev; continue; }
+        if ((actor->pos.y + actor->bounds.bottom) < a_top)    { actor = actor->prev; continue; }
+
+        return actor;
+    }
+
+    return NULL;
+}
+
+actor_t *actor_overlapping_bb_inc_noclip(rect16_t *bb, upoint16_t *offset, actor_t *ignore) BANKED {
+    actor_t *actor = &PLAYER;
+
+    const UWORD a_left   = offset->x + bb->left;
+    const UWORD a_right  = offset->x + bb->right;
+    const UWORD a_top    = offset->y + bb->top;
+    const UWORD a_bottom = offset->y + bb->bottom;
+
+    while (actor) {
+        if (actor == ignore) {
             actor = actor->prev;
             continue;
         }

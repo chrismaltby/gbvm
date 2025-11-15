@@ -109,7 +109,7 @@ void topdown_update(void) BANKED {
         }
 
         // Check for actor overlap
-        hit_actor = actor_overlapping_player(FALSE);
+        hit_actor = actor_overlapping_player();
         if (hit_actor != NULL && (hit_actor->collision_group & COLLISION_GROUP_MASK)) {
             player_register_collision_with(hit_actor);
         }
