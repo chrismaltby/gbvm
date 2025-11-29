@@ -77,7 +77,7 @@ void player_init(void) BANKED {
 void actors_update(void) NONBANKED {
     UBYTE _save = CURRENT_BANK;
     static actor_t *actor;
-    static uint8_t screen_tile16_x, screen_tile16_y;
+    static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
     static uint8_t actor_tile16_x, actor_tile16_y;
 
     // Convert scroll pos to 16px tile coordinates
@@ -85,7 +85,9 @@ void actors_update(void) NONBANKED {
     // offset by 64 to allow signed comparisons on
     // unsigned int values (is faster)
     screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
+    screen_tile16_x_end = screen_tile16_x + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_W;
     screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
+    screen_tile16_y_end = screen_tile16_y + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H;
 
     if (emote_actor) {
         SWITCH_ROM(emote_actor->sprite.bank);
@@ -128,11 +130,11 @@ void actors_update(void) NONBANKED {
                 // Actor right edge < screen left edge
                 (actor_tile16_x < screen_tile16_x) ||
                 // Actor left edge > screen right edge
-                ((actor_tile16_x - (ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_W)) > screen_tile16_x) ||
+                (actor_tile16_x > screen_tile16_x_end) ||
                 // Actor bottom edge < screen top edge
                 (actor_tile16_y < screen_tile16_y) ||
                 // Actor top edge > screen bottom edge
-                ((actor_tile16_y - (ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H)) > screen_tile16_y)
+                (actor_tile16_y > screen_tile16_y_end)
             ) {
                 if (actor->persistent) {
                     actor = actor->prev;
