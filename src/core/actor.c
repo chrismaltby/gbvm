@@ -48,6 +48,7 @@ UBYTE screen_x, screen_y;
 actor_t * invalid;
 UBYTE player_moving;
 UBYTE player_iframes;
+UBYTE player_is_offscreen;
 actor_t * player_collision_actor;
 actor_t * emote_actor;
 UBYTE emote_timer;
@@ -118,9 +119,18 @@ void actors_update(void) BANKED {
                 }
                 // Deactivate if offscreen
                 actor_t * prev = actor->prev;
-                if (!VM_ISLOCKED()) deactivate_actor(actor);
+                if (!VM_ISLOCKED()) {
+                    deactivate_actor(actor);
+                    if (actor == &PLAYER) {
+                        player_is_offscreen = TRUE;
+                    }
+                }
                 actor = prev;
                 continue;
+            }
+
+            if (actor == &PLAYER) {
+                player_is_offscreen = FALSE;
             }
         }
 
@@ -180,7 +190,7 @@ void actors_render(void) NONBANKED {
             screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
         }
 
-        if (actor->hidden || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
+        if (actor->hidden || (player_is_offscreen && (actor == &PLAYER)) || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
             actor = actor->prev;
             continue;
         }
