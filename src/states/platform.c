@@ -2322,7 +2322,7 @@ static void state_update_ladder(void) {
 
 // WALL_STATE
 
-#ifdef FEAT_PLATFORM_WALL
+#ifdef FEAT_PLATFORM_WALL_JUMP
 static void state_enter_wall(void) {
     plat_jump_type = JUMP_TYPE_NONE;
     plat_run_stage = RUN_STAGE_NONE;

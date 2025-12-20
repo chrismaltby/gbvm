@@ -112,7 +112,7 @@ void vm_switch(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, INT16 idx, U
     }
 
     SWITCH_ROM(_save);                  // restore bank
-    THIS->PC = (UBYTE *)table;          // make PC point to the next instruction command
+    THIS->PC = (UBYTE *)table;          // make PC point to the next instruction instruction
 }
 
 // jump absolute
@@ -557,7 +557,7 @@ void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL B
 // executes one step in the passed context
 // return zero if script end
 // bank with VM code must be active
-static UBYTE current_fn_bank;
+static SFR current_fn_bank;
 UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR {
     CTX;
 #if defined(__SDCC) && defined(NINTENDO)
@@ -579,26 +579,32 @@ __asm
         ldh (__current_bank), a
         ld (_rROMB0), a         ; switch bank with vm code
 
-        ld a, (hl+)             ; load current command and return if terminator
-        ld e, a
+        ld a, (hl+)             ; load current instruction and return if terminator
         or a
-        jr z, 3$
+        jr nz, 3$
 
+        pop af
+        ldh (__current_bank), a
+        ld (_rROMB0), a         ; restore bank
+        xor a
+        ret
+
+3$:
         push bc                 ; store bc
         push hl
 
         ld h, #0
-        ld l, e
+        ld l, a
         add hl, hl
-        add hl, hl              ; hl = de * sizeof(SCRIPT_CMD)
+        add hl, hl              ; hl = instruction * sizeof(SCRIPT_CMD)
         dec hl
         ld de, #_script_cmds
-        add hl, de              ; hl = &script_cmds[command].args_len
+        add hl, de              ; hl = &script_cmds[instruction].args_len
 
         ld a, (hl-)
         ld e, a                 ; e = args_len
         ld a, (hl-)
-        ld (_current_fn_bank), a
+        ldh (_current_fn_bank), a
         ld a, (hl-)
         ld b, a
         ld c, (hl)              ; bc = fn
@@ -645,7 +651,7 @@ __asm
         push de                 ; not used
         push de                 ; de: args_len
 
-        ld a, (_current_fn_bank)    ; a = script_bank
+        ldh a, (_current_fn_bank)   ; a = script_bank
         ldh (__current_bank), a
         ld (_rROMB0), a         ; switch bank with functions
 
@@ -656,13 +662,11 @@ __asm
         ld sp, hl               ; deallocate args_len bytes from the stack
         add sp, #6              ; deallocate dummy word and THIS twice
 
-        ld e, #1                ; command executed
-3$:
         pop af
         ldh (__current_bank), a
         ld (_rROMB0), a         ; restore bank
 
-        ld a, e
+        ld a, #1                ; instruction executed
 
         ret
 __endasm;
@@ -769,7 +773,7 @@ UBYTE script_detach_hthread(UBYTE ID) BANKED {
 }
 
 // process all contexts
-// executes one command in each active context
+// executes one instruction in each active context
 UBYTE script_runner_update(void) NONBANKED {
     static UBYTE waitable;
     static UBYTE counter;

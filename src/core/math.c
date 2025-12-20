@@ -1,6 +1,8 @@
+#pragma bank 255
+
 #include "math.h"
 
-const int8_t sine_wave[256] = {
+static const int8_t sine_wave[256] = {
        0,   3,   6,   9,  12,  16,  19,  22,  25,  28,  31,  34,  37,  40,  43,  46,
       49,  51,  54,  57,  60,  63,  65,  68,  71,  73,  76,  78,  81,  83,  85,  88,
       90,  92,  94,  96,  98, 100, 102, 104, 106, 107, 109, 111, 112, 113, 115, 116,
@@ -19,14 +21,14 @@ const int8_t sine_wave[256] = {
     -49, -46,  -43, -40, -37, -34, -31, -28, -25, -22, -19, -16, -12,  -9,  -6,  -3
 };
 
-const UBYTE dir_angle_lookup[4] = {
-    128,
-    64,
-    0,
-    192,
-};
+int8_t SIN(uint8_t a) BANKED {
+    return sine_wave[a];
+}
+int8_t COS(uint8_t a) BANKED {
+    return sine_wave[(uint8_t)((uint8_t)(a) + 64u)];
+}
 
-UBYTE isqrt(uint16_t x) NONBANKED {
+UBYTE isqrt(uint16_t x) BANKED {
     uint16_t m, y, b;
     m = 0x4000;
     y = 0;

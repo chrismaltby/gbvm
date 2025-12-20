@@ -48,9 +48,6 @@
 #define DIV_4(a) ((a) >> 2)
 #define DIV_2(a) ((a) >> 1)
 
-#define SIN(a)  (sine_wave[(uint8_t)(a)])
-#define COS(a)  (sine_wave[(uint8_t)((uint8_t)(a) + 64u)])
-
 #define ANGLE_UP        0
 #define ANGLE_RIGHT     64
 #define ANGLE_DOWN      128
@@ -136,8 +133,8 @@ typedef enum {
     DIR_NONE
 } direction_e;
 
-extern const int8_t sine_wave[256];
-extern const uint8_t dir_angle_lookup[4];
+int8_t SIN(uint8_t a) BANKED;
+int8_t COS(uint8_t a) BANKED;
 
 inline void point_translate_dir(upoint16_t *point, direction_e dir, uint8_t speed) {
     if(dir == DIR_RIGHT)
@@ -191,7 +188,7 @@ inline uint16_t saturating_add_u16(uint16_t base, int16_t delta) {
     }
 }
 
-uint8_t isqrt(uint16_t x) NONBANKED;
+uint8_t isqrt(uint16_t x) BANKED;
 uint8_t atan2(int16_t y, int16_t x) BANKED;
 
 #endif

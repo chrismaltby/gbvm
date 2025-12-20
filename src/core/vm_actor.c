@@ -413,6 +413,7 @@ void vm_actor_get_dir(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED {
     *A = actor->dir;
 }
 
+static const UBYTE dir_angle_lookup[4] = { 128, 64, 0, 192 };
 void vm_actor_get_angle(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED {
     UWORD * A;
     actor_t *actor;
