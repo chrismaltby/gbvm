@@ -17,8 +17,8 @@ const struct actor_t scene_parallax_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(-22),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(33),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(34) - 1,
             .top = PX_TO_SUBPX(-31)
         },
         .dir = DIR_DOWN,

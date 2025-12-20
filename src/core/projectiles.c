@@ -65,7 +65,14 @@ void projectiles_update(void) NONBANKED {
         projectile->pos.y -= projectile->delta_pos.y;
 
         if (IS_FRAME_EVEN) {
-            actor_t *hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL, FALSE);
+            actor_t *hit_actor = NULL;
+            if (projectile->def.collision_mask == COLLISION_GROUP_PLAYER) {
+                if  (bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
+                    hit_actor = &PLAYER;
+                }
+            } else {
+                hit_actor = actor_overlapping_bb(&projectile->def.bounds, &projectile->pos, NULL);
+            }
             if (hit_actor && (hit_actor->collision_group & projectile->def.collision_mask)) {
                 // Hit! - Fire collision script here
                 if ((hit_actor->script.bank) && (hit_actor->hscript_hit & SCRIPT_TERMINATED)) {
@@ -114,22 +121,12 @@ void projectiles_update(void) NONBANKED {
 
 void projectiles_render(void) NONBANKED {
     projectile = projectiles_active_head;
-    prev_projectile = NULL;
 
     _save_bank = _current_bank;
 
     while (projectile) {
         UINT8 screen_x = (SUBPX_TO_PX(projectile->pos.x) + 8) - draw_scroll_x,
               screen_y = (SUBPX_TO_PX(projectile->pos.y) + 8) - draw_scroll_y;
-
-        if ((screen_x > DEVICE_SCREEN_PX_WIDTH) || (screen_y > DEVICE_SCREEN_PX_HEIGHT)) {
-            // Remove projectile
-            projectile_t *next = projectile->next;
-            LL_REMOVE_ITEM(projectiles_active_head, projectile, prev_projectile);
-            LL_PUSH_HEAD(projectiles_inactive_head, projectile);
-            projectile = next;
-            continue;
-        }
 
         SWITCH_ROM(projectile->def.sprite.bank);
         spritesheet_t *sprite = projectile->def.sprite.ptr;
@@ -142,7 +139,6 @@ void projectiles_render(void) NONBANKED {
             screen_y
         );
 
-        prev_projectile = projectile;
         projectile = projectile->next;
     }
 

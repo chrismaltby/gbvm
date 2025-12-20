@@ -14,6 +14,9 @@ ___bank_scene_house_init = 255
 _scene_house_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Call Script: Init Menu
         VM_CALL_FAR             ___bank_script_init_menu, _script_init_menu
 

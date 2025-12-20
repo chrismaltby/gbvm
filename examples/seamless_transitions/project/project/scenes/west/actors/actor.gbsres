@@ -5,6 +5,7 @@
   "symbol": "actor_0",
   "prefabId": "",
   "name": "",
+  "coordinateType": "tiles",
   "x": 5,
   "y": 9,
   "frame": 0,

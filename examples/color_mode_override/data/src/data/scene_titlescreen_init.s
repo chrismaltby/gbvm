@@ -18,6 +18,9 @@ _scene_titlescreen_init::
 
         VM_RESERVE              4
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Actor Hide
         VM_SET_CONST            .LOCAL_ACTOR, 0
         VM_ACTOR_SET_HIDDEN     .LOCAL_ACTOR, 1

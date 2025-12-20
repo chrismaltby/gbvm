@@ -17,6 +17,9 @@ _scene_underground_init::
 
         VM_RESERVE              4
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Call Script: Init Menu
         VM_CALL_FAR             ___bank_script_init_menu, _script_init_menu
 

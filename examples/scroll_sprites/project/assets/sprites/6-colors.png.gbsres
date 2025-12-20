@@ -950,10 +950,12 @@
     }
   ],
   "numTiles": 14,
+  "canvasOriginX": 0,
+  "canvasOriginY": 0,
   "canvasWidth": 16,
   "canvasHeight": 32,
   "boundsX": 0,
-  "boundsY": 8,
+  "boundsY": -8,
   "boundsWidth": 16,
   "boundsHeight": 8,
   "animSpeed": 15,

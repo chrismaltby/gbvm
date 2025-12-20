@@ -26,6 +26,12 @@ const struct scene_t scene_outside = {
     .parallax_rows = {
         PARALLAX_STEP(0, 0, 0)
     },
+    .scroll_bounds = {
+        .left = 0,
+        .top = 0,
+        .right = 96,
+        .bottom = 112
+    },
     .palette = TO_FAR_PTR_T(palette_3),
     .sprite_palette = TO_FAR_PTR_T(palette_6),
     .reserve_tiles = 0,

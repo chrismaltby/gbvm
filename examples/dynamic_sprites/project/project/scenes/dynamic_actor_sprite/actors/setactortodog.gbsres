@@ -5,6 +5,7 @@
   "symbol": "actor_setactortodog",
   "prefabId": "",
   "name": "SetActorToDog",
+  "coordinateType": "tiles",
   "x": 14,
   "y": 14,
   "frame": 0,

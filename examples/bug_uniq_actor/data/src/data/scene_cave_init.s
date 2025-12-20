@@ -14,6 +14,9 @@ ___bank_scene_cave_init = 255
 _scene_cave_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Timer Start
         VM_TIMER_PREPARE        1, ___bank_script_timer, _script_timer
         VM_TIMER_SET            1, 1

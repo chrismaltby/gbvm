@@ -5,6 +5,7 @@
   "symbol": "actor_setplayertonpc006",
   "prefabId": "",
   "name": "SetPlayerToNPC006",
+  "coordinateType": "tiles",
   "x": 4,
   "y": 14,
   "frame": 0,

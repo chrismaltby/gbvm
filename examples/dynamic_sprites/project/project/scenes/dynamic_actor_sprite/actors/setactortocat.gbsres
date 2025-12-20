@@ -5,6 +5,7 @@
   "symbol": "actor_setactortocat",
   "prefabId": "",
   "name": "SetActorToCat",
+  "coordinateType": "tiles",
   "x": 14,
   "y": 9,
   "frame": 0,

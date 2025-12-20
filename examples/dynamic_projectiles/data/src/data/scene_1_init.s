@@ -21,6 +21,9 @@ _scene_1_init::
 
         VM_RESERVE              5
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Wait 1 Frames
         VM_IDLE
 

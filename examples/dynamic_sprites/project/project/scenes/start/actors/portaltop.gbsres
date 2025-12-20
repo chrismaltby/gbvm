@@ -5,6 +5,7 @@
   "symbol": "actor_portaltop",
   "prefabId": "",
   "name": "PortalTop",
+  "coordinateType": "tiles",
   "x": 9,
   "y": 2,
   "frame": 0,

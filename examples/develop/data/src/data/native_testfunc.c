@@ -37,3 +37,7 @@ void check_update_running(SCRIPT_CTX * THIS) OLDCALL BANKED {
     actor_t * actor = actors + (uint8_t)*arg;
     *arg = ((actor->hscript_update == 0) || (actor->hscript_update & SCRIPT_TERMINATED)) ? 0 : 1;
 }
+
+void test_inline_asm(SCRIPT_CTX * THIS) OLDCALL BANKED {
+    THIS;
+}

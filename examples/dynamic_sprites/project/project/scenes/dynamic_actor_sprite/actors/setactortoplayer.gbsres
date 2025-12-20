@@ -5,6 +5,7 @@
   "symbol": "actor_setactortoplayer",
   "prefabId": "",
   "name": "SetActorToPlayer",
+  "coordinateType": "tiles",
   "x": 4,
   "y": 9,
   "frame": 0,

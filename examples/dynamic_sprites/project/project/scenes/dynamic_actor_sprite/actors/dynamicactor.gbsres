@@ -5,6 +5,7 @@
   "symbol": "actor_dynamicactor",
   "prefabId": "",
   "name": "DynamicActor",
+  "coordinateType": "tiles",
   "x": 9,
   "y": 7,
   "frame": 0,

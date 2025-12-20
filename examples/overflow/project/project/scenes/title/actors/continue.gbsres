@@ -5,6 +5,7 @@
   "symbol": "actor_continue",
   "prefabId": "",
   "name": "Continue",
+  "coordinateType": "tiles",
   "x": 10,
   "y": 1,
   "frame": 0,

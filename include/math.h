@@ -90,7 +90,10 @@
 #define PX_SNAP_TILE(a)     ((a) & 0xFFF8)
 
 #define SUBPX_TILE_REMAINDER(a) ((UBYTE)((a) & 0xFF))
+#define SUBPX_PX_REMAINDER(a)   ((UBYTE)((a) & 0x1F))
 #define PX_TILE_REMAINDER(a)    ((UBYTE)((a) & 0x7))
+
+#define EXCLUSIVE_OFFSET(x) ((x) + 1)
 
 #define WORD_MIN            -32768
 #define WORD_MAX            32767

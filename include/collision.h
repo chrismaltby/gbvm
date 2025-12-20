@@ -47,14 +47,8 @@ inline UBYTE bb_contains(rect16_t *bb, upoint16_t *offset, upoint16_t *point) {
  * @return Positioned bounding boxes intersect
  */
 inline UBYTE bb_intersects(rect16_t *bb_a, upoint16_t *offset_a, rect16_t *bb_b, upoint16_t *offset_b) {
-    UWORD b_left = offset_b->x + bb_b->left;
-    UWORD a_right = offset_a->x + bb_a->right;
-    if (SUBPX_TO_TILE(b_left) > SUBPX_TO_TILE(a_right)) return FALSE;
-    UWORD b_right = offset_b->x + bb_b->right;
-    UWORD a_left = offset_a->x + bb_a->left;
-    if (SUBPX_TO_TILE(b_right) < SUBPX_TO_TILE(a_left)) return FALSE;
-    if ((b_left  > a_right) ||
-        (b_right < a_left)) return FALSE;    
+    if ((offset_b->x + bb_b->left   > offset_a->x + bb_a->right) ||
+        (offset_b->x + bb_b->right  < offset_a->x + bb_a->left)) return FALSE;    
     if ((offset_b->y + bb_b->top    > offset_a->y + bb_a->bottom) ||
         (offset_b->y + bb_b->bottom < offset_a->y + bb_a->top)) return FALSE;
     return TRUE;

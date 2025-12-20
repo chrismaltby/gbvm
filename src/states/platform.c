@@ -55,6 +55,8 @@
 #define DASH_INPUT_INTERACT 0
 #define DASH_INPUT_DOUBLE_TAP 1
 #define DASH_INPUT_DOWN_JUMP 2
+#define DASH_INPUT_A 3
+#define DASH_INPUT_B 4
 
 #define JUMP_TYPE_NONE 0
 #define JUMP_TYPE_GROUND 1
@@ -106,13 +108,19 @@
 
 #define COL_CHECK_ALL COL_CHECK_X | COL_CHECK_Y | COL_CHECK_ACTORS | COL_CHECK_TRIGGERS | COL_CHECK_WALLS
 
-#define COLLISION_SLOPE_45_RIGHT 0x20
-#define COLLISION_SLOPE_225_RIGHT_BOT 0x40
-#define COLLISION_SLOPE_225_RIGHT_TOP 0x60
-#define COLLISION_SLOPE_45_LEFT 0x30
-#define COLLISION_SLOPE_225_LEFT_BOT 0x50
-#define COLLISION_SLOPE_225_LEFT_TOP 0x70
-#define COLLISION_SLOPE 0xF0
+#define COLLISION_SLOPE_LEFT          0x10u
+#define COLLISION_SLOPE_45            0x20u
+#define COLLISION_SLOPE_225_BOT       0x40u
+#define COLLISION_SLOPE_225_TOP       (COLLISION_SLOPE_45 | COLLISION_SLOPE_225_BOT)
+#define COLLISION_SLOPE_45_RIGHT      COLLISION_SLOPE_45
+#define COLLISION_SLOPE_225_RIGHT_BOT COLLISION_SLOPE_225_BOT
+#define COLLISION_SLOPE_225_RIGHT_TOP COLLISION_SLOPE_225_TOP
+#define COLLISION_SLOPE_45_LEFT       (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_45)
+#define COLLISION_SLOPE_225_LEFT_BOT  (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_225_BOT) 
+#define COLLISION_SLOPE_225_LEFT_TOP  (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_225_TOP)
+#define COLLISION_SLOPE_ANY           (COLLISION_SLOPE_45 | COLLISION_SLOPE_225_BOT | COLLISION_SLOPE_225_TOP)
+#define COLLISION_SLOPE               0x70u
+
 
 #define PLATFORM_ANIM_OVERRIDES_SET \
     defined(PLATFORM_FALL_ANIM) || \
@@ -129,10 +137,10 @@
 
 // Macros ---------------------------------------------------------------------
 
-#define IS_ON_SLOPE(t) ((t) & 0x60)
-#define IS_SLOPE_LEFT(t) ((t) & 0x10)
-#define IS_SLOPE_RIGHT(t) (((t) & 0x10) == 0)
-#define IS_LADDER(t) (((t) & 0xF0) == 0x10)
+#define IS_ON_SLOPE(t) ((t) & COLLISION_SLOPE_ANY)
+#define IS_SLOPE_LEFT(t) ((t) & COLLISION_SLOPE_LEFT)
+#define IS_SLOPE_RIGHT(t) (!((t) & COLLISION_SLOPE_LEFT))
+#define IS_LADDER(t) (((t) & COLLISION_SLOPE) == TILE_PROP_LADDER)
 #define VEL_TO_SUBPX(v) ((((v) & 0x8000) ? (((v) >> 8) | 0xFF00) : ((v) >> 8)) << 1)
 
 #define COUNTER_DECREMENT(x)                                                                                           \
@@ -279,6 +287,7 @@ BYTE plat_wall_col;            // the wall type that the player is touching this
 BYTE plat_last_wall_col;       // tracks the last wall the player touched
 
 // Dash
+UBYTE plat_dash_pressed;       // Tracks if the dash input was pressed this frame
 UBYTE plat_dash_cooldown_timer;// tracks the current amount before the dash is ready
 WORD plat_dash_per_frame;      // Takes overall dash distance and holds the amount per-frame
 UBYTE plat_dash_currentframe;  // Tracks the current frame of the overall dash
@@ -379,7 +388,11 @@ inline UBYTE dash_input_pressed(void)
       return FALSE;
     }
 #if INPUT_PLATFORM_DASH == DASH_INPUT_INTERACT
-    return INPUT_PRESSED(INPUT_PLATFORM_INTERACT)
+    return INPUT_PRESSED(INPUT_PLATFORM_INTERACT);
+#elif INPUT_PLATFORM_DASH == DASH_INPUT_A
+    return INPUT_PRESSED(INPUT_A);
+#elif INPUT_PLATFORM_DASH == DASH_INPUT_B
+    return INPUT_PRESSED(INPUT_B);    
 #elif INPUT_PLATFORM_DASH == DASH_INPUT_DOUBLE_TAP
     // Double-Tap Dash
     if (INPUT_PRESSED(INPUT_LEFT))
@@ -432,6 +445,51 @@ inline void plat_restore_default_anim_state(void)
     }
 }
 
+#endif
+
+static void state_enter_fall(void);      
+static void state_exit_fall(void);      
+static void state_update_fall(void);
+static void state_enter_ground(void);    
+static void state_exit_ground(void);    
+static void state_update_ground(void);
+#ifdef FEAT_PLATFORM_JUMP
+static void state_enter_jump(void);      
+static void state_exit_jump(void);      
+static void state_update_jump(void);
+#endif
+#ifdef FEAT_PLATFORM_DASH
+static void state_enter_dash(void);      
+static void state_exit_dash(void);      
+static void state_update_dash(void);
+#endif
+#ifdef FEAT_PLATFORM_LADDERS
+static void state_enter_ladder(void);    
+static void state_exit_ladder(void);    
+static void state_update_ladder(void);
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
+static void state_enter_wall(void);      
+static void state_exit_wall(void);      
+static void state_update_wall(void);
+#endif
+#ifdef FEAT_PLATFORM_KNOCKBACK
+static void state_enter_knockback(void); 
+static void state_exit_knockback(void); 
+static void state_update_knockback(void);
+#endif
+#ifdef FEAT_PLATFORM_BLANK
+static void state_enter_blank(void);     
+static void state_exit_blank(void);     
+static void state_update_blank(void);
+#endif
+#ifdef FEAT_PLATFORM_RUN
+static void state_enter_run(void);       
+static void state_exit_run(void);       
+#endif
+#ifdef FEAT_PLATFORM_FLOAT
+static void state_enter_float(void);     
+static void state_exit_float(void);     
 #endif
 
 // End of Function Definitions ------------------------------------------------
@@ -530,63 +588,58 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
-            plat_callback_execute(FALL_END);
+            state_exit_fall();
             break;
         }
-
 #ifdef FEAT_PLATFORM_FLOAT
         case FLOAT_STATE: {
-            plat_callback_execute(FLOAT_END);
+            state_exit_float();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_JUMP        
         case JUMP_STATE: {
-            plat_callback_execute(JUMP_END);
+            state_exit_jump();
             break;
         }
 #endif
         case GROUND_STATE: {
-            plat_callback_execute(GROUND_END);
+            state_exit_ground();
             break;
         }
 #ifdef FEAT_PLATFORM_RUN
         case RUN_STATE: {
-            plat_callback_execute(RUN_END);
+            state_exit_run();
             break;
         }  
 #endif      
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
-            plat_ladder_block_v = TRUE;
-            plat_callback_execute(LADDER_END);
+            state_exit_ladder();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
-            plat_callback_execute(DASH_END);
+            state_exit_dash();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
-            plat_callback_execute(WALL_END);
+            state_exit_wall();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
-            plat_vel_x = 0;
-            plat_callback_execute(KNOCKBACK_END);
+            state_exit_knockback();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_BLANK
         case BLANK_STATE: {
-            plat_vel_x = 0;
-            plat_vel_y = 0;
-            plat_callback_execute(BLANK_END);
+            state_exit_blank();
             break;
         }
 #endif
@@ -599,183 +652,60 @@ void platform_update(void) BANKED
         switch (plat_state)
         {
         case FALL_STATE: {
-            plat_grounded = FALSE;
-            plat_is_actor_attached = FALSE;
-#ifdef PLATFORM_FALL_ANIM
-            plat_set_player_anim_state(PLATFORM_FALL_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(FALL_INIT);
+            state_enter_fall();
             break;
         }
 
 #ifdef FEAT_PLATFORM_FLOAT
         case FLOAT_STATE: {
-#ifdef PLATFORM_FLOAT_ANIM
-            plat_set_player_anim_state(PLATFORM_FLOAT_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(FLOAT_INIT);
+            state_enter_float();
             break;
         }
 #endif
 
 #ifdef FEAT_PLATFORM_JUMP        
         case JUMP_STATE: {
-            // Right now this has a limited use for triggered jumps because
-            // many of the jump effects depend on testing
-            // INPUT_PLATFORM_JUMP But if the player switches to this state
-            // without pressing jump, then these won't fire...
-            plat_grounded = FALSE;
-            plat_hold_jump_timer = plat_jump_hold_frames;
-            plat_is_actor_attached = FALSE;
-            plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            plat_coyote_timer = 0;
-            plat_jump_buffer_timer = 0;
-#endif
-#ifdef FEAT_PLATFORM_WALL_JUMP
-            plat_coyote_timer = 0;
-#endif
-            plat_jump_vel_per_frame = plat_jump_hold_vel;
-            // Calculate jump boost value based on horizontal velocity
-            if (plat_run_boost != 0) {
-                UWORD abs_vel_x = MAX(plat_vel_x, -plat_vel_x);
-#ifdef FEAT_PLATFORM_RUN                
-                UBYTE boost_ratio = abs_vel_x / (plat_run_vel >> 7);
-#else
-                UBYTE boost_ratio = abs_vel_x / (plat_walk_vel >> 7);
-#endif
-                plat_jump_vel_per_frame += boost_ratio * (plat_run_boost >> 7);
-            }
-
-#ifdef PLATFORM_JUMP_ANIM
-            plat_set_player_anim_state(PLATFORM_JUMP_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET
-            plat_restore_default_anim_state();
-#endif
-
-            plat_callback_execute(JUMP_INIT);
+            state_enter_jump();
             break;
         }
 #endif
         case GROUND_STATE: {
-            plat_vel_y = 0;
-            plat_jump_type = JUMP_TYPE_NONE;
-#ifdef FEAT_PLATFORM_WALL_JUMP
-            plat_coyote_timer = 0;
-            plat_wall_jump_counter = plat_wall_jump_max;
-#endif
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            plat_coyote_timer = plat_coyote_frames;
-#endif
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-            plat_drop_timer = 0;
-#endif
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            plat_extra_jumps_counter = plat_extra_jumps;
-#endif
-            plat_jump_reduction_vel = 0;
-#if PLATFORM_ANIM_OVERRIDES_SET
-            plat_restore_default_anim_state();
-#endif
-            actor_set_dir(&PLAYER, PLAYER.dir, TRUE);
-            plat_callback_execute(GROUND_INIT);
+            state_enter_ground();
             break;
         }
 #ifdef FEAT_PLATFORM_RUN
         case RUN_STATE: {
-#ifdef PLATFORM_RUN_ANIM
-            plat_set_player_anim_state(PLATFORM_RUN_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(RUN_INIT);
+            state_enter_run();
             break;
         }  
 #endif
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
-            plat_jump_type = JUMP_TYPE_NONE;
-            plat_ladder_block_h = TRUE;
-#ifdef PLATFORM_LADDERS_ANIM
-            plat_set_player_anim_state(PLATFORM_LADDERS_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(LADDER_INIT);
+            state_enter_ladder();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_DASH
         case DASH_STATE: {
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            plat_coyote_timer = plat_coyote_frames;
-#endif
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            plat_extra_jumps_counter = plat_extra_jumps;
-#endif
-            dash_init();
-            if (plat_next_state != DASH_STATE) {
-                // Break out if dash not allowed
-                return;
-            }
-#ifdef PLATFORM_DASH_ANIM
-            plat_set_player_anim_state(PLATFORM_DASH_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(DASH_INIT);
+            state_enter_dash();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
         case WALL_STATE: {
-            plat_jump_type = JUMP_TYPE_NONE;
-            plat_run_stage = RUN_STAGE_NONE;
-#ifdef PLATFORM_WALL_SLIDE_ANIM
-            plat_set_player_anim_state(PLATFORM_WALL_SLIDE_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(WALL_INIT);
+            state_enter_wall();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
         case KNOCKBACK_STATE: {
-            player_set_jump_anim();
-            plat_run_stage = RUN_STAGE_NONE;
-            plat_jump_type = JUMP_TYPE_NONE;
-            plat_vel_x = PLAYER.dir == DIR_RIGHT ? -plat_knockback_vel_x : plat_knockback_vel_x;
-            plat_vel_y = -plat_knockback_vel_y;
-            plat_grounded = FALSE;
-            plat_knockback_timer = plat_knockback_frames;
-            plat_drop_timer = 0;
-#ifdef PLATFORM_KNOCKBACK_ANIM
-            plat_set_player_anim_state(PLATFORM_KNOCKBACK_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(KNOCKBACK_INIT);
+            state_enter_knockback();
             break;
         }
 #endif
 #ifdef FEAT_PLATFORM_BLANK
         case BLANK_STATE: {
-            plat_vel_x = 0;
-            plat_vel_y = 0;
-            plat_grounded = FALSE;
-            plat_run_stage = RUN_STAGE_NONE;
-            plat_jump_type = JUMP_TYPE_NONE;
-#ifdef PLATFORM_BLANK_ANIM
-            plat_set_player_anim_state(PLATFORM_BLANK_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
-            plat_restore_default_anim_state();
-#endif
-            plat_callback_execute(BLANK_INIT);
+            state_enter_blank();
             break;
         }
 #endif
@@ -791,7 +721,7 @@ void platform_update(void) BANKED
 
 #ifdef FEAT_PLATFORM_DASH
     // Dash Input Check
-    UBYTE dash_press = dash_input_pressed();
+    plat_dash_pressed = dash_input_pressed();
 #endif
 
     // B. STATE MACHINE =======================================================
@@ -801,840 +731,54 @@ void platform_update(void) BANKED
 
     case FALL_STATE:
     case FLOAT_STATE: {
-        // Keep this here, rather than in init, so that
-        // we can easily track float as a jump type
-        plat_jump_type = JUMP_TYPE_NONE;
-
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-        if (drop_input_pressed())
-        {
-            plat_drop_timer = DROP_FRAMES_MAX;
-            plat_is_actor_attached = FALSE;
-        }
-#endif
-
-        // Vertical Movement ----------------------------------------------
-
-#ifdef FEAT_PLATFORM_FLOAT
-        UBYTE float_pressed = float_input_pressed();
-        if (plat_state != FLOAT_STATE && float_pressed) {
-            plat_next_state = FLOAT_STATE;
-            break;
-        } else if (plat_state == FLOAT_STATE && !float_pressed) {
-            plat_next_state = FALL_STATE;
-            break;
-        }
-
-        if (plat_state == FLOAT_STATE && plat_vel_y >= 0 && !plat_drop_timer)
-        {
-            plat_jump_type = JUMP_TYPE_FLOATING;
-            plat_vel_y = plat_float_vel;
-        }
-        else
-#endif
-        if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
-        {
-            // Gravity while holding jump
-            plat_vel_y += plat_hold_grav;
-            plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
-        }
-        else
-        {
-            // Normal gravity
-            plat_vel_y += plat_grav;
-            plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
-        }
-
-        // Collision ------------------------------------------------------
-        // Vertical Collision Checks
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-        plat_temp_y = PLAYER.pos.y;
-
-        // Horizontal Movement --------------------------------------------
-        if (plat_nocontrol_h_timer != 0 || plat_air_control == 0)
-        {
-            // No horizontal input
-            plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
-        }
-        else
-        {
-            handle_horizontal_input();
-        }
-
-        move_and_collide(COL_CHECK_ALL);
-
-        // ANIMATION ------------------------------------------------------
-        player_set_jump_anim();
-
-        // STATE CHANGE ---------------------------------------------------
-        // Above: FALL -> GROUND in basic_y_col()
-
-#ifdef FEAT_PLATFORM_WALL_JUMP
-        // FALL -> WALL check
-        wall_check();
-#endif
-
-#ifdef FEAT_PLATFORM_DASH
-        // FALL -> DASH check
-        if (dash_press && plat_dash_cooldown_timer == 0)
-        {
-            if (plat_dash_from & DASH_FROM_AIR)
-            {
-                if (plat_wall_col == WALL_COL_NONE || (plat_wall_col == WALL_COL_RIGHT && !INPUT_RIGHT) ||
-                    (plat_wall_col == WALL_COL_LEFT && !INPUT_LEFT))
-                {
-                    plat_next_state = DASH_STATE;
-                    break;
-                }
-            }
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_JUMP
-        // FALL -> JUMP check
-        if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
-        {
-#ifdef FEAT_PLATFORM_WALL_JUMP
-            // Wall Jump
-            if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
-            {
-                plat_jump_type = JUMP_TYPE_WALL;
-                plat_wall_jump_counter--;
-                plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
-                plat_vel_x += (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
-                plat_next_state = JUMP_STATE;
-                break;
-            }
-#endif
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            if (plat_coyote_timer != 0)
-            {
-                // Coyote Time Jump
-                plat_jump_type = JUMP_TYPE_GROUND;
-                plat_next_state = JUMP_STATE;
-                break;
-            }
-#endif
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            if (plat_extra_jumps_counter != 0)
-            {
-                // Double Jump
-                plat_jump_type = JUMP_TYPE_DOUBLE;
-                if (plat_extra_jumps_counter != UNLIMITED_JUMPS)
-                {
-                    plat_extra_jumps_counter--;
-                }
-                plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
-                plat_jump_reduction_vel += plat_jump_reduction;
-                plat_next_state = JUMP_STATE;
-                break;
-            }
-#endif
-
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            // Setting the Jump Buffer when jump is pressed while not on ground
-            plat_jump_buffer_timer = plat_jump_buffer_frames;
-#endif
-
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_LADDERS
-        // FALL -> LADDER Check
-        ladder_check();
-#endif
-
-        // Counting down No Control frames
-        // Set in Wall and Fall states, checked in Fall and Jump states
-        COUNTER_DECREMENT(plat_nocontrol_h_timer);
-
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-        // Counting down Coyote Time Window
-        // Set in ground and checked in fall state
-        COUNTER_DECREMENT(plat_coyote_timer);
-        //  Counting down Jump Buffer Window
-        //  Set in Fall and checked in Ground state
-        COUNTER_DECREMENT(plat_jump_buffer_timer);
-#endif
-#ifdef FEAT_PLATFORM_WALL_JUMP
-        // Counting down Wall Coyote Time
-        //  Set in collisions and checked in fall state
-        COUNTER_DECREMENT_IF(plat_coyote_timer, plat_wall_col == WALL_COL_NONE);
-#endif
-
+        state_update_fall();
         break;
     }
 
     case GROUND_STATE:
     case RUN_STATE: {
-        // Add X & Y motion from moving platforms
-        // Transform velocity into positional data, to keep the precision of
-        // the platform's movement
-        plat_grounded = true;
-
-#ifdef FEAT_PLATFORM_DROP_THROUGH
-        if (drop_input_pressed())
-        {
-            plat_drop_timer = DROP_FRAMES_MAX;
-            plat_is_actor_attached = FALSE;
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_RUN
-        const UBYTE running = INPUT_PLATFORM_RUN;
-        if (plat_state == GROUND_STATE && running) {
-            plat_next_state = RUN_STATE;
-            break;
-        } else if (plat_state == RUN_STATE && !running) {
-            plat_next_state = GROUND_STATE;
-            break;
-        }
-#endif
-
-        if (plat_is_actor_attached)
-        {
-            // If the platform has been disabled, detach the player
-            if (plat_attached_actor->disabled == TRUE)
-            {
-                plat_next_state = FALL_STATE;
-                plat_is_actor_attached = FALSE;
-            }
-            // If the player is off the platform to the right, detach
-            // from the platform
-            else if (PLAYER.pos.x + PLAYER.bounds.left >
-                     plat_attached_actor->pos.x + PX_TO_SUBPX(1) + plat_attached_actor->bounds.right)
-            {
-                plat_next_state = FALL_STATE;
-                plat_is_actor_attached = FALSE;
-            }
-            // If the player is off the platform to the left, detach
-            else if (PLAYER.pos.x + PX_TO_SUBPX(1) + PLAYER.bounds.right <
-                     plat_attached_actor->pos.x + plat_attached_actor->bounds.left)
-            {
-                plat_next_state = FALL_STATE;
-                plat_is_actor_attached = FALSE;
-            }
-            // Otherwise, add any change in movement from platform
-            else
-            {
-                plat_delta_x += (plat_attached_actor->pos.x - plat_attached_prev_x);
-                plat_attached_prev_x = plat_attached_actor->pos.x;
-            }
-
-            // If we're on a platform, zero out any other motion from
-            // gravity or other sources
-            plat_vel_y = 0;
-
-            // Add any change from the platform we're standing on
-            plat_delta_y += plat_attached_actor->pos.y - plat_attached_prev_y;
-
-            // We're setting these to the platform's position, rather than
-            // the actor so that if something causes the player to detach
-            // (like hitting the roof), they won't automatically get
-            // re-attached in the subsequent actor collision step.
-            plat_attached_prev_y = plat_attached_actor->pos.y;
-            plat_temp_y = plat_attached_actor->pos.y;
-        }
-        else
-        {
-
-            // Normal gravity
-            plat_vel_y += plat_grav;
-            plat_temp_y = PLAYER.pos.y;
-            // queue falling state which will be set back to ground
-            // if collision is detected in move_and_collide
-            plat_next_state = FALL_STATE;
-        }
-
-        // Add Collision Offset from Moving Platforms
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-
-        handle_horizontal_input();
-        move_and_collide(COL_CHECK_ALL);
-
-#ifdef FEAT_PLATFORM_RUN
-        if (running && (plat_next_state == GROUND_STATE))
-        {
-            plat_next_state = RUN_STATE;
-        }
-#endif
-
-        // ANIMATION ------------------------------------------------------
-
-        if (INPUT_LEFT)
-        {
-            actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
-        }
-        else if (INPUT_RIGHT)
-        {
-            actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
-        }
-        else if (plat_vel_x == 0)
-        {
-            actor_set_anim_idle(&PLAYER);
-        }
-
-#ifdef FEAT_PLATFORM_DASH
-        // GROUND -> DASH Check
-        if (dash_press && (plat_dash_from & DASH_FROM_GROUND) && plat_dash_cooldown_timer == 0)
-        {
-            plat_next_state = DASH_STATE;
-            break;
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_JUMP
-        // GROUND -> JUMP Check
-        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && !did_interact_actor && !plat_drop_timer)
-        {
-            // Standard Jump
-            plat_jump_type = JUMP_TYPE_GROUND;
-            plat_next_state = JUMP_STATE;
-            break;
-        }
-        plat_jump_buffer_timer = 0;
-#endif
-
-#ifdef FEAT_PLATFORM_LADDERS
-        // GROUND -> LADDER Check
-        ladder_check();
-#endif
-
+        state_update_ground();
         break;
     }
 
 #ifdef FEAT_PLATFORM_JUMP
     case JUMP_STATE: {
-        // Vertical Movement ----------------------------------------------
-        // hold_jump_valump force during each jump frame
-        if (plat_hold_jump_timer != 0 && INPUT_PLATFORM_JUMP)
-        {
-            // Add the boost per frame amount.
-            plat_vel_y -= plat_jump_vel_per_frame;
-
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            // Reduce subsequent jump amounts (for double jumps)
-            WORD reduced_vel_y = plat_vel_y + plat_jump_reduction_vel;
-            plat_vel_y = MIN(reduced_vel_y, 0);
-#endif
-
-            // Handle jump velocity overflow 
-            if (plat_vel_y > 0) {
-                plat_vel_y = WORD_MIN;
-            }
- 
-            plat_hold_jump_timer--;
-        }
-        else if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
-        {
-            // After the jump frames end, use the reduced gravity
-            plat_vel_y += plat_hold_grav;
-        }
-        else if (plat_vel_y >= 0)
-        {
-            plat_next_state = FALL_STATE;
-            plat_vel_y += plat_grav;
-        }
-        else
-        {
-            plat_vel_y += plat_grav;
-        }
-
-        plat_temp_y = PLAYER.pos.y;
-        // Start DeltaX with Actor offsets
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-
-        // Horizontal Movement --------------------------------------------
-        if (plat_nocontrol_h_timer != 0 || plat_air_control == 0)
-        {
-            // If the player doesn't have control of their horizontal
-            // movement, skip acceleration phase
-            plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
-        }
-        else
-        {
-            handle_horizontal_input();
-        }
-
-        move_and_collide(COL_CHECK_ALL);
-
-        // ANIMATION ------------------------------------------------------
-        player_set_jump_anim();
-
-        // STATE CHANGE ---------------------------------------------------
-        // Above: JUMP-> NEUTRAL when a) player starts descending, b) player
-        // hits roof, c) player stops pressing, d)jump frames run out.
-
-#ifdef FEAT_PLATFORM_WALL_JUMP
-        if (!plat_air_control)
-        {
-            // If air control is disabled collisions with a wall while jumping
-            // will prevent wall_check() from registering in FALL_STATE so instead
-            // need to check here and switch to WALL_STATE if hit
-            wall_check();
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_DASH
-        // JUMP -> DASH check
-        if (dash_press && plat_dash_cooldown_timer == 0)
-        {
-#ifdef FEAT_PLATFORM_COYOTE_TIME
-            if ((plat_dash_from & DASH_FROM_AIR) || plat_coyote_timer != 0)
-#else
-            if ((plat_dash_from & DASH_FROM_AIR))
-#endif
-            {
-                plat_next_state = DASH_STATE;
-                break;
-            }
-        }
-#endif
-
-        // JUMP -> JUMP check
-        if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
-        {
-#ifdef FEAT_PLATFORM_WALL_JUMP
-            // Wall Jump
-            if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
-            {
-                plat_jump_type = JUMP_TYPE_WALL;
-                plat_wall_jump_counter--;
-                plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
-                plat_vel_x = (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
-                plat_next_state = JUMP_STATE;
-            }
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            else
-#endif
-#endif
-#ifdef FEAT_PLATFORM_DOUBLE_JUMP
-            if (plat_extra_jumps_counter != 0)
-            {
-                // Double Jump
-                plat_jump_type = JUMP_TYPE_DOUBLE;
-                if (plat_extra_jumps_counter != UNLIMITED_JUMPS)
-                {
-                    plat_extra_jumps_counter--;
-                }
-                plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
-                plat_jump_reduction_vel += plat_jump_reduction;
-                plat_next_state = JUMP_STATE;
-            }
-#endif
-            break;
-        }
-
-#ifdef FEAT_PLATFORM_LADDERS
-        // JUMP -> LADDER check
-        ladder_check();
-#endif
-
-        // Counting down No Control frames
-        // Set in Wall and Fall states, checked in Fall and Jump states
-        COUNTER_DECREMENT(plat_nocontrol_h_timer);
-
+        state_update_jump();
         break;
     }
 #endif
 
 #ifdef FEAT_PLATFORM_DASH
     case DASH_STATE: {
-        BYTE dir = (PLAYER.dir == DIR_LEFT ? -1 : 1);
-        WORD remaining_dash_dist = plat_dash_per_frame;
-
-        plat_vel_x = plat_run_vel * dir;
-#ifdef FEAT_PLATFORM_DASH_USE_GRAVITY
-        plat_delta_y = VEL_TO_SUBPX(plat_grav);
-#endif
-
-        while (remaining_dash_dist)
-        {
-            WORD dist = MIN(remaining_dash_dist, MAX_DELTA);
-            plat_delta_x = dist * dir;
-            move_and_collide(plat_dash_mask);
-            remaining_dash_dist -= dist;
-        }
-
-        plat_dash_currentframe--;
-        if (plat_dash_currentframe == 0)
-        {
-            plat_next_state = FALL_STATE;
-            plat_vel_x = 0;
-        }
-
-#ifdef FEAT_PLATFORM_JUMP
-        // DASH -> JUMP Check
-        if (
-            // Jump pressed or was buffered + Not falling through a platform
-            (INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && !plat_drop_timer
-        ) {
-            // Check if grounded
-            UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
-            UBYTE tile_x_mid = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left + p_half_width);
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
-            plat_grounded = tile_at(tile_x_mid, tile_y) & (COLLISION_TOP | COLLISION_SLOPE);
-
-            if (
-                // Can dash from ground and is grounded (or coyote time)
-                ((plat_dash_jump_from & DASH_FROM_GROUND) && plat_grounded)
-                ||
-                // Or can dash from air and is not grounded
-                ((plat_dash_jump_from & DASH_FROM_AIR) && !plat_grounded)
-            ) {
-                // Standard Jump
-                plat_jump_type = JUMP_TYPE_GROUND;
-                plat_next_state = JUMP_STATE;
-                break;
-            }
-        }
-        plat_jump_buffer_timer = 0;
-#endif
+        state_update_dash();
         break;
     }
 #endif
 
 #ifdef FEAT_PLATFORM_LADDERS
     case LADDER_STATE: {
-        // For positioning the player in the middle of the ladder
-        UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
-        UBYTE tile_x_mid = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left + p_half_width);
-        plat_vel_x = 0;
-        plat_vel_y = 0;
-
-#if defined(FEAT_PLATFORM_DASH)
-        // LADDER -> DASH Check
-        if (dash_press && (plat_dash_from & DASH_FROM_LADDER) && plat_dash_cooldown_timer == 0)
-        {
-            plat_next_state = DASH_STATE;
-
-            UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-            UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
-            UBYTE tile_x = tile_x_mid + (PLAYER.dir == DIR_LEFT ? -1 : 1);
-            UBYTE tile_edge = (PLAYER.dir == DIR_LEFT ? COLLISION_RIGHT : COLLISION_LEFT);
-
-            while (tile_start != tile_end)
-            {
-                UBYTE tile = tile_at(tile_x, tile_start);
-                if (tile & tile_edge)
-                {
-                    plat_next_state = LADDER_STATE; // If there is a wall, cancel dash.
-                    break;
-                }
-                tile_start++;
-            }
-
-            break;
-        }
-#endif
-
-#if defined(FEAT_PLATFORM_JUMP) && defined(FEAT_PLATFORM_LADDERS_DROP)
-        // LADDER -> FALL check
-        if (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))
-        {
-            plat_next_state = FALL_STATE;
-            break;
-        }
-#endif
-
-#if defined(FEAT_PLATFORM_JUMP) && defined(FEAT_PLATFORM_LADDERS_JUMP)
-        // LADDER -> JUMP check
-        if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
-        {
-            plat_jump_type = JUMP_TYPE_GROUND;
-            plat_next_state = JUMP_STATE;
-            break;
-        }
-#endif
-
-        if (INPUT_UP)
-        {
-            // Climb laddder
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top + PX_TO_SUBPX(1));
-            // Check if the tile above the player is a ladder tile. If so add ladder velocity
-            if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
-            {
-                plat_vel_y = -plat_climb_vel;
-            }
-            // If reached the top of ladder and tile just below can be stood on then let go of ladder
-            else if (tile_at(tile_x_mid, SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) &
-                     COLLISION_TOP)
-            {
-                plat_next_state = GROUND_STATE;
-                PLAYER.pos.y = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) - PLAYER.bounds.bottom - 1;
-                break;
-            }
-#if defined(FEAT_PLATFORM_LADDERS_HOP) && defined(FEAT_PLATFORM_JUMP)
-            else {
-                plat_next_state = JUMP_STATE;
-            }
-#endif
-        }
-        else if (INPUT_DOWN)
-        {
-            // Descend ladder
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom + PX_TO_SUBPX(1));
-            UBYTE tile = tile_at(tile_x_mid, tile_y);
-            // If tile below is still a ladder climb down
-            if (IS_LADDER(tile))
-            {
-                plat_vel_y = plat_climb_vel;
-            }
-            // If reached bottom of ladder then let go
-            else if (tile & COLLISION_TOP)
-            {
-                plat_next_state = GROUND_STATE;
-                PLAYER.pos.y = TILE_TO_SUBPX(tile_y) - PLAYER.bounds.bottom - 1;
-                break;
-            }
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-            else
-            {
-                plat_next_state = FALL_STATE; // Reached bottom of ladder with no platform below so fall off
-            }
-#endif
-        }
-
-        if (plat_ladder_block_h)
-        {
-            // Need to have released left/right since
-            // joining the ladder to allow horizontal movement
-            if (!(INPUT_LEFT | INPUT_RIGHT)) {
-                plat_ladder_block_h = FALSE;
-            }
-        }
-        else if (INPUT_LEFT)
-        {
-            PLAYER.dir = DIR_LEFT;
-
-            // If tile below player can be stood on then let go of ladder
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
-            UBYTE tile = tile_at(tile_x_mid, tile_y);
-            if (tile & COLLISION_TOP)
-            {
-                plat_vel_x = 0;
-                plat_next_state = FALL_STATE;
-                break;
-            }
-
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-            plat_next_state = FALL_STATE;
-#endif
-
-            UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-            UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
-            while (tile_start != tile_end)
-            {
-                UBYTE tile = tile_at(tile_x_mid - 1, tile_start);
-                if (IS_LADDER(tile))
-                {
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-                    plat_next_state = LADDER_STATE; // If there is a ladder, stay on the ladder.
-#endif
-                    plat_vel_x = -plat_climb_vel;
-                    break;
-                }
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-                else if (tile & COLLISION_RIGHT)
-                {
-                    plat_next_state = LADDER_STATE; // If there is a wall, stay on the ladder.
-                    break;
-                }
-#endif
-                tile_start++;
-            }
-        }
-        else if (INPUT_RIGHT)
-        {
-            PLAYER.dir = DIR_RIGHT;
-
-            // If tile below player can be stood on then let go of ladder
-            UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
-            UBYTE tile = tile_at(tile_x_mid, tile_y);
-            if (tile & COLLISION_TOP)
-            {
-                plat_vel_x = 0;
-                plat_next_state = FALL_STATE;
-                break;
-            }
-
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-            plat_next_state = FALL_STATE;
-#endif
-
-            // Check if able to leave ladder on right
-            UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
-            UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
-            while (tile_start != tile_end)
-            {
-                UBYTE tile = tile_at(tile_x_mid + 1, tile_start);
-                if (IS_LADDER(tile))
-                {
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-                    plat_next_state = LADDER_STATE; // If there is a ladder, stay on the ladder.
-#endif
-                    plat_vel_x = plat_climb_vel;
-                    break;
-                }
-#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
-                else if (tile & COLLISION_LEFT)
-                {
-                    plat_next_state = LADDER_STATE;
-                    break;
-                }
-#endif
-                tile_start++;
-            }
-        }
-        PLAYER.pos.x += VEL_TO_SUBPX(plat_vel_x);
-        PLAYER.pos.y += VEL_TO_SUBPX(plat_vel_y);
-
-        // Animation---------------------------------------------------------------
-        if (plat_vel_x == 0 && plat_vel_y == 0)
-        {
-#ifdef PLATFORM_LADDERS_ANIM
-            actor_set_anim_idle(&PLAYER);
-#else
-            actor_stop_anim(&PLAYER);
-#endif            
-        } else {
-            actor_set_anim(&PLAYER, ANIM_CLIMB);
-        }
-
-        // State Change------------------------------------------------------------
-        // Collision logic provides options for exiting to Neutral
-
-        move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
-
+        state_update_ladder();
         break;
     }
 #endif
 
 #ifdef FEAT_PLATFORM_WALL_JUMP
     case WALL_STATE: {
-        // Vertical Movement ----------------------------------------------
-        // WALL SLIDE
-        if (plat_vel_y < 0)
-        {
-            // If the player is still ascending, don't apply wall-gravity
-            plat_vel_y += plat_grav;
-        }
-        else if (plat_wall_slide)
-        {
-            // If the toggle is on, use wall gravity
-            plat_vel_y = plat_wall_slide_vel;
-        }
-        else
-        {
-            // Otherwise use regular gravity
-            plat_vel_y += plat_grav;
-        }
-
-        // Collision ------------------------------------------------------
-        // Vertical Collision Checks
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-        plat_temp_y = PLAYER.pos.y;
-
-        handle_horizontal_input();
-        move_and_collide(COL_CHECK_ALL);
-
-        // ANIMATION ------------------------------------------------------
-        // Face away from walls
-        if (plat_wall_col == WALL_COL_RIGHT)
-        {
-            actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
-        }
-        else if (plat_wall_col == WALL_COL_LEFT)
-        {
-            actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
-        }
-
-        // STATE CHANGE ---------------------------------------------------
-        // Above, basic_y_col can cause WALL -> GROUNDED.
-        // Exit state as baseline
-        // WALL CHECK
-        wall_check();
-
-#ifdef FEAT_PLATFORM_DASH
-        // WALL -> DASH Check
-        if (dash_press && (plat_dash_from & DASH_FROM_AIR) && plat_dash_cooldown_timer == 0)
-        {
-            if ((plat_wall_col == WALL_COL_RIGHT && !INPUT_RIGHT) || (plat_wall_col == WALL_COL_LEFT && !INPUT_LEFT))
-            {
-                plat_next_state = DASH_STATE;
-                break;
-            }
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_JUMP
-        // WALL -> JUMP Check
-        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && plat_wall_jump_counter != 0)
-        {
-            // Wall Jump
-            plat_wall_jump_counter--;
-            plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
-            plat_vel_x = (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
-            plat_jump_type = JUMP_TYPE_WALL;
-            plat_next_state = JUMP_STATE;
-            break;
-        }
-#endif
-
-#ifdef FEAT_PLATFORM_LADDERS
-        // WALL -> LADDER Check
-        ladder_check();
-#endif
-
+        state_update_wall();
         break;
     }
 #endif
 
 #ifdef FEAT_PLATFORM_KNOCKBACK
     case KNOCKBACK_STATE: {
-        // Horizontal Movement --------------------------------------------
-
-        // Horizontal deceleration
-        plat_vel_x = (plat_vel_x < 0)
-            ? MIN(plat_vel_x + plat_air_dec, 0)
-            : MAX(plat_vel_x - plat_air_dec, 0);
-        plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
-
-        // Vertical Movement ----------------------------------------------
-
-        // Normal gravity        
-        plat_vel_y += plat_grav;
-        plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-
-        // Collision ------------------------------------------------------
-
-        move_and_collide(COL_CHECK_ALL);
-
-        // Counters -------------------------------------------------------
-        
-        COUNTER_DECREMENT(plat_knockback_timer);
-        if (plat_knockback_timer != 0) {
-            plat_next_state = KNOCKBACK_STATE;
-        }
-
+        state_update_knockback();
         break;
     }
 #endif
 
 #ifdef FEAT_PLATFORM_BLANK
     case BLANK_STATE: {
-
-        // Vertical Movement ----------------------------------------------
-
-        plat_vel_y += plat_blank_grav;
-        plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
-        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
-
-        // Collision ------------------------------------------------------
-
-        move_and_collide(COL_CHECK_Y);
-        
+        state_update_blank();
         break;
     }
 #endif
@@ -1954,9 +1098,9 @@ static void move_and_collide(UBYTE mask)
 
         // Edge Locking
         // If the player is past the right screen edge
-        if ((plat_camera_block & CAMERA_LOCK_SCREEN_RIGHT) && ((new_x + PLAYER.bounds.right + PX_TO_SUBPX(1)) > PX_TO_SUBPX(scroll_x + SCREEN_WIDTH)))
+        if ((plat_camera_block & CAMERA_LOCK_SCREEN_RIGHT) && ((new_x + EXCLUSIVE_OFFSET(PLAYER.bounds.right)) > PX_TO_SUBPX(scroll_x + SCREEN_WIDTH)))
         {
-            new_x = PX_TO_SUBPX(scroll_x + SCREEN_WIDTH) - PLAYER.bounds.right - PX_TO_SUBPX(1);
+            new_x = PX_TO_SUBPX(scroll_x + SCREEN_WIDTH) - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
             plat_vel_x = 0;
         }
         // If the player is past the left screen edge
@@ -1982,7 +1126,7 @@ static void move_and_collide(UBYTE mask)
             moving_right = TRUE;
             hit_flag = COLLISION_LEFT;
             wall = WALL_COL_RIGHT;
-            bounds_edge = PLAYER.bounds.right + PX_TO_SUBPX(1);
+            bounds_edge = EXCLUSIVE_OFFSET(PLAYER.bounds.right);
         }
         else
         {
@@ -2082,7 +1226,7 @@ static void move_and_collide(UBYTE mask)
             UWORD x_mid_coord = PLAYER.pos.x + PLAYER.bounds.left + sp_half_width + PX_TO_SUBPX(1);
             UBYTE tile_x = SUBPX_TO_TILE(x_mid_coord);
 
-            tile = tile_col_test_range_y(0x60, tile_x, tile_y_start, tile_y_end);
+            tile = tile_col_test_range_y(COLLISION_SLOPE_ANY, tile_x, tile_y_start, tile_y_end);
             if (tile)
             {
                 const UBYTE slope_type = (tile & COLLISION_SLOPE);
@@ -2147,7 +1291,6 @@ static void move_and_collide(UBYTE mask)
             // Tile snap threshold
             // If offset into tile is greater than amount moved down this frame
             // then must have started below top of the tile and should fall through
-            // if (SUBPX_TILE_REMAINDER(y_bottom) > (SUBPX_TILE_REMAINDER(plat_delta_y) + PX_TO_SUBPX(4))) {
 #ifdef FEAT_PLATFORM_SLOPES
             if (!prev_on_slope && (SUBPX_TILE_REMAINDER(y_bottom) > SUBPX_TILE_REMAINDER(plat_delta_y))) {
 #else
@@ -2216,7 +1359,7 @@ finally_check_actor_col:
     if (mask & COL_CHECK_ACTORS)
     {
         actor_t *hit_actor;
-        hit_actor = actor_overlapping_player(FALSE);
+        hit_actor = actor_overlapping_player();
 
         // Handle platform actor attachment
         if (hit_actor != NULL) {
@@ -2230,15 +1373,12 @@ finally_check_actor_col:
                     plat_is_actor_attached = FALSE;
                     plat_next_state = FALL_STATE;
                 }
-                else if (
-                    ((plat_temp_y + PLAYER.bounds.bottom - plat_delta_y - PX_TO_SUBPX(2)) < (hit_actor->pos.y + hit_actor->bounds.top))
-                        && (plat_vel_y >= 0)
-                ) {
+                else if (((plat_temp_y + PLAYER.bounds.bottom - plat_delta_y - PX_TO_SUBPX(2)) < (hit_actor->pos.y + hit_actor->bounds.top)) && (plat_vel_y >= 0)) {
                     // Attach to actor (solid or platform)
                     plat_attached_actor = hit_actor;
                     plat_attached_prev_x = hit_actor->pos.x;
                     plat_attached_prev_y = hit_actor->pos.y;
-                    PLAYER.pos.y = hit_actor->pos.y + hit_actor->bounds.top - PLAYER.bounds.bottom - 4;
+                    PLAYER.pos.y = hit_actor->pos.y + hit_actor->bounds.top - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
                     plat_vel_y = 0;
                     plat_is_actor_attached = TRUE;
                     if (plat_state != DASH_STATE)
@@ -2265,18 +1405,18 @@ finally_check_actor_col:
                     {
                         const UBYTE moving_right = PLAYER.pos.x < hit_actor->pos.x;
 
-                        plat_delta_x = (hit_actor->pos.x - PLAYER.pos.x) +
-                                       (moving_right ? -(PLAYER.bounds.right + -hit_actor->bounds.left)
-                                                     : (-PLAYER.bounds.left + hit_actor->bounds.right) + 16);
+                        plat_delta_x = (hit_actor->pos.x - PLAYER.pos.x) + 
+                            (moving_right
+                                ? (hit_actor->bounds.left - EXCLUSIVE_OFFSET(PLAYER.bounds.right))
+                                : (EXCLUSIVE_OFFSET(hit_actor->bounds.right) - PLAYER.bounds.left));
+                        PLAYER.pos.x += CLAMP(plat_delta_x, -MAX_DELTA, MAX_DELTA);
+                        plat_delta_x = 0;
 
                         plat_wall_col = moving_right ? WALL_COL_RIGHT : WALL_COL_LEFT;
                         plat_last_wall_col = plat_wall_col;
                         plat_coyote_timer = plat_coyote_frames + 1;
 
-                        if ((moving_right && !INPUT_RIGHT) || (!moving_right && !INPUT_LEFT))
-                        {
-                            plat_vel_x = 0;
-                        }
+                        plat_vel_x = 0;
 
 #ifdef FEAT_PLATFORM_DASH
                         if (plat_next_state == DASH_STATE)
@@ -2298,7 +1438,7 @@ finally_check_actor_col:
         {
             if (!hit_actor)
             {
-                hit_actor = actor_in_front_of_player(8, TRUE);
+                hit_actor = actor_with_script_in_front_of_player(8);
             }
             if (hit_actor && !(hit_actor->collision_group & COLLISION_GROUP_MASK) && hit_actor->script.bank)
             {
@@ -2326,7 +1466,7 @@ void plat_callback_attach(SCRIPT_CTX *THIS) OLDCALL BANKED
 void plat_callback_detach(SCRIPT_CTX *THIS) OLDCALL BANKED
 {
     UWORD *slot = VM_REF_TO_PTR(FN_ARG0);
-    plat_events[*slot].script_bank = NULL;
+    plat_events[*slot].script_bank = 0;
     plat_events[*slot].script_addr = NULL;
 }
 
@@ -2345,3 +1485,1058 @@ static void plat_callback_execute(UBYTE i)
         script_execute(event->script_bank, event->script_addr, &event->handle, 0, 0);
     }
 }
+
+// State Machine Functions ----------------------------------------------------
+
+// FALL_STATE
+
+static void state_enter_fall(void) {
+    plat_grounded = FALSE;
+    plat_is_actor_attached = FALSE;
+#ifdef PLATFORM_FALL_ANIM
+    plat_set_player_anim_state(PLATFORM_FALL_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(FALL_INIT); 
+}
+
+static void state_exit_fall(void) {
+    plat_callback_execute(FALL_END);
+}
+
+static void state_update_fall(void) {
+    // Keep this here, rather than in init, so that
+    // we can easily track float as a jump type
+    plat_jump_type = JUMP_TYPE_NONE;
+
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+    if (drop_input_pressed())
+    {
+        plat_drop_timer = DROP_FRAMES_MAX;
+        plat_is_actor_attached = FALSE;
+    }
+#endif
+
+#ifdef FEAT_PLATFORM_JUMP
+    // FALL -> JUMP check
+    if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+    {
+#ifdef FEAT_PLATFORM_WALL_JUMP
+        // Wall Jump
+        if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
+        {
+            plat_jump_type = JUMP_TYPE_WALL;
+            plat_wall_jump_counter--;
+            plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
+            plat_vel_x += (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+        if (plat_coyote_timer != 0)
+        {
+            // Coyote Time Jump
+            plat_jump_type = JUMP_TYPE_GROUND;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+        if (plat_extra_jumps_counter != 0)
+        {
+            // Double Jump
+            plat_jump_type = JUMP_TYPE_DOUBLE;
+            if (plat_extra_jumps_counter != UNLIMITED_JUMPS)
+            {
+                plat_extra_jumps_counter--;
+            }
+            plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
+            plat_jump_reduction_vel += plat_jump_reduction;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+#endif
+
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+        // Setting the Jump Buffer when jump is pressed while not on ground
+        plat_jump_buffer_timer = plat_jump_buffer_frames;
+#endif
+
+    }
+#endif
+
+    // Vertical Movement ----------------------------------------------
+
+#ifdef FEAT_PLATFORM_FLOAT
+    UBYTE float_pressed = float_input_pressed();
+    if (plat_state != FLOAT_STATE && float_pressed) {
+        plat_next_state = FLOAT_STATE;
+        return;
+    } else if (plat_state == FLOAT_STATE && !float_pressed) {
+        plat_next_state = FALL_STATE;
+        return;
+    }
+
+    if (plat_state == FLOAT_STATE && plat_vel_y >= 0 && !plat_drop_timer)
+    {
+        plat_jump_type = JUMP_TYPE_FLOATING;
+        plat_vel_y = plat_float_vel;
+    }
+    else
+#endif
+    if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
+    {
+        // Gravity while holding jump
+        plat_vel_y += plat_hold_grav;
+        plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
+    }
+    else
+    {
+        // Normal gravity
+        plat_vel_y += plat_grav;
+        plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
+    }
+
+    // Collision ------------------------------------------------------
+    // Vertical Collision Checks
+    plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+    plat_temp_y = PLAYER.pos.y;
+
+    // Horizontal Movement --------------------------------------------
+    if (plat_nocontrol_h_timer != 0 || plat_air_control == 0)
+    {
+        // No horizontal input
+        plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
+    }
+    else
+    {
+        handle_horizontal_input();
+    }
+
+    move_and_collide(COL_CHECK_ALL);
+
+    // ANIMATION ------------------------------------------------------
+    player_set_jump_anim();
+
+    // STATE CHANGE ---------------------------------------------------
+    // Above: FALL -> GROUND in basic_y_col()
+
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    // FALL -> WALL check
+    wall_check();
+#endif
+
+#ifdef FEAT_PLATFORM_DASH
+    // FALL -> DASH check
+    if (plat_dash_pressed && plat_dash_cooldown_timer == 0)
+    {
+        if (plat_dash_from & DASH_FROM_AIR)
+        {
+            if (plat_wall_col == WALL_COL_NONE || (plat_wall_col == WALL_COL_RIGHT && !INPUT_RIGHT) ||
+                (plat_wall_col == WALL_COL_LEFT && !INPUT_LEFT))
+            {
+                plat_next_state = DASH_STATE;
+                return;
+            }
+        }
+    }
+#endif
+
+#ifdef FEAT_PLATFORM_LADDERS
+    // FALL -> LADDER Check
+    ladder_check();
+#endif
+
+    // Counting down No Control frames
+    // Set in Wall and Fall states, checked in Fall and Jump states
+    COUNTER_DECREMENT(plat_nocontrol_h_timer);
+
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+    // Counting down Coyote Time Window
+    // Set in ground and checked in fall state
+    COUNTER_DECREMENT(plat_coyote_timer);
+    //  Counting down Jump Buffer Window
+    //  Set in Fall and checked in Ground state
+    COUNTER_DECREMENT(plat_jump_buffer_timer);
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    // Counting down Wall Coyote Time
+    //  Set in collisions and checked in fall state
+    COUNTER_DECREMENT_IF(plat_coyote_timer, plat_wall_col == WALL_COL_NONE);
+#endif
+}
+
+// GROUND_STATE
+
+static void state_enter_ground(void) {
+    plat_vel_y = 0;
+    plat_jump_type = JUMP_TYPE_NONE;
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    plat_coyote_timer = 0;
+    plat_wall_jump_counter = plat_wall_jump_max;
+#endif
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+    plat_coyote_timer = plat_coyote_frames;
+#endif
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+    plat_drop_timer = 0;
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+    plat_extra_jumps_counter = plat_extra_jumps;
+#endif
+    plat_jump_reduction_vel = 0;
+#if PLATFORM_ANIM_OVERRIDES_SET
+    plat_restore_default_anim_state();
+#endif
+    actor_set_dir(&PLAYER, PLAYER.dir, TRUE);
+    plat_callback_execute(GROUND_INIT);
+}
+
+static void state_exit_ground(void) {
+    plat_callback_execute(GROUND_END);
+}
+
+static void state_update_ground(void) {
+       // Add X & Y motion from moving platforms
+        // Transform velocity into positional data, to keep the precision of
+        // the platform's movement
+        plat_grounded = true;
+
+#ifdef FEAT_PLATFORM_DROP_THROUGH
+        if (drop_input_pressed())
+        {
+            plat_drop_timer = DROP_FRAMES_MAX;
+            plat_is_actor_attached = FALSE;
+        }
+#endif
+
+#ifdef FEAT_PLATFORM_DASH
+        // GROUND -> DASH Check
+        if (plat_dash_pressed && (plat_dash_from & DASH_FROM_GROUND) && plat_dash_cooldown_timer == 0)
+        {
+            plat_next_state = DASH_STATE;
+            return;
+        }
+#endif
+
+#ifdef FEAT_PLATFORM_RUN
+        const UBYTE running = INPUT_PLATFORM_RUN;
+        if (plat_state == GROUND_STATE && running) {
+            plat_next_state = RUN_STATE;
+            return;
+        } else if (plat_state == RUN_STATE && !running) {
+            plat_next_state = GROUND_STATE;
+            return;
+        }
+#endif
+
+        if (plat_is_actor_attached)
+        {
+            // If the platform has been disabled, detach the player
+            if (plat_attached_actor->disabled == TRUE)
+            {
+                plat_next_state = FALL_STATE;
+                plat_is_actor_attached = FALSE;
+            }
+            // If the player is off the platform to the right, detach
+            // from the platform
+            else if (PLAYER.pos.x + PLAYER.bounds.left > plat_attached_actor->pos.x + EXCLUSIVE_OFFSET(plat_attached_actor->bounds.right))
+            {
+                plat_next_state = FALL_STATE;
+                plat_is_actor_attached = FALSE;
+            }
+            // If the player is off the platform to the left, detach
+            else if (PLAYER.pos.x + EXCLUSIVE_OFFSET(PLAYER.bounds.right) < plat_attached_actor->pos.x + plat_attached_actor->bounds.left)
+            {
+                plat_next_state = FALL_STATE;
+                plat_is_actor_attached = FALSE;
+            }
+            // Otherwise, add any change in movement from platform
+            else
+            {
+                plat_delta_x += (plat_attached_actor->pos.x - plat_attached_prev_x);
+                plat_attached_prev_x = plat_attached_actor->pos.x;
+            }
+
+            // If we're on a platform, zero out any other motion from
+            // gravity or other sources
+            plat_vel_y = 0;
+
+            // Add any change from the platform we're standing on
+            plat_delta_y += plat_attached_actor->pos.y - plat_attached_prev_y;
+
+            // We're setting these to the platform's position, rather than
+            // the actor so that if something causes the player to detach
+            // (like hitting the roof), they won't automatically get
+            // re-attached in the subsequent actor collision step.
+            plat_attached_prev_y = plat_attached_actor->pos.y;
+            plat_temp_y = plat_attached_actor->pos.y;
+        }
+        else
+        {
+            // Normal gravity
+            plat_vel_y += plat_grav;
+            plat_temp_y = PLAYER.pos.y;
+            // queue falling state which will be set back to ground
+            // if collision is detected in move_and_collide
+            plat_next_state = FALL_STATE;
+        }
+
+        // Add Collision Offset from Moving Platforms
+        plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+
+        handle_horizontal_input();
+        move_and_collide(COL_CHECK_ALL);
+
+#ifdef FEAT_PLATFORM_RUN
+        if (running && (plat_next_state == GROUND_STATE))
+        {
+            plat_next_state = RUN_STATE;
+        }
+#endif
+
+        // ANIMATION ------------------------------------------------------
+
+        if (INPUT_LEFT)
+        {
+            actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
+        }
+        else if (INPUT_RIGHT)
+        {
+            actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
+        }
+        else if (plat_vel_x == 0)
+        {
+            actor_set_anim_idle(&PLAYER);
+        }
+
+#ifdef FEAT_PLATFORM_JUMP
+        // GROUND -> JUMP Check
+        if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && !did_interact_actor && !plat_drop_timer)
+        {
+            // Standard Jump
+            plat_jump_type = JUMP_TYPE_GROUND;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+        plat_jump_buffer_timer = 0;
+#endif
+
+#ifdef FEAT_PLATFORM_LADDERS
+        // GROUND -> LADDER Check
+        ladder_check();
+#endif
+
+}
+
+// JUMP_STATE
+
+#ifdef FEAT_PLATFORM_JUMP
+static void state_enter_jump(void) {
+    // Right now this has a limited use for triggered jumps because
+    // many of the jump effects depend on testing
+    // INPUT_PLATFORM_JUMP But if the player switches to this state
+    // without pressing jump, then these won't fire...
+    plat_grounded = FALSE;
+    plat_hold_jump_timer = plat_jump_hold_frames;
+    plat_is_actor_attached = FALSE;
+    plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+    plat_coyote_timer = 0;
+    plat_jump_buffer_timer = 0;
+#endif
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    plat_coyote_timer = 0;
+#endif
+    plat_jump_vel_per_frame = plat_jump_hold_vel;
+    // Calculate jump boost value based on horizontal velocity
+    if (plat_run_boost != 0) {
+        UWORD abs_vel_x = MAX(plat_vel_x, -plat_vel_x);
+#ifdef FEAT_PLATFORM_RUN                
+        UBYTE boost_ratio = abs_vel_x / (plat_run_vel >> 7);
+#else
+        UBYTE boost_ratio = abs_vel_x / (plat_walk_vel >> 7);
+#endif
+        plat_jump_vel_per_frame += boost_ratio * (plat_run_boost >> 7);
+    }
+
+#ifdef PLATFORM_JUMP_ANIM
+    plat_set_player_anim_state(PLATFORM_JUMP_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+    plat_restore_default_anim_state();
+#endif
+
+    plat_callback_execute(JUMP_INIT);
+}
+
+static void state_exit_jump(void) {
+    plat_callback_execute(JUMP_END);
+}
+
+static void state_update_jump(void) {
+    // Vertical Movement ----------------------------------------------
+    // hold_jump_valump force during each jump frame
+    if (plat_hold_jump_timer != 0 && INPUT_PLATFORM_JUMP)
+    {
+        // Add the boost per frame amount.
+        plat_vel_y -= plat_jump_vel_per_frame;
+
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+        // Reduce subsequent jump amounts (for double jumps)
+        WORD reduced_vel_y = plat_vel_y + plat_jump_reduction_vel;
+        plat_vel_y = MIN(reduced_vel_y, 0);
+#endif
+
+        // Handle jump velocity overflow 
+        if (plat_vel_y > 0) {
+            plat_vel_y = WORD_MIN;
+        }
+
+        plat_hold_jump_timer--;
+    }
+    else if (INPUT_PLATFORM_JUMP && plat_vel_y < 0)
+    {
+        // After the jump frames end, use the reduced gravity
+        plat_vel_y += plat_hold_grav;
+    }
+    else if (plat_vel_y >= 0)
+    {
+        plat_next_state = FALL_STATE;
+        plat_vel_y += plat_grav;
+    }
+    else
+    {
+        plat_vel_y += plat_grav;
+    }
+
+    plat_temp_y = PLAYER.pos.y;
+    // Start DeltaX with Actor offsets
+    plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+
+    // Horizontal Movement --------------------------------------------
+    if (plat_nocontrol_h_timer != 0 || plat_air_control == 0)
+    {
+        // If the player doesn't have control of their horizontal
+        // movement, skip acceleration phase
+        plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
+    }
+    else
+    {
+        handle_horizontal_input();
+    }
+
+    move_and_collide(COL_CHECK_ALL);
+
+    // ANIMATION ------------------------------------------------------
+    player_set_jump_anim();
+
+    // STATE CHANGE ---------------------------------------------------
+    // Above: JUMP-> NEUTRAL when a) player starts descending, b) player
+    // hits roof, c) player stops pressing, d)jump frames run out.
+
+#ifdef FEAT_PLATFORM_WALL_JUMP
+    if (!plat_air_control)
+    {
+        // If air control is disabled collisions with a wall while jumping
+        // will prevent wall_check() from registering in FALL_STATE so instead
+        // need to check here and switch to WALL_STATE if hit
+        wall_check();
+    }
+#endif
+
+#ifdef FEAT_PLATFORM_DASH
+    // JUMP -> DASH check
+    if (plat_dash_pressed && plat_dash_cooldown_timer == 0)
+    {
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+        if ((plat_dash_from & DASH_FROM_AIR) || plat_coyote_timer != 0)
+#else
+        if ((plat_dash_from & DASH_FROM_AIR))
+#endif
+        {
+            plat_next_state = DASH_STATE;
+            return;
+        }
+    }
+#endif
+
+    // JUMP -> JUMP check
+    if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+    {
+#ifdef FEAT_PLATFORM_WALL_JUMP
+        // Wall Jump
+        if (plat_coyote_timer != 0 && plat_wall_jump_counter != 0)
+        {
+            plat_jump_type = JUMP_TYPE_WALL;
+            plat_wall_jump_counter--;
+            plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
+            plat_vel_x = (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
+            plat_next_state = JUMP_STATE;
+        }
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+        else
+#endif
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+        if (plat_extra_jumps_counter != 0)
+        {
+            // Double Jump
+            plat_jump_type = JUMP_TYPE_DOUBLE;
+            if (plat_extra_jumps_counter != UNLIMITED_JUMPS)
+            {
+                plat_extra_jumps_counter--;
+            }
+            plat_vel_y = MIN(-plat_jump_vel, plat_vel_y);
+            plat_jump_reduction_vel += plat_jump_reduction;
+            plat_next_state = JUMP_STATE;
+        }
+#endif
+        return;
+    }
+
+#ifdef FEAT_PLATFORM_LADDERS
+    // JUMP -> LADDER check
+    ladder_check();
+#endif
+
+    // Counting down No Control frames
+    // Set in Wall and Fall states, checked in Fall and Jump states
+    COUNTER_DECREMENT(plat_nocontrol_h_timer);
+}
+#endif
+
+// DASH_STATE
+
+#ifdef FEAT_PLATFORM_DASH
+static void state_enter_dash(void) {
+#ifdef FEAT_PLATFORM_COYOTE_TIME
+    plat_coyote_timer = plat_coyote_frames;
+#endif
+#ifdef FEAT_PLATFORM_DOUBLE_JUMP
+    plat_extra_jumps_counter = plat_extra_jumps;
+#endif
+    dash_init();
+    if (plat_next_state != DASH_STATE) {
+        // Break out if dash not allowed
+        return;
+    }
+#ifdef PLATFORM_DASH_ANIM
+    plat_set_player_anim_state(PLATFORM_DASH_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(DASH_INIT);
+}
+
+static void state_exit_dash(void) {
+    plat_callback_execute(DASH_END);
+}
+
+static void state_update_dash(void) {
+    BYTE dir = (PLAYER.dir == DIR_LEFT ? -1 : 1);
+    WORD remaining_dash_dist = plat_dash_per_frame;
+
+    plat_vel_x = plat_run_vel * dir;
+#ifdef FEAT_PLATFORM_DASH_USE_GRAVITY
+    plat_delta_y = VEL_TO_SUBPX(plat_grav);
+#endif
+
+    while (remaining_dash_dist)
+    {
+        WORD dist = MIN(remaining_dash_dist, MAX_DELTA);
+        plat_delta_x = dist * dir;
+        move_and_collide(plat_dash_mask);
+        remaining_dash_dist -= dist;
+    }
+
+    plat_dash_currentframe--;
+    if (plat_dash_currentframe == 0)
+    {
+        plat_next_state = FALL_STATE;
+        plat_vel_x = 0;
+    }
+
+#ifdef FEAT_PLATFORM_JUMP
+    // DASH -> JUMP Check
+    if (
+        // Jump pressed or was buffered + Not falling through a platform
+        (INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && !plat_drop_timer
+    ) {
+        // Check if grounded
+        UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
+        UBYTE tile_x_mid = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left + p_half_width);
+        UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        plat_grounded = tile_at(tile_x_mid, tile_y) & (COLLISION_TOP | COLLISION_SLOPE);
+
+        if (
+            // Can dash from ground and is grounded (or coyote time)
+            ((plat_dash_jump_from & DASH_FROM_GROUND) && plat_grounded)
+            ||
+            // Or can dash from air and is not grounded
+            ((plat_dash_jump_from & DASH_FROM_AIR) && !plat_grounded)
+        ) {
+            // Standard Jump
+            plat_jump_type = JUMP_TYPE_GROUND;
+            plat_next_state = JUMP_STATE;
+            return;
+        }
+    }
+    plat_jump_buffer_timer = 0;
+#endif
+}
+#endif
+
+// LADDERS_STATE
+
+#ifdef FEAT_PLATFORM_LADDERS
+static void state_enter_ladder(void) {
+    plat_jump_type = JUMP_TYPE_NONE;
+    plat_ladder_block_h = TRUE;
+#ifdef PLATFORM_LADDERS_ANIM
+    plat_set_player_anim_state(PLATFORM_LADDERS_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(LADDER_INIT);
+}
+
+static void state_exit_ladder(void) {
+    plat_ladder_block_v = TRUE;
+    plat_callback_execute(LADDER_END);
+}
+
+static void state_update_ladder(void) {
+    // For positioning the player in the middle of the ladder
+    UWORD p_half_width = DIV_2(PLAYER.bounds.right - PLAYER.bounds.left);
+    UBYTE tile_x_mid = SUBPX_TO_TILE(PLAYER.pos.x + PLAYER.bounds.left + p_half_width);
+    plat_vel_x = 0;
+    plat_vel_y = 0;
+
+#if defined(FEAT_PLATFORM_DASH)
+    // LADDER -> DASH Check
+    if (plat_dash_pressed && (plat_dash_from & DASH_FROM_LADDER) && plat_dash_cooldown_timer == 0)
+    {
+        plat_next_state = DASH_STATE;
+
+        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
+        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        UBYTE tile_x = tile_x_mid + (PLAYER.dir == DIR_LEFT ? -1 : 1);
+        UBYTE tile_edge = (PLAYER.dir == DIR_LEFT ? COLLISION_RIGHT : COLLISION_LEFT);
+
+        while (tile_start != tile_end)
+        {
+            UBYTE tile = tile_at(tile_x, tile_start);
+            if (tile & tile_edge)
+            {
+                plat_next_state = LADDER_STATE; // If there is a wall, cancel dash.
+                return;
+            }
+            tile_start++;
+        }
+
+        return;
+    }
+#endif
+
+#if defined(FEAT_PLATFORM_JUMP) && defined(FEAT_PLATFORM_LADDERS_DROP)
+    // LADDER -> FALL check
+    if (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+    {
+        plat_next_state = FALL_STATE;
+        return;
+    }
+#endif
+
+#if defined(FEAT_PLATFORM_JUMP) && defined(FEAT_PLATFORM_LADDERS_JUMP)
+    // LADDER -> JUMP check
+    if (INPUT_PRESSED(INPUT_PLATFORM_JUMP))
+    {
+        plat_jump_type = JUMP_TYPE_GROUND;
+        plat_next_state = JUMP_STATE;
+        return;
+    }
+#endif
+
+    if (INPUT_UP)
+    {
+        // Climb laddder
+        UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top + PX_TO_SUBPX(1));
+        // Check if the tile above the player is a ladder tile. If so add ladder velocity
+        if (IS_LADDER(tile_at(tile_x_mid, tile_y)))
+        {
+            plat_vel_y = -plat_climb_vel;
+        }
+        // If reached the top of ladder and tile just below can be stood on then let go of ladder
+        else if (tile_at(tile_x_mid, SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) &
+                    COLLISION_TOP)
+        {
+            plat_next_state = GROUND_STATE;
+            PLAYER.pos.y = TILE_TO_SUBPX(SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1) - PLAYER.bounds.bottom - 1;
+            return;
+        }
+#if defined(FEAT_PLATFORM_LADDERS_HOP) && defined(FEAT_PLATFORM_JUMP)
+        else {
+            plat_next_state = JUMP_STATE;
+        }
+#endif
+    }
+    else if (INPUT_DOWN)
+    {
+        // Descend ladder
+        UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + EXCLUSIVE_OFFSET(PLAYER.bounds.bottom));
+        UBYTE tile = tile_at(tile_x_mid, tile_y);
+        // If tile below is still a ladder climb down
+        if (IS_LADDER(tile))
+        {
+            plat_vel_y = plat_climb_vel;
+        }
+        // If reached bottom of ladder then let go
+        else if (tile & COLLISION_TOP)
+        {
+            plat_next_state = GROUND_STATE;
+            PLAYER.pos.y = TILE_TO_SUBPX(tile_y) - PLAYER.bounds.bottom - 1;
+            return;
+        }
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+        else
+        {
+            plat_next_state = FALL_STATE; // Reached bottom of ladder with no platform below so fall off
+        }
+#endif
+    }
+
+    if (plat_ladder_block_h)
+    {
+        // Need to have released left/right since
+        // joining the ladder to allow horizontal movement
+        if (!(INPUT_LEFT | INPUT_RIGHT)) {
+            plat_ladder_block_h = FALSE;
+        }
+    }
+    else if (INPUT_LEFT)
+    {
+        PLAYER.dir = DIR_LEFT;
+
+        // If tile below player can be stood on then let go of ladder
+        UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        UBYTE tile = tile_at(tile_x_mid, tile_y);
+        if (tile & COLLISION_TOP)
+        {
+            plat_vel_x = 0;
+            plat_next_state = FALL_STATE;
+            return;
+        }
+
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+        plat_next_state = FALL_STATE;
+#endif
+
+        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
+        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        while (tile_start != tile_end)
+        {
+            UBYTE tile = tile_at(tile_x_mid - 1, tile_start);
+            if (IS_LADDER(tile))
+            {
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+                plat_next_state = LADDER_STATE; // If there is a ladder, stay on the ladder.
+#endif
+                plat_vel_x = -plat_climb_vel;
+                return;
+            }
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+            else if (tile & COLLISION_RIGHT)
+            {
+                plat_next_state = LADDER_STATE; // If there is a wall, stay on the ladder.
+                return;
+            }
+#endif
+            tile_start++;
+        }
+    }
+    else if (INPUT_RIGHT)
+    {
+        PLAYER.dir = DIR_RIGHT;
+
+        // If tile below player can be stood on then let go of ladder
+        UBYTE tile_y = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        UBYTE tile = tile_at(tile_x_mid, tile_y);
+        if (tile & COLLISION_TOP)
+        {
+            plat_vel_x = 0;
+            plat_next_state = FALL_STATE;
+            return;
+        }
+
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+        plat_next_state = FALL_STATE;
+#endif
+
+        // Check if able to leave ladder on right
+        UBYTE tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
+        UBYTE tile_end = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.bottom) + 1;
+        while (tile_start != tile_end)
+        {
+            UBYTE tile = tile_at(tile_x_mid + 1, tile_start);
+            if (IS_LADDER(tile))
+            {
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+                plat_next_state = LADDER_STATE; // If there is a ladder, stay on the ladder.
+#endif
+                plat_vel_x = plat_climb_vel;
+                return;
+            }
+#ifdef FEAT_PLATFORM_LADDERS_WALK_OFF
+            else if (tile & COLLISION_LEFT)
+            {
+                plat_next_state = LADDER_STATE;
+                return;
+            }
+#endif
+            tile_start++;
+        }
+    }
+    PLAYER.pos.x += VEL_TO_SUBPX(plat_vel_x);
+    PLAYER.pos.y += VEL_TO_SUBPX(plat_vel_y);
+
+    // Animation---------------------------------------------------------------
+    if (plat_vel_x == 0 && plat_vel_y == 0)
+    {
+#ifdef PLATFORM_LADDERS_ANIM
+        actor_set_anim_idle(&PLAYER);
+#else
+        actor_stop_anim(&PLAYER);
+#endif            
+    } else {
+        actor_set_anim(&PLAYER, ANIM_CLIMB);
+    }
+
+    // State Change------------------------------------------------------------
+    // Collision logic provides options for exiting to Neutral
+
+    move_and_collide(COL_CHECK_ACTORS | COL_CHECK_TRIGGERS);
+}
+#endif
+
+// WALL_STATE
+
+#ifdef FEAT_PLATFORM_WALL
+static void state_enter_wall(void) {
+    plat_jump_type = JUMP_TYPE_NONE;
+    plat_run_stage = RUN_STAGE_NONE;
+#ifdef PLATFORM_WALL_SLIDE_ANIM
+    plat_set_player_anim_state(PLATFORM_WALL_SLIDE_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(WALL_INIT);    
+}
+
+static void state_exit_wall(void) {
+    plat_callback_execute(WALL_END);
+}
+
+static void state_update_wall(void) {
+    // Vertical Movement ----------------------------------------------
+    // WALL SLIDE
+    if (plat_vel_y < 0)
+    {
+        // If the player is still ascending, don't apply wall-gravity
+        plat_vel_y += plat_grav;
+    }
+    else if (plat_wall_slide)
+    {
+        // If the toggle is on, use wall gravity
+        plat_vel_y = plat_wall_slide_vel;
+    }
+    else
+    {
+        // Otherwise use regular gravity
+        plat_vel_y += plat_grav;
+    }
+
+    // Collision ------------------------------------------------------
+    // Vertical Collision Checks
+    plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+    plat_temp_y = PLAYER.pos.y;
+
+    handle_horizontal_input();
+    move_and_collide(COL_CHECK_ALL);
+
+    // ANIMATION ------------------------------------------------------
+    // Face away from walls
+    if (plat_wall_col == WALL_COL_RIGHT)
+    {
+        actor_set_dir(&PLAYER, DIR_LEFT, TRUE);
+    }
+    else if (plat_wall_col == WALL_COL_LEFT)
+    {
+        actor_set_dir(&PLAYER, DIR_RIGHT, TRUE);
+    }
+
+    // STATE CHANGE ---------------------------------------------------
+    // Above, basic_y_col can cause WALL -> GROUNDED.
+    // Exit state as baseline
+    // WALL CHECK
+    wall_check();
+
+#ifdef FEAT_PLATFORM_DASH
+    // WALL -> DASH Check
+    if (plat_dash_pressed && (plat_dash_from & DASH_FROM_AIR) && plat_dash_cooldown_timer == 0)
+    {
+        if ((plat_wall_col == WALL_COL_RIGHT && !INPUT_RIGHT) || (plat_wall_col == WALL_COL_LEFT && !INPUT_LEFT))
+        {
+            plat_next_state = DASH_STATE;
+            return;
+        }
+    }
+#endif
+
+#ifdef FEAT_PLATFORM_JUMP
+    // WALL -> JUMP Check
+    if ((INPUT_PRESSED(INPUT_PLATFORM_JUMP) || plat_jump_buffer_timer != 0) && plat_wall_jump_counter != 0)
+    {
+        // Wall Jump
+        plat_wall_jump_counter--;
+        plat_nocontrol_h_timer = WALL_JUMP_NO_CONTROL_H_FRAMES;
+        plat_vel_x = (plat_wall_kick + plat_walk_vel) * -plat_last_wall_col;
+        plat_jump_type = JUMP_TYPE_WALL;
+        plat_next_state = JUMP_STATE;
+        return;
+    }
+#endif
+
+#ifdef FEAT_PLATFORM_LADDERS
+    // WALL -> LADDER Check
+    ladder_check();
+#endif
+}
+#endif
+
+// KNOCKBACK_STATE
+
+#ifdef FEAT_PLATFORM_KNOCKBACK
+static void state_enter_knockback(void) {
+    player_set_jump_anim();
+    plat_run_stage = RUN_STAGE_NONE;
+    plat_jump_type = JUMP_TYPE_NONE;
+    plat_vel_x = PLAYER.dir == DIR_RIGHT ? -plat_knockback_vel_x : plat_knockback_vel_x;
+    plat_vel_y = -plat_knockback_vel_y;
+    plat_grounded = FALSE;
+    plat_knockback_timer = plat_knockback_frames;
+    plat_drop_timer = 0;
+#ifdef PLATFORM_KNOCKBACK_ANIM
+    plat_set_player_anim_state(PLATFORM_KNOCKBACK_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(KNOCKBACK_INIT);
+}
+
+static void state_exit_knockback(void) {
+    plat_vel_x = 0;
+    plat_callback_execute(KNOCKBACK_END);
+}
+        
+static void state_update_knockback(void) {
+    // Horizontal Movement --------------------------------------------
+
+    // Horizontal deceleration
+    plat_vel_x = (plat_vel_x < 0)
+        ? MIN(plat_vel_x + plat_air_dec, 0)
+        : MAX(plat_vel_x - plat_air_dec, 0);
+    plat_delta_x += VEL_TO_SUBPX(plat_vel_x);
+
+    // Vertical Movement ----------------------------------------------
+
+    // Normal gravity        
+    plat_vel_y += plat_grav;
+    plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
+    plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+
+    // Collision ------------------------------------------------------
+
+    move_and_collide(COL_CHECK_ALL);
+
+    // Counters -------------------------------------------------------
+    
+    COUNTER_DECREMENT(plat_knockback_timer);
+    if (plat_knockback_timer != 0) {
+        plat_next_state = KNOCKBACK_STATE;
+    }
+}
+#endif
+
+// BLANK_STATE
+
+#ifdef FEAT_PLATFORM_BLANK
+static void state_enter_blank(void) {
+    plat_vel_x = 0;
+    plat_vel_y = 0;
+    plat_grounded = FALSE;
+    plat_run_stage = RUN_STAGE_NONE;
+    plat_jump_type = JUMP_TYPE_NONE;
+#ifdef PLATFORM_BLANK_ANIM
+    plat_set_player_anim_state(PLATFORM_BLANK_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET  
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(BLANK_INIT);  
+}
+
+static void state_exit_blank(void) {
+    plat_vel_x = 0;
+    plat_vel_y = 0;
+    plat_callback_execute(BLANK_END);    
+}
+
+static void state_update_blank(void) {
+    // Vertical Movement ----------------------------------------------
+
+    plat_vel_y += plat_blank_grav;
+    plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
+    plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
+
+    // Collision ------------------------------------------------------
+
+    move_and_collide(COL_CHECK_Y);
+}
+#endif
+
+// FLOAT_STATE
+
+#ifdef FEAT_PLATFORM_FLOAT
+static void state_enter_float(void) {
+#ifdef PLATFORM_FLOAT_ANIM
+    plat_set_player_anim_state(PLATFORM_FLOAT_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(FLOAT_INIT);
+}
+
+static void state_exit_float(void) {
+    plat_callback_execute(FLOAT_END);
+}
+#endif
+
+// RUN_STATE
+
+#ifdef FEAT_PLATFORM_RUN
+static void state_enter_run(void) {
+#ifdef PLATFORM_RUN_ANIM
+    plat_set_player_anim_state(PLATFORM_RUN_ANIM);
+#elif PLATFORM_ANIM_OVERRIDES_SET
+    plat_restore_default_anim_state();
+#endif
+    plat_callback_execute(RUN_INIT);
+}
+
+static void state_exit_run(void) {
+    plat_callback_execute(RUN_END);
+}
+#endif
+
+// End of State Machine Functions ---------------------------------------------

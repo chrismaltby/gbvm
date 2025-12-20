@@ -5,6 +5,7 @@
   "symbol": "actor_signpostbottom",
   "prefabId": "",
   "name": "SignpostBottom",
+  "coordinateType": "tiles",
   "x": 7,
   "y": 15,
   "frame": 0,

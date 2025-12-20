@@ -23,6 +23,9 @@ _scene_scene_1_init::
         ; Variable Set To
         VM_SET_CONST            VAR_S0A0_KILLED_2, 0
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Input Script Attach
         VM_CONTEXT_PREPARE      3, ___bank_script_input, _script_input
         VM_INPUT_ATTACH         32, ^/(3 | .OVERRIDE_DEFAULT)/

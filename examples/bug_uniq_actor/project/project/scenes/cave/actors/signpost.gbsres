@@ -5,6 +5,7 @@
   "symbol": "actor_savepoint",
   "prefabId": "",
   "name": "Signpost",
+  "coordinateType": "tiles",
   "x": 9,
   "y": 7,
   "frame": 0,

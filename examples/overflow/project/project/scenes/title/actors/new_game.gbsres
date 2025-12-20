@@ -5,6 +5,7 @@
   "symbol": "actor_new_game",
   "prefabId": "",
   "name": "New_Game",
+  "coordinateType": "tiles",
   "x": 10,
   "y": 3,
   "frame": 0,

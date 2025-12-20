@@ -27,3 +27,4 @@ __pycache__
 /test/*/build
 /test/*/*.bmp
 /third-party/*/build
+/unused

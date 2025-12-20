@@ -70,8 +70,8 @@ const struct spritesheet_t sprite_keyboard = {
     .animations_lookup = sprite_keyboard_animations_lookup,
     .bounds = {
         .left = PX_TO_SUBPX(-8),
-        .bottom = PX_TO_SUBPX(7),
-        .right = PX_TO_SUBPX(23),
+        .bottom = PX_TO_SUBPX(8) - 1,
+        .right = PX_TO_SUBPX(24) - 1,
         .top = PX_TO_SUBPX(-8)
     },
     .tileset = TO_FAR_PTR_T(sprite_keyboard_tileset),

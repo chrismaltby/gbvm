@@ -14,6 +14,9 @@ ___bank_scene_player_s_house_init = 255
 _scene_player_s_house_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_player_s_house_init$7b6132c6_bb47_4c09_bc3d_0a33f53c43e7$c22cad6f_1191_4623_911d_1ec9a7b52fe6$scene$c22cad6f_1191_4623_911d_1ec9a7b52fe6$script = .
 .globl GBVM$scene_player_s_house_init$7b6132c6_bb47_4c09_bc3d_0a33f53c43e7$c22cad6f_1191_4623_911d_1ec9a7b52fe6$scene$c22cad6f_1191_4623_911d_1ec9a7b52fe6$script
         ; Call Script: Init Menu

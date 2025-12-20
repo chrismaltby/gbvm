@@ -5,6 +5,7 @@
   "symbol": "actor_c_button",
   "prefabId": "",
   "name": "C_Button",
+  "coordinateType": "tiles",
   "x": 16,
   "y": 1,
   "frame": 0,

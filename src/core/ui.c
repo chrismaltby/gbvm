@@ -425,7 +425,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
     }
 }
 
-void ui_update(void) NONBANKED {
+void ui_update(void) BANKED {
     UBYTE flag = FALSE;
 
     // y should always move first
@@ -489,6 +489,7 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
         camera_update();
         scroll_update();
         actors_update();
+        actors_render();
         projectiles_render();
         activate_shadow_OAM();
 
@@ -565,6 +566,7 @@ void ui_run_modal(UBYTE wait_flags) BANKED {
         camera_update();
         scroll_update();
         actors_update();
+        actors_render();
         projectiles_render();
         activate_shadow_OAM();
 

@@ -5,6 +5,7 @@
   "symbol": "actor_portalright",
   "prefabId": "",
   "name": "PortalRight",
+  "coordinateType": "tiles",
   "x": 14,
   "y": 7,
   "frame": 0,

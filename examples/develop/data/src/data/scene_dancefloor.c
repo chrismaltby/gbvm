@@ -24,6 +24,12 @@ const struct scene_t scene_dancefloor = {
     .parallax_rows = {
         PARALLAX_STEP(0, 0, 0)
     },
+    .scroll_bounds = {
+        .left = 0,
+        .top = 0,
+        .right = 0,
+        .bottom = 0
+    },
     .palette = TO_FAR_PTR_T(palette_5),
     .sprite_palette = TO_FAR_PTR_T(palette_7),
     .reserve_tiles = 0,

@@ -23,6 +23,9 @@ _scene_deep_space_init::
         ; Actor Set Collisions
         VM_ACTOR_SET_COLL_ENABLED .LOCAL_ACTOR, 0
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Call Script: common/ui/Init Menu
         VM_CALL_FAR             ___bank_script_init_menu, _script_init_menu
 

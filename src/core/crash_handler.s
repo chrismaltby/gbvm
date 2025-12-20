@@ -32,10 +32,10 @@
         .area _CODE
 
 ___HandleCrash::
-        push    hl
-        ld      hl, #rROMB0
-        ld      (hl), #b___HandleCrash_banked
-        pop     hl
+        ld      (wCrashA), a
+        ld      a, #b___HandleCrash_banked
+        ld      (rROMB0), a
+        ld      a, (wCrashA) 
         jp      ___HandleCrash_banked 
 
 

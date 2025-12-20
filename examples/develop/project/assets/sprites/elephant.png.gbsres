@@ -1820,10 +1820,12 @@
     }
   ],
   "numTiles": 31,
+  "canvasOriginX": 0,
+  "canvasOriginY": 0,
   "canvasWidth": 80,
   "canvasHeight": 64,
   "boundsX": -22,
-  "boundsY": 0,
+  "boundsY": -31,
   "boundsWidth": 56,
   "boundsHeight": 39,
   "animSpeed": 15,

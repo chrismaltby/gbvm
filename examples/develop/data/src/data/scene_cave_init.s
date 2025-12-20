@@ -14,6 +14,9 @@ ___bank_scene_cave_init = 255
 _scene_cave_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_cave_init$cb03e339_073a_4773_845c_2ab245f13c1f$5e64882f_8ce6_423e_b582_70fdb2142ff6$scene$5e64882f_8ce6_423e_b582_70fdb2142ff6$script = .
 .globl GBVM$scene_cave_init$cb03e339_073a_4773_845c_2ab245f13c1f$5e64882f_8ce6_423e_b582_70fdb2142ff6$scene$5e64882f_8ce6_423e_b582_70fdb2142ff6$script
         ; Call Script: Init Menu

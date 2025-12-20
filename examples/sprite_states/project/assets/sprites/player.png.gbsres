@@ -1017,6 +1017,8 @@
     }
   ],
   "numTiles": 19,
+  "canvasOriginX": 0,
+  "canvasOriginY": 0,
   "canvasWidth": 32,
   "canvasHeight": 32,
   "boundsX": 0,

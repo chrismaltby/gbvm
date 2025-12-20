@@ -14,6 +14,9 @@ ___bank_scene_dancefloor_init = 255
 _scene_dancefloor_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_dancefloor_init$83d5edde_9a1c_4147_a731_3966f9773017$eb295f50_1350_4042_a8d9_ba79f54eab78$scene$eb295f50_1350_4042_a8d9_ba79f54eab78$script = .
 .globl GBVM$scene_dancefloor_init$83d5edde_9a1c_4147_a731_3966f9773017$eb295f50_1350_4042_a8d9_ba79f54eab78$scene$eb295f50_1350_4042_a8d9_ba79f54eab78$script
         ; Music Routine Attach

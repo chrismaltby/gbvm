@@ -5,6 +5,7 @@
   "symbol": "actor_box_1",
   "prefabId": "",
   "name": "Box",
+  "coordinateType": "tiles",
   "x": 10,
   "y": 7,
   "frame": 0,

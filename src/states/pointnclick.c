@@ -68,13 +68,13 @@ void pointnclick_update(void) BANKED {
         if (PLAYER.pos.x + PLAYER.bounds.left > image_width_subpx) {
             PLAYER.pos.x = -PLAYER.bounds.left;
         } else if (PLAYER.pos.x + PLAYER.bounds.right > image_width_subpx) {
-            PLAYER.pos.x = image_width_subpx - PLAYER.bounds.right;
+            PLAYER.pos.x = image_width_subpx - EXCLUSIVE_OFFSET(PLAYER.bounds.right);
         }
         // Clamp Y
         if (PLAYER.pos.y + PLAYER.bounds.top > image_height_subpx) {
             PLAYER.pos.y = -PLAYER.bounds.top;
         } else if (PLAYER.pos.y + PLAYER.bounds.bottom > image_height_subpx) {
-            PLAYER.pos.y = image_height_subpx - PLAYER.bounds.bottom;
+            PLAYER.pos.y = image_height_subpx - EXCLUSIVE_OFFSET(PLAYER.bounds.bottom);
         }
     }
 
@@ -82,7 +82,7 @@ void pointnclick_update(void) BANKED {
     hit_trigger = trigger_at_intersection(&PLAYER.bounds, &PLAYER.pos);
 
     // Check for actor collisions
-    hit_actor = actor_overlapping_player(FALSE);
+    hit_actor = actor_overlapping_player();
 
     is_hover_trigger = (hit_trigger != NO_TRIGGER_COLLISON)
         && (triggers[hit_trigger].script.bank);

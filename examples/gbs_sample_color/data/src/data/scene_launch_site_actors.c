@@ -28,8 +28,8 @@ const struct actor_t scene_launch_site_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,
@@ -50,8 +50,8 @@ const struct actor_t scene_launch_site_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_UP,
@@ -74,8 +74,8 @@ const struct actor_t scene_launch_site_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,
@@ -97,8 +97,8 @@ const struct actor_t scene_launch_site_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,
@@ -120,8 +120,8 @@ const struct actor_t scene_launch_site_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,
@@ -143,8 +143,8 @@ const struct actor_t scene_launch_site_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,

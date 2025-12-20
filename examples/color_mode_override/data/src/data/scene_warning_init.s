@@ -18,6 +18,9 @@ _scene_warning_init::
 
         VM_RESERVE              4
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Variable Set To
         VM_SET_CONST            VAR_VARIABLE_0, 1
 

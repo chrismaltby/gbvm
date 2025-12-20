@@ -364,6 +364,18 @@ OP_VM_IF_CONST  = 0x1A
         .db OP_VM_IF_CONST, #<N, #>LABEL, #<LABEL, #>B, #<B, #>IDXA, #<IDXA, #<CONDITION
 .endm
 
+OP_VM_ASM             = 0x1B
+;-- Executes the inline native code
+.macro VM_ASM
+        .db OP_VM_ASM
+.endm
+
+;-- Terminates execution of the inline native code
+.macro VM_ENDASM
+        pop hl
+        rst 0x20
+.endm
+
 ;-- Gets unsigned int8 from WRAM.
 ; @param IDXA Target variable.
 ; @param ADDR Address of the unsigned 8-bit value in WRAM.
@@ -689,13 +701,14 @@ OP_VM_ACTOR_EMOTE               = 0x36
 
 OP_VM_ACTOR_SET_BOUNDS          = 0x37
 ;-- Sets actor bounding box.
-; @param ACTOR Variable that contains the actor number.
-; @param LEFT Left boundary of the bounding box.
-; @param RIGHT Right boundary of the bounding box.
-; @param TOP Top boundary of the bounding box.
-; @param BOTTOM Bottom boundary of the bounding box.
-.macro VM_ACTOR_SET_BOUNDS ACTOR, LEFT, RIGHT, TOP, BOTTOM
-        .db OP_VM_ACTOR_SET_BOUNDS, #>BOTTOM, #<BOTTOM, #>TOP, #<TOP, #>RIGHT, #<RIGHT, #>LEFT, #<LEFT, #>ACTOR, #<ACTOR
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`     - Actor number.
+;    `LEFT`   - New left boundary of the bounding box.
+;    `RIGHT`  - New right boundary of the bounding box.
+;    `TOP`    - New top boundary of the bounding box.
+;    `BOTTOM` - New bottom boundary of the bounding box.
+.macro VM_ACTOR_SET_BOUNDS IDX
+        .db OP_VM_ACTOR_SET_BOUNDS, #>IDX, #<IDX
 .endm
 
 OP_VM_ACTOR_SET_SPRITESHEET     = 0x38

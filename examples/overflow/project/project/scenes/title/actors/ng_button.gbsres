@@ -5,6 +5,7 @@
   "symbol": "actor_ng_button",
   "prefabId": "",
   "name": "NG_Button",
+  "coordinateType": "tiles",
   "x": 16,
   "y": 3,
   "frame": 0,

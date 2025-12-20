@@ -5,6 +5,7 @@
   "symbol": "actor_turnip_1",
   "prefabId": "",
   "name": "Turnip 1",
+  "coordinateType": "tiles",
   "x": 72,
   "y": 13,
   "frame": 0,

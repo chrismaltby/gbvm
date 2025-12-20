@@ -114,8 +114,8 @@ const struct spritesheet_t sprite_npc003 = {
     .animations_lookup = sprite_npc003_animations_lookup,
     .bounds = {
         .left = PX_TO_SUBPX(0),
-        .bottom = PX_TO_SUBPX(7),
-        .right = PX_TO_SUBPX(15),
+        .bottom = PX_TO_SUBPX(8) - 1,
+        .right = PX_TO_SUBPX(16) - 1,
         .top = PX_TO_SUBPX(-8)
     },
     .tileset = TO_FAR_PTR_T(sprite_npc003_tileset),

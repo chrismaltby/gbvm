@@ -99,8 +99,8 @@ const struct spritesheet_t sprite_elephant = {
     .animations_lookup = sprite_elephant_animations_lookup,
     .bounds = {
         .left = PX_TO_SUBPX(-16),
-        .bottom = PX_TO_SUBPX(7),
-        .right = PX_TO_SUBPX(35),
+        .bottom = PX_TO_SUBPX(8) - 1,
+        .right = PX_TO_SUBPX(36) - 1,
         .top = PX_TO_SUBPX(-32)
     },
     .tileset = TO_FAR_PTR_T(sprite_elephant_tileset),

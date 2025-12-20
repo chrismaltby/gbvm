@@ -21,8 +21,8 @@ const struct actor_t scene_outside_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,
@@ -31,7 +31,7 @@ const struct actor_t scene_outside_actors[] = {
         .anim_tick = 15,
         .pinned = FALSE,
         .persistent = FALSE,
-        .collision_group = COLLISION_GROUP_1,
+        .collision_group = COLLISION_GROUP_1 | COLLISION_GROUP_FLAG_SOLID,
         .collision_enabled = TRUE,
         .script_update = TO_FAR_PTR_T(actor_2_update),
         .script = TO_FAR_PTR_T(actor_2_interact),
@@ -45,8 +45,8 @@ const struct actor_t scene_outside_actors[] = {
         },
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .dir = DIR_DOWN,
@@ -55,7 +55,7 @@ const struct actor_t scene_outside_actors[] = {
         .anim_tick = 15,
         .pinned = FALSE,
         .persistent = FALSE,
-        .collision_group = COLLISION_GROUP_NONE,
+        .collision_group = COLLISION_GROUP_NONE | COLLISION_GROUP_FLAG_SOLID,
         .collision_enabled = TRUE,
         .script_update = TO_FAR_PTR_T(actor_3_update),
         .reserve_tiles = 0

@@ -20,8 +20,8 @@
       "id": "a3349565-d205-444b-b5cf-d2d67fe3859b",
       "command": "EVENT_TEXT_SET_ANIMATION_SPEED",
       "args": {
-        "speedIn": "0",
-        "speedOut": "0",
+        "speedIn": -3,
+        "speedOut": -3,
         "speed": "0",
         "allowFastForward": true
       }

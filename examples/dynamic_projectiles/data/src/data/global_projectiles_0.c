@@ -19,8 +19,8 @@ const struct projectile_def_t global_projectiles_0[] = {
         .strong = false,
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .anim_tick = 15,
@@ -55,8 +55,8 @@ const struct projectile_def_t global_projectiles_0[] = {
         .strong = true,
         .bounds = {
             .left = PX_TO_SUBPX(0),
-            .bottom = PX_TO_SUBPX(7),
-            .right = PX_TO_SUBPX(15),
+            .bottom = PX_TO_SUBPX(8) - 1,
+            .right = PX_TO_SUBPX(16) - 1,
             .top = PX_TO_SUBPX(-8)
         },
         .anim_tick = 15,

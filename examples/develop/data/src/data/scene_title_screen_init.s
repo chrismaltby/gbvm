@@ -19,6 +19,9 @@ _scene_title_screen_init::
 
         VM_RESERVE              5
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_title_screen_init$ff79b819_b435_4ef8_af20_07302038959f$4912bee2_387a_472f_ae4f_6679b6149517$scene$4912bee2_387a_472f_ae4f_6679b6149517$script = .
 .globl GBVM$scene_title_screen_init$ff79b819_b435_4ef8_af20_07302038959f$4912bee2_387a_472f_ae4f_6679b6149517$scene$4912bee2_387a_472f_ae4f_6679b6149517$script
         ; Actor Deactivate

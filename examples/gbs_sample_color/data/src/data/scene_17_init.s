@@ -14,6 +14,9 @@ ___bank_scene_17_init = 255
 _scene_17_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Music Stop
         VM_MUSIC_STOP
 

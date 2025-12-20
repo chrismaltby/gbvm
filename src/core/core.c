@@ -83,6 +83,7 @@ void process_VM(void) {
                 camera_update();
                 scroll_update();
                 actors_update();
+                actors_render();
                 projectiles_update();                                   // update and render projectiles
 
                 ui_update();
@@ -173,6 +174,7 @@ void process_VM(void) {
                 camera_update();
                 scroll_repaint();
                 actors_update();
+                actors_render();
 
                 activate_shadow_OAM();
 

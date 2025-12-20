@@ -14,6 +14,9 @@ ___bank_scene_outside_init = 255
 _scene_outside_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
 GBVM$scene_outside_init$autofade$94c18861_b352_4f49_a64d_52f2e3415077$scene$94c18861_b352_4f49_a64d_52f2e3415077$script = .
 .globl GBVM$scene_outside_init$autofade$94c18861_b352_4f49_a64d_52f2e3415077$scene$94c18861_b352_4f49_a64d_52f2e3415077$script
         ; Wait 1 Frames

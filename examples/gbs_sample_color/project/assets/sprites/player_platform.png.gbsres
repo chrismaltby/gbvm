@@ -754,16 +754,17 @@
     }
   ],
   "numTiles": 17,
+  "canvasOriginX": 0,
+  "canvasOriginY": 0,
   "canvasWidth": 32,
   "canvasHeight": 32,
   "boundsX": 0,
-  "boundsY": 0,
+  "boundsY": -16,
   "boundsWidth": 16,
   "boundsHeight": 24,
   "animSpeed": 15,
   "filename": "player_platform.png",
   "width": 88,
   "height": 160,
-  "checksum": "eea46c3f4a89b044d31ad1e87b9854a4063aeb72",
-  "numFrames": 5.5
+  "checksum": "eea46c3f4a89b044d31ad1e87b9854a4063aeb72"
 }

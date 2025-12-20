@@ -223,21 +223,10 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
         scene_LCD_type = LCD_parallax;
     }
 
-    // Copy scroll bounds - if not set fall back to using image size
-    if (scn.scroll_bounds.right == 0) {
-        scroll_x_min = 0;
-        scroll_x_max = image_width - ((UINT16)SCREENWIDTH);
-    } else {        
-        scroll_x_min = scn.scroll_bounds.left;
-        scroll_x_max = scn.scroll_bounds.right;
-    }
-    if (scn.scroll_bounds.bottom == 0) {
-        scroll_y_min = 0;
-        scroll_y_max = image_height - ((UINT16)SCREENHEIGHT);
-    } else {
-        scroll_y_min = scn.scroll_bounds.top;
-        scroll_y_max = scn.scroll_bounds.bottom;
-    }
+    scroll_x_min = scn.scroll_bounds.left;
+    scroll_x_max = scn.scroll_bounds.right;
+    scroll_y_min = scn.scroll_bounds.top;
+    scroll_y_max = scn.scroll_bounds.bottom;
 
     if (scene_type != SCENE_TYPE_LOGO) {
         // Load player

@@ -17,6 +17,9 @@ _scene_space_battle_init::
 
         VM_RESERVE              4
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Call Script: common/Init Weapons
         VM_CALL_FAR             ___bank_script_init_weapons, _script_init_weapons
 

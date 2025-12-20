@@ -5,6 +5,7 @@
   "symbol": "actor_save_point",
   "prefabId": "",
   "name": "Save Point",
+  "coordinateType": "tiles",
   "x": 14,
   "y": 11,
   "frame": 0,

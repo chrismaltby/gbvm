@@ -82,6 +82,23 @@ ___bank_script_engine_init = 255
 .globl _plat_next_state
 .globl _topdown_grid
 .globl _fade_style
+.globl _adv_walk_vel
+.globl _adv_walk_acc
+.globl _adv_dec
+.globl _adv_turn_acc
+.globl _adv_run_vel
+.globl _adv_run_acc
+.globl _adv_dash_active
+.globl _adv_dash_mask
+.globl _adv_dash_dist
+.globl _adv_dash_frames
+.globl _adv_dash_ready_frames
+.globl _adv_dash_deadzone
+.globl _adv_push_delay_frames
+.globl _adv_knockback_vel_x
+.globl _adv_knockback_vel_y
+.globl _adv_knockback_frames
+.globl _adv_next_state
 
 _script_engine_init::
         VM_RPN
@@ -173,6 +190,38 @@ _script_engine_init::
             .R_REF_MEM_SET .MEM_I8, _topdown_grid
             .R_INT8 0
             .R_REF_MEM_SET .MEM_I8, _fade_style
+            .R_INT16 4096
+            .R_REF_MEM_SET .MEM_I16, _adv_walk_vel
+            .R_INT16 1024
+            .R_REF_MEM_SET .MEM_I16, _adv_walk_acc
+            .R_INT16 1024
+            .R_REF_MEM_SET .MEM_I16, _adv_dec
+            .R_INT16 712
+            .R_REF_MEM_SET .MEM_I16, _adv_turn_acc
+            .R_INT16 6144
+            .R_REF_MEM_SET .MEM_I16, _adv_run_vel
+            .R_INT16 512
+            .R_REF_MEM_SET .MEM_I16, _adv_run_acc
+            .R_INT8 1
+            .R_REF_MEM_SET .MEM_I8, _adv_dash_active
+            .R_INT8 255
+            .R_REF_MEM_SET .MEM_I8, _adv_dash_mask
+            .R_INT16 2048
+            .R_REF_MEM_SET .MEM_I16, _adv_dash_dist
+            .R_INT8 15
+            .R_REF_MEM_SET .MEM_I8, _adv_dash_frames
+            .R_INT8 10
+            .R_REF_MEM_SET .MEM_I8, _adv_dash_ready_frames
+            .R_INT8 32
+            .R_REF_MEM_SET .MEM_I8, _adv_dash_deadzone
+            .R_INT8 5
+            .R_REF_MEM_SET .MEM_I8, _adv_push_delay_frames
+            .R_INT16 6144
+            .R_REF_MEM_SET .MEM_I16, _adv_knockback_vel_x
+            .R_INT16 6144
+            .R_REF_MEM_SET .MEM_I16, _adv_knockback_vel_y
+            .R_INT8 10
+            .R_REF_MEM_SET .MEM_I8, _adv_knockback_frames
             .R_STOP
 
         ; return from init routine
