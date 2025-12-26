@@ -91,6 +91,7 @@ void actors_update(void) BANKED {
     screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
     screen_tile16_y_end = screen_tile16_y + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H;
 
+    uint8_t tmp_iterator = game_time;
     actor = actors_active_tail;
     while (actor) {
 
@@ -113,7 +114,7 @@ void actors_update(void) BANKED {
             continue;
         }
 
-        if (IS_FRAME_8) {
+        if ((tmp_iterator++ & 0x7) == 0) {
             // Bottom right coordinate of actor in 16px tile coordinates
             // Subtract bounding box estimate width/height
             // and offset by 64 to allow signed comparisons with screen tiles
