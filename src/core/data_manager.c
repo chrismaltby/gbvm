@@ -58,7 +58,7 @@ void load_init(void) BANKED {
 }
 
 void load_bkg_tileset(const tileset_t* tiles, UBYTE bank) BANKED {
-    if ((!bank) || (!tiles)) return;
+    if ((!bank) && (!tiles)) return;
 
     UWORD n_tiles = ReadBankedUWORD(&(tiles->n_tiles), bank);
 
@@ -122,6 +122,7 @@ void load_background(const background_t* background, UBYTE bank) BANKED {
 }
 
 inline UBYTE load_sprite_tileset(UBYTE base_tile, const tileset_t * tileset, UBYTE bank) {
+    if ((!bank) && (!tileset)) return 0;
     UBYTE n_tiles = ReadBankedUBYTE(&(tileset->n_tiles), bank);
     if (n_tiles) SetBankedSpriteData(base_tile, n_tiles, tileset->tiles, bank);
     return n_tiles;

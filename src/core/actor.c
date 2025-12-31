@@ -294,6 +294,29 @@ static void activate_actor_impl(actor_t *actor) {
     }
 #endif
     if (actor->active || actor->disabled) return;
+
+    // Check if on screen before activating to avoid flash of offscreen actors
+    if (actor != &PLAYER && !actor->pinned && !actor->persistent) {
+        UBYTE actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+        UBYTE actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+        UBYTE screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
+        UBYTE screen_tile16_x_end = screen_tile16_x + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_W;
+        UBYTE screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
+        UBYTE screen_tile16_y_end = screen_tile16_y + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H;
+        if (
+            // Actor right edge < screen left edge
+            (actor_tile16_x < screen_tile16_x) ||
+            // Actor left edge > screen right edge
+            (actor_tile16_x > screen_tile16_x_end) ||
+            // Actor bottom edge < screen top edge
+            (actor_tile16_y < screen_tile16_y) ||
+            // Actor top edge > screen bottom edge
+            (actor_tile16_y > screen_tile16_y_end)
+        ) {
+            return;
+        }
+    }
+
     actor->active = TRUE;
     actor_set_anim_idle(actor);
     DL_REMOVE_ITEM(actors_inactive_head, actor);
