@@ -55,6 +55,9 @@
 #define MOVE_TYPE_4_WAY 0
 #define MOVE_TYPE_8_WAY 1
 
+#define DIRECTION_TYPE_2_WAY 0
+#define DIRECTION_TYPE_4_WAY 1
+
 #define DIR_PRIORITY_NONE 0
 #define DIR_PRIORITY_HORIZONTAL 1
 #define DIR_PRIORITY_VERTICAL 2
@@ -69,6 +72,9 @@
 
 #ifndef INPUT_ADVENTURE_MOVE_TYPE
 #define INPUT_ADVENTURE_MOVE_TYPE MOVE_TYPE_8_WAY
+#endif
+#ifndef INPUT_ADVENTURE_DIRECTION_TYPE
+#define INPUT_ADVENTURE_DIRECTION_TYPE DIRECTION_TYPE_4_WAY
 #endif
 #define DASH_INPUT_INTERACT 0
 #define DASH_INPUT_DOUBLE_TAP 1
@@ -484,7 +490,6 @@ static void handle_dir_input(void) {
     WORD target_x = 0;
     WORD target_y = 0;
     static UBYTE facing_priority_axis = DIR_PRIORITY_NONE;
-
 #ifdef FEAT_ADVENTURE_RUN
     const WORD max_vel = (adv_state == RUN_STATE) ? adv_run_vel : adv_walk_vel;
     const WORD base_acc = (adv_state == RUN_STATE) ? adv_run_acc : adv_walk_acc;
@@ -511,7 +516,7 @@ static void handle_dir_input(void) {
         target_x = (target_x >> 1) + (target_x >> 2);  
         target_y = (target_y >> 1) + (target_y >> 2);  
     }
-
+#if INPUT_ADVENTURE_DIRECTION_TYPE == DIRECTION_TYPE_4_WAY
     // Update facing priority axis
     if ((left | right) && !(up | down)) {
         facing_priority_axis = DIR_PRIORITY_HORIZONTAL;
@@ -520,26 +525,34 @@ static void handle_dir_input(void) {
     } else if (!(left | right | up | down)) {
         facing_priority_axis = DIR_PRIORITY_NONE;
     }
-
+#endif
     // Determine facing based on which axis was pressed first
     if ((left | right) && (up | down)) {
+#if INPUT_ADVENTURE_DIRECTION_TYPE == DIRECTION_TYPE_4_WAY
         // Both axes pressed, respect whichever axis was pressed first
         if (facing_priority_axis == DIR_PRIORITY_HORIZONTAL) {
             facing_dir = left ? DIR_LEFT : DIR_RIGHT;
         } else {
             facing_dir = up ? DIR_UP : DIR_DOWN;
-        }
+        }	
+#else
+	    facing_dir = left ? DIR_LEFT : DIR_RIGHT;
+#endif
     } else if (left) {
         facing_dir = DIR_LEFT;
     } else if (right) {
         facing_dir = DIR_RIGHT;
-    } else if (up) {
+    } 
+#if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_2_WAY
+	else if (up) {
         facing_dir = DIR_UP;
     } else if (down) {
         facing_dir = DIR_DOWN;
     }
+#endif
 #else
     // ---------------------- 4-WAY ----------------------
+#if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_2_WAY
     if (INPUT_RECENT_LEFT) {
         target_x = -max_vel;
         facing_dir = DIR_LEFT;
@@ -553,6 +566,19 @@ static void handle_dir_input(void) {
         target_y =  max_vel;
         facing_dir = DIR_DOWN;
     }
+#else
+	if (INPUT_RECENT_LEFT) {
+        target_x = -max_vel;
+        facing_dir = DIR_LEFT;
+    } else if (INPUT_RECENT_RIGHT) {
+        target_x =  max_vel;
+        facing_dir = DIR_RIGHT;
+    } else if (INPUT_RECENT_UP) {
+        target_y = -max_vel;
+    } else if (INPUT_RECENT_DOWN) {
+        target_y =  max_vel;
+    }
+#endif
 #endif
 
     // ---------------------- Apply Acceleration ----------------------
@@ -1038,7 +1064,7 @@ static void state_update_ground(void)
 
     // Facing and animation update
     if (joy & INPUT_DPAD) {
-        actor_set_dir(&PLAYER, facing_dir, TRUE);
+		actor_set_dir(&PLAYER, facing_dir, TRUE);
     } else {
         actor_set_anim_idle(&PLAYER);
     }
