@@ -35,8 +35,15 @@ BANKREF(ACTOR)
 
 const BYTE emote_offsets[] = {2, 1, 0, -1, -2, -3, -4, -5, -6, -5, -4, -3, -2, -1, 0};
 
-const metasprite_t emote_metasprite[]  = {
-    {0, 0, 0, 7}, {0, 8, 2, 7}, {metasprite_end}
+const metasprite_t emote_metasprite_8_16[]  = {
+    {0, 0, 0, 7}, {0, 8, 2, 7}, 
+    {metasprite_end}
+};
+
+const metasprite_t emote_metasprite_8_8[]  = {
+    {0, 0, 0, 7}, {0, 8, 2, 7},
+    {8, -8, 1, 7}, {0, 8, 3, 7},
+    {metasprite_end}
 };
 
 actor_t actors[MAX_ACTORS];
@@ -170,13 +177,24 @@ void actors_render(void) NONBANKED {
         if (emote_timer < EMOTE_BOUNCE_FRAMES) {
             screen_y += emote_offsets[emote_timer];
         }
-        allocated_hardware_sprites += move_metasprite(
-            emote_metasprite,
-            allocated_sprite_tiles,
-            allocated_hardware_sprites,
-            screen_x,
-            screen_y
-        );
+        // if sprite mode is 8x16
+        if (LCDC_REG & LCDCF_OBJ16) {
+            allocated_hardware_sprites += move_metasprite(
+                emote_metasprite_8_16,
+                allocated_sprite_tiles,
+                allocated_hardware_sprites,
+                screen_x,
+                screen_y
+            );
+        } else {
+            allocated_hardware_sprites += move_metasprite(
+                emote_metasprite_8_8,
+                allocated_sprite_tiles,
+                allocated_hardware_sprites,
+                screen_x,
+                screen_y
+            );
+        }
     }
 
     static bool window_hide_actors;
