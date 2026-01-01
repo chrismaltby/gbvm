@@ -35,7 +35,7 @@ void projectiles_update(void) NONBANKED {
     prev_projectile = NULL;
 
     _save_bank = CURRENT_BANK;
-
+    uint8_t tmp_iterator = game_time;
     while (projectile) {
         if (projectile->def.life_time == 0) {
             // Remove projectile
@@ -64,7 +64,7 @@ void projectiles_update(void) NONBANKED {
         projectile->pos.x += projectile->delta_pos.x;
         projectile->pos.y -= projectile->delta_pos.y;
 
-        if (IS_FRAME_EVEN) {
+        if ((tmp_iterator++ & 0x1) == 0) {
             actor_t *hit_actor = NULL;
             if (projectile->def.collision_mask == COLLISION_GROUP_PLAYER) {
                 if  (bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
