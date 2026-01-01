@@ -330,9 +330,9 @@ void shmup_update(void) BANKED {
         }
 
         // Sync camera subpixels with player to prevent visual jitter
-        // (only when player isn't blocked by collision)
+        // (only when player isn't moving)
         IF_FREE_MOVEMENT({
-            if (!tile) {
+            if (!player_moving) {
                 camera_x = SUBPX_SNAP_PX(camera_x) | SUBPX_PX_REMAINDER(PLAYER.pos.x);
                 camera_y = SUBPX_SNAP_PX(camera_y) | SUBPX_PX_REMAINDER(PLAYER.pos.y);
             }
