@@ -124,14 +124,15 @@ static UWORD check_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bo
 void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
-
+    static SFR flags;
+    flags = THIS->flags;
     // indicate waitable state of context
     THIS->waitable = 1;
 
     act_move_to_t * params = VM_REF_TO_PTR(idx);
     actor = actors + (UBYTE)(params->ID);
 
-    if (THIS->flags == 0) {
+    if (flags == 0) {
         actor->movement_interrupt = FALSE;
 
         // Switch to moving animation frames
@@ -142,11 +143,11 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         actor->pos.y = SUBPX_SNAP_PX(actor->pos.y);
 
         if (CHK_FLAG(params->ATTR, ACTOR_ATTR_DIAGONAL)) {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
+            SET_FLAG(flags, MOVE_ALLOW_H | MOVE_ALLOW_V);
         } if (CHK_FLAG(params->ATTR, ACTOR_ATTR_H_FIRST)) {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H);
+            SET_FLAG(flags, MOVE_ALLOW_H);
         } else {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_V);
+            SET_FLAG(flags, MOVE_ALLOW_V);
         }
 
         // If moving relative add current position
@@ -189,28 +190,28 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
 
         // Actor already at destination
         if ((actor->pos.x != params->X)) {
-            SET_FLAG(THIS->flags, MOVE_NEEDED_H);
+            SET_FLAG(flags, MOVE_NEEDED_H);
         } else {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_V);
+            SET_FLAG(flags, MOVE_ALLOW_V);
         }
         if (actor->pos.y != params->Y) {
-            SET_FLAG(THIS->flags, MOVE_NEEDED_V);
+            SET_FLAG(flags, MOVE_NEEDED_V);
         } else {
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H);
+            SET_FLAG(flags, MOVE_ALLOW_H);
         }
 
         // Initialise movement directions
         if (actor->pos.x > params->X) {
             // Move left
-            SET_FLAG(THIS->flags, MOVE_DIR_H);
+            SET_FLAG(flags, MOVE_DIR_H);
         }
         if (actor->pos.y > params->Y) {
             // Move up
-            SET_FLAG(THIS->flags, MOVE_DIR_V);
+            SET_FLAG(flags, MOVE_DIR_V);
         }
 
         THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
-        return;        
+        goto exit_function;
     }
 
     // Interrupt actor movement
@@ -233,9 +234,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
     UBYTE test_actors = CHK_FLAG(params->ATTR, ACTOR_ATTR_CHECK_COLL_ACTORS) && ((game_time & 0x03) == (params->ID & 0x03));
 
     // Move in X Axis
-    if (CHK_FLAG(THIS->flags, MOVE_H) == MOVE_H) {
+    if (CHK_FLAG(flags, MOVE_H) == MOVE_H) {
         // Get hoizontal direction from flags
-        new_dir = CHK_FLAG(THIS->flags, MOVE_DIR_H) ? DIR_LEFT : DIR_RIGHT;
+        new_dir = CHK_FLAG(flags, MOVE_DIR_H) ? DIR_LEFT : DIR_RIGHT;
 
         // Move actor horizontally
         actor->pos.x += new_dir == DIR_LEFT ? -actor->move_speed : actor->move_speed;
@@ -248,14 +249,14 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
                     ? hit_actor->bounds.right - actor->bounds.left + 1
                     : hit_actor->bounds.left - actor->bounds.right - 1
                 );
-            THIS->flags = 0;
+            flags = 0;
             actor_set_anim_idle(actor);
-            return;
+            goto exit_function;
         }
 
         // If first frame moving in this direction update actor direction
-        if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_H)) {
-            SET_FLAG(THIS->flags, MOVE_ACTIVE_H);
+        if (!CHK_FLAG(flags, MOVE_ACTIVE_H)) {
+            SET_FLAG(flags, MOVE_ACTIVE_H);
             actor_set_dir(actor, new_dir, TRUE);
         }
 
@@ -266,15 +267,15 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         ) {
             // Reached Horizontal Destination
             actor->pos.x = params->X;
-            SET_FLAG(THIS->flags, MOVE_ALLOW_V);
-            CLR_FLAG(THIS->flags, MOVE_H);
+            SET_FLAG(flags, MOVE_ALLOW_V);
+            CLR_FLAG(flags, MOVE_H);
         }
     }
 
     // Move in Y Axis
-    if (CHK_FLAG(THIS->flags, MOVE_V) == MOVE_V) {
+    if (CHK_FLAG(flags, MOVE_V) == MOVE_V) {
         // Get vertical direction from flags
-        new_dir = CHK_FLAG(THIS->flags, MOVE_DIR_V) ? DIR_UP : DIR_DOWN;
+        new_dir = CHK_FLAG(flags, MOVE_DIR_V) ? DIR_UP : DIR_DOWN;
 
         // Move actor vertically
         actor->pos.y += new_dir == DIR_UP ? -actor->move_speed : actor->move_speed;
@@ -287,14 +288,14 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
                     ? hit_actor->bounds.bottom - actor->bounds.top + 1
                     : hit_actor->bounds.top - actor->bounds.bottom - 1
                 );
-            THIS->flags = 0;
+            flags = 0;
             actor_set_anim_idle(actor);
-            return;
+            goto exit_function;
         }
 
         // If first frame moving in this direction update actor direction
-        if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_V)) {
-            SET_FLAG(THIS->flags, MOVE_ACTIVE_V);
+        if (!CHK_FLAG(flags, MOVE_ACTIVE_V)) {
+            SET_FLAG(flags, MOVE_ACTIVE_V);
             actor_set_dir(actor, new_dir, TRUE);
         }
 
@@ -304,19 +305,22 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             (new_dir == DIR_DOWN &&  (actor->pos.y >= params->Y)) // Overshot below
          ) {
             actor->pos.y = params->Y;
-            SET_FLAG(THIS->flags, MOVE_ALLOW_H);
-            CLR_FLAG(THIS->flags, MOVE_V);
+            SET_FLAG(flags, MOVE_ALLOW_H);
+            CLR_FLAG(flags, MOVE_V);
         }
     }
 
     // Actor reached destination
-    if (!CHK_FLAG(THIS->flags, MOVE_NEEDED_H | MOVE_NEEDED_V)) {
-        THIS->flags = MOVE_INACTIVE;
+    if (!CHK_FLAG(flags, MOVE_NEEDED_H | MOVE_NEEDED_V)) {
+        flags = MOVE_INACTIVE;
         actor_set_anim_idle(actor);
-        return;
+        goto exit_function;
     }
 
     THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+
+exit_function:
+    THIS->flags = flags;
     return;
 }
 
