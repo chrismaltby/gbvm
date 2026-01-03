@@ -622,7 +622,7 @@ OP_VM_ACTOR_MOVE_TO             = 0x30
 ;       `.ACTOR_ATTR_CHECK_COLL` - Respect collisions.
 ;       `.ACTOR_ATTR_DIAGONAL`   - Allow diagonal movement
 .macro VM_ACTOR_MOVE_TO IDX
-        .db OP_VM_ACTOR_MOVE_TO, #>IDX, #<IDX
+        .db OP_VM_ACTOR_MOVE_TO
 .endm
 
 OP_VM_ACTOR_MOVE_CANCEL         = 0x88

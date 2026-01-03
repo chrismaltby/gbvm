@@ -69,7 +69,7 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_save_clear,                     BANK(VM_LOAD_SAVE),     1}, // 0x2F
 
     // actor instructions section
-    {vm_actor_move_to,                  BANK(VM_ACTOR),         2}, // 0x30
+    {vm_actor_move_to,                  BANK(VM_ACTOR),         0}, // 0x30
     {vm_actor_activate,                 BANK(VM_ACTOR),         2}, // 0x31
     {vm_actor_set_dir,                  BANK(VM_ACTOR),         3}, // 0x32
     {vm_actor_deactivate,               BANK(VM_ACTOR),         2}, // 0x33

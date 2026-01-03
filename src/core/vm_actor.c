@@ -33,6 +33,7 @@ typedef struct act_move_to_t {
     INT16 ID;
     UINT16 X, Y;
     UBYTE ATTR;
+    UBYTE _padding;
 } act_move_to_t;
 
 typedef struct act_set_pos_t {
@@ -121,14 +122,14 @@ static UWORD check_collision_vertical(UWORD start_x, UWORD start_y, rect16_t *bo
     return end_pos;
 }
 
-void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
+void vm_actor_move_to(SCRIPT_CTX * THIS) OLDCALL BANKED {
     actor_t *actor;
     static direction_e new_dir = DIR_DOWN;
 
     // indicate waitable state of context
     THIS->waitable = 1;
 
-    act_move_to_t * params = VM_REF_TO_PTR(idx);
+    act_move_to_t * params = THIS->stack_ptr - (sizeof(act_move_to_t) / sizeof(INT16));
     actor = actors + (UBYTE)(params->ID);
 
     if (THIS->flags == 0) {
@@ -209,7 +210,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
             SET_FLAG(THIS->flags, MOVE_DIR_V);
         }
 
-        THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+        THIS->PC -= INSTRUCTION_SIZE;
         return;        
     }
 
@@ -316,7 +317,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         return;
     }
 
-    THIS->PC -= (INSTRUCTION_SIZE + sizeof(idx));
+    THIS->PC -= INSTRUCTION_SIZE;
     return;
 }
 
