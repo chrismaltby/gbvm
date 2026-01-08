@@ -256,7 +256,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         // If first frame moving in this direction update actor direction
         if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_H)) {
             SET_FLAG(THIS->flags, MOVE_ACTIVE_H);
-            actor_set_dir(actor, new_dir, TRUE);
+            if (!CHK_FLAG(params->ATTR, ACTOR_ATTR_LOCK_DIR_H) ) {
+                actor_set_dir(actor, new_dir, TRUE);
+            }
         }
 
         // Check if overshot destination
@@ -295,7 +297,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) OLDCALL BANKED {
         // If first frame moving in this direction update actor direction
         if (!CHK_FLAG(THIS->flags, MOVE_ACTIVE_V)) {
             SET_FLAG(THIS->flags, MOVE_ACTIVE_V);
-            actor_set_dir(actor, new_dir, TRUE);
+            if (!CHK_FLAG(params->ATTR, ACTOR_ATTR_LOCK_DIR_V) ) {
+                actor_set_dir(actor, new_dir, TRUE);
+            }
         }
 
         // Check if overshot destination
