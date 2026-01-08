@@ -197,42 +197,10 @@ void actors_render(void) NONBANKED {
 #else
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif
+    
+    actor = player_is_offscreen ? PLAYER.prev : &PLAYER;
 
-    // Render player
-    if (!player_is_offscreen) {
-        if (PLAYER.pinned) {
-            screen_x = SUBPX_TO_PX(PLAYER.pos.x) + 8;
-            screen_y = SUBPX_TO_PX(PLAYER.pos.y) + 8;
-        } else {
-            screen_x = (SUBPX_TO_PX(PLAYER.pos.x) + 8) - draw_scroll_x;
-            screen_y = (SUBPX_TO_PX(PLAYER.pos.y) + 8) - draw_scroll_y;
-        }
-
-        bool skip_player =
-            PLAYER.hidden ||
-            PLAYER.disabled ||
-             !PLAYER.active ||
-            (window_hide_actors &&
-             ((screen_x + 8) > WX_REG) &&
-             ((screen_y - 8) > WY_REG));
-
-        if (!skip_player) {
-            SWITCH_ROM(PLAYER.sprite.bank);
-            spritesheet_t *sprite = PLAYER.sprite.ptr;
-
-            allocated_hardware_sprites += move_metasprite(
-                *(sprite->metasprites + PLAYER.frame),
-                PLAYER.base_tile,
-                allocated_hardware_sprites,
-                screen_x,
-                screen_y
-            );
-        }
-    }
-
-    actor = PLAYER.prev;
-
-    // Render other actors
+    // Render all actors
     while (actor) {         
         if (actor->pinned) {
             screen_x = SUBPX_TO_PX(actor->pos.x) + 8, screen_y = SUBPX_TO_PX(actor->pos.y) + 8;
@@ -240,7 +208,7 @@ void actors_render(void) NONBANKED {
             screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
         }
 
-        if (actor->hidden || actor->disabled || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
+        if (actor->hidden || actor->disabled || !actor->active || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
             actor = actor->prev;
             continue;
         }
