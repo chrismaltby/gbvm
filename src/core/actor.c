@@ -209,8 +209,7 @@ void actors_render(void) NONBANKED {
         }
 
         if (actor->hidden || actor->disabled || !actor->active || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
-            actor = actor->prev;
-            continue;
+            goto continue_and_prev_actor;
         }
 
         SWITCH_ROM(actor->sprite.bank);
@@ -223,7 +222,7 @@ void actors_render(void) NONBANKED {
             screen_x,
             screen_y
         );
-
+continue_and_prev_actor:
         actor = actor->prev;
     }
 
