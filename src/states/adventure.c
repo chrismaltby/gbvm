@@ -55,8 +55,8 @@
 #define MOVE_TYPE_4_WAY 0
 #define MOVE_TYPE_8_WAY 1
 
-#define DIRECTION_TYPE_2_WAY 0
-#define DIRECTION_TYPE_4_WAY 1
+#define DIRECTION_TYPE_4_WAY 0
+#define DIRECTION_TYPE_HORIZONTAL 1
 
 #define DIR_PRIORITY_NONE 0
 #define DIR_PRIORITY_HORIZONTAL 1
@@ -543,7 +543,7 @@ static void handle_dir_input(void) {
     } else if (right) {
         facing_dir = DIR_RIGHT;
     } 
-#if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_2_WAY
+#if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_HORIZONTAL
 	else if (up) {
         facing_dir = DIR_UP;
     } else if (down) {
@@ -552,7 +552,7 @@ static void handle_dir_input(void) {
 #endif
 #else
     // ---------------------- 4-WAY ----------------------
-#if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_2_WAY
+#if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_HORIZONTAL
     if (INPUT_RECENT_LEFT) {
         target_x = -max_vel;
         facing_dir = DIR_LEFT;
