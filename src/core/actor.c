@@ -198,20 +198,22 @@ void actors_render(void) NONBANKED {
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif
     
-    actor = player_is_offscreen ? PLAYER.prev : &PLAYER;
-
+    actor = (player_is_offscreen || !PLAYER.active) ? PLAYER.prev : &PLAYER;
     // Render all actors
-    while (actor) {         
+    for (; actor; actor = actor->prev){
+        if (actor->hidden || actor->disabled) {
+           continue;
+        }
+        
         if (actor->pinned) {
             screen_x = SUBPX_TO_PX(actor->pos.x) + 8, screen_y = SUBPX_TO_PX(actor->pos.y) + 8;
         } else {
             screen_x = (SUBPX_TO_PX(actor->pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(actor->pos.y) + 8) - draw_scroll_y;
         }
 
-        if (actor->hidden || actor->disabled || !actor->active || ((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
-            goto continue_and_prev_actor;
+        if (((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
+            continue;
         }
-
         SWITCH_ROM(actor->sprite.bank);
         spritesheet_t *sprite = actor->sprite.ptr;
 
@@ -222,8 +224,6 @@ void actors_render(void) NONBANKED {
             screen_x,
             screen_y
         );
-continue_and_prev_actor:
-        actor = actor->prev;
     }
 
     SWITCH_ROM(_save);
