@@ -198,7 +198,7 @@ void actors_render(void) NONBANKED {
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif
     
-    actor = (player_is_offscreen || !PLAYER.active) ? PLAYER.prev : &PLAYER;
+    actor = PLAYER.active ? (player_is_offscreen ? PLAYER.prev ? &PLAYER) : actors_active_tail;
     // Render all actors
     for (; actor; actor = actor->prev){
         if (actor->hidden || actor->disabled) {
