@@ -195,10 +195,31 @@ void actors_render(void) NONBANKED {
 #else
     window_hide_actors = (!show_actors_on_overlay) && (WX_REG > DEVICE_WINDOW_PX_OFFSET_X);
 #endif
+
+
+    if (!player_is_offscreen && !CHK_FLAG(PLAYER.flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED) && CHK_FLAG(PLAYER.flags, ACTOR_FLAG_ACTIVE))        
+        if (CHK_FLAG(PLAYER.flags, ACTOR_FLAG_PINNED)) {
+            screen_x = SUBPX_TO_PX(PLAYER.pos.x) + 8, screen_y = SUBPX_TO_PX(PLAYER.pos.y) + 8;
+        } else {
+            screen_x = (SUBPX_TO_PX(PLAYER.pos.x) + 8) - draw_scroll_x, screen_y = (SUBPX_TO_PX(PLAYER.pos.y) + 8) - draw_scroll_y;
+        }
+
+        if (((window_hide_actors) && (((screen_x + 8) > WX_REG) && ((screen_y - 8) > WY_REG)))) {
+            SWITCH_ROM(PLAYER.sprite.bank);
+            spritesheet_t *sprite = PLAYER.sprite.ptr;
     
-    actor = CHK_FLAG(PLAYER.flags, ACTOR_FLAG_ACTIVE) ? ((player_is_offscreen) ? PLAYER.prev : &PLAYER) : actors_active_tail;
+            allocated_hardware_sprites += move_metasprite(
+                *(PLAYER.metasprites + PLAYER.frame),
+                PLAYER.base_tile,
+                allocated_hardware_sprites,
+                screen_x,
+                screen_y
+            );
+        }
+    }
+    
     // Render all actors
-    for (; (actor); actor = actor->prev){
+    for (actor = PLAYER.prev; (actor); actor = actor->prev){
         if (CHK_FLAG(actor->flags, ACTOR_FLAG_HIDDEN | ACTOR_FLAG_DISABLED)) {
            continue;
         }
