@@ -615,17 +615,12 @@ __asm
         ld h, a                 ; hl = THIS
 
         push hl                 ; pushing THIS
-
-        ld (hl), e
-        inc hl
+   
+        ld a, e
+        ld (hl+), a
         ld (hl), d              ; PC = PC + sizeof(instruction) + args_len
 
-        ld hl, #_current_sp
-        ld a, (hl+)
-        ld h, (hl)
-        ld l, a
-        push hl                 ; not used
-        push hl                 ; SP to restore
+        add sp, #-4             ; for compatibility with the __banked calling convention
 
         ldh a, (_current_fn_bank)   ; a = script_bank
         ldh (__current_bank), a
@@ -635,7 +630,10 @@ __asm
         ld l, c
         rst 0x20                ; call hl
 
-        pop hl
+        ld hl, #_current_sp
+        ld a, (hl+)
+        ld h, (hl)
+        ld l, a
         ld sp, hl
 
         pop af
