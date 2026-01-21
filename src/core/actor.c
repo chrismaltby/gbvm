@@ -142,14 +142,13 @@ void actors_update(void) BANKED {
             ) {
                 // Deactivate if offscreen
                 actor_t * prev = actor->prev;
-                if (!VM_ISLOCKED()) {
-                    if (actor == &PLAYER) {
-                        player_is_offscreen = TRUE;
-                    } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
-                        SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
-                    } else {
-                        deactivate_actor_impl(actor);
-                    }
+                if (actor == &PLAYER) {
+                    player_is_offscreen = TRUE;
+                } else if (VM_ISLOCKED() || CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+                    SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+                } else {
+                    CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+                    deactivate_actor_impl(actor);
                 }
                 actor = prev;
                 continue;
@@ -157,7 +156,7 @@ void actors_update(void) BANKED {
 
             if (actor == &PLAYER) {
                 player_is_offscreen = FALSE;
-            } else if (CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+            } else {
                 CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
             }
         }
