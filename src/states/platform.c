@@ -1034,9 +1034,15 @@ static void handle_horizontal_input(void)
             }
             else
             {
-                // Walking
-                input_aligned_vel_x = CLAMP(input_aligned_vel_x + accel, plat_min_vel, max_vel);
-                plat_run_stage = RUN_STAGE_NONE;
+                // decelerate to Walking max velocity
+                if (input_aligned_vel_x > max_vel){
+                    WORD dec = (plat_state == GROUND_STATE) ? plat_dec : plat_air_dec;
+                    input_aligned_vel_x -= dec;
+                } else {
+                    // Walking
+                    input_aligned_vel_x = CLAMP(input_aligned_vel_x + accel, plat_min_vel, max_vel);
+                    plat_run_stage = RUN_STAGE_NONE;
+                }
             }
 #else
             input_aligned_vel_x = CLAMP(input_aligned_vel_x + accel, plat_min_vel, max_vel);
