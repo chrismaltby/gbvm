@@ -93,6 +93,177 @@
       "id": "1b0bcb14-01cf-4fa3-800d-18b57c521a0a"
     },
     {
+      "command": "EVENT_ACTOR_MOVE_TO",
+      "args": {
+        "actorId": "ebb4a6f1-0a04-4ece-9d64-6c10aa8c19a2",
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 5
+        },
+        "moveType": "diagonal",
+        "useCollisions": false,
+        "collideWith": [
+          "walls",
+          "actors"
+        ]
+      },
+      "id": "9243228b-4fe1-4afa-ba39-2e3e19885d41"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "ebb4a6f1-0a04-4ece-9d64-6c10aa8c19a2",
+        "x": {
+          "type": "number",
+          "value": 8
+        },
+        "y": {
+          "type": "number",
+          "value": -8
+        },
+        "collideWith": [
+          "actors"
+        ],
+        "moveType": "diagonal",
+        "__comment": false
+      },
+      "id": "f1a4f77e-a1ae-4f0c-897f-c09de9bf6d29"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "c559da9f-3752-4cd9-a258-324d6509d179",
+        "x": {
+          "type": "number",
+          "value": -5
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "collideWith": [
+          "walls"
+        ],
+        "moveType": "horizontal"
+      },
+      "id": "a0c80f3d-bb45-4081-a19f-c8d5bdf02a4d"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "71117f87-a92f-4703-9621-1662fe040755",
+        "x": {
+          "type": "number",
+          "value": -5
+        },
+        "y": {
+          "type": "number",
+          "value": -30
+        },
+        "collideWith": [],
+        "moveType": "horizontal"
+      },
+      "id": "c3ef2143-e5ad-4cdf-aa09-a574fc13504f"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "c31e09d1-bc4e-426e-8c18-e669f908039b",
+        "x": {
+          "type": "number",
+          "value": 5
+        },
+        "y": {
+          "type": "number",
+          "value": -5
+        },
+        "collideWith": [
+          "walls"
+        ],
+        "moveType": "vertical"
+      },
+      "id": "dc931621-5be2-4ced-b952-1c45c6a05434"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_TO",
+      "args": {
+        "actorId": "0c8dd1f5-5e9f-4b5b-9e27-c5dadd961574",
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 8
+        },
+        "collideWith": [
+          "walls"
+        ],
+        "moveType": "horizontal",
+        "__collapse": false
+      },
+      "id": "6a4d0854-006d-44b5-ae73-d75394ef82ed"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "0c8dd1f5-5e9f-4b5b-9e27-c5dadd961574",
+        "x": {
+          "type": "number",
+          "value": 0
+        },
+        "y": {
+          "type": "number",
+          "value": 2
+        },
+        "collideWith": [],
+        "moveType": "diagonal"
+      },
+      "id": "8378c641-9cb1-4346-8f94-0ae898b9dbfa"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "0c8dd1f5-5e9f-4b5b-9e27-c5dadd961574",
+        "x": {
+          "type": "number",
+          "value": 5
+        },
+        "y": {
+          "type": "number",
+          "value": -5
+        },
+        "collideWith": [
+          "actors"
+        ],
+        "moveType": "diagonal"
+      },
+      "id": "417f8d5b-4b3b-476b-adeb-ad08d1bfa94c"
+    },
+    {
+      "command": "EVENT_ACTOR_MOVE_RELATIVE",
+      "args": {
+        "actorId": "189e8eca-b169-4dc4-80f3-b7ae515a5f15",
+        "x": {
+          "type": "number",
+          "value": 1
+        },
+        "y": {
+          "type": "number",
+          "value": 0
+        },
+        "collideWith": [
+          "walls"
+        ],
+        "moveType": "horizontal"
+      },
+      "id": "9ed6b086-8a90-4758-ae3b-64a54a0b9b5c"
+    },
+    {
       "command": "EVENT_GBVM_SCRIPT",
       "args": {
         "script": "VM_TEST_TERMINATE .TEST_WAIT_VBL"
@@ -103,5 +274,5 @@
   "playerHit1Script": [],
   "playerHit2Script": [],
   "playerHit3Script": [],
-  "collisions": ""
+  "collisions": "00a0+0fd+00bb+"
 }

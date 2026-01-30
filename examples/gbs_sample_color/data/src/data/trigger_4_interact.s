@@ -31,16 +31,15 @@ _trigger_4_interact::
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
-            .R_INT16    768
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
+            .R_INT16    768
+            .R_INT16    0
             .R_STOP
         ; -- Move Actor
-        VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Actor Activate
         VM_SET_CONST            .LOCAL_ACTOR, 0

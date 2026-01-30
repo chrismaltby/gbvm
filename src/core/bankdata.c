@@ -5,13 +5,13 @@
 #include "bankdata.h"
 #include "scroll.h"
 
-static UBYTE _save;         // functions below are not reentrant
+static FASTUBYTE _save;    // functions below are not reentrant
 
 void SetBankedBkgData(UBYTE i, UBYTE l, const unsigned char* ptr, UBYTE bank) OLDCALL NONBANKED NAKED {
     i; l; ptr; bank;
 __asm
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ldh (#__save), a
 
     ldhl  sp,	#6
     ld  a, (hl)
@@ -21,7 +21,7 @@ __asm
     pop bc
     call  _set_bkg_data     ; preserves BC
 
-    ld  a, (#__save)
+    ldh a, (#__save)
     ldh (__current_bank), a
     ld  (_rROMB0), a
     ld  h, b
@@ -34,7 +34,7 @@ void SetBankedSpriteData(UBYTE i, UBYTE l, const unsigned char* ptr, UBYTE bank)
     i; l; ptr; bank;
 __asm
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ldh (#__save), a
 
     ldhl  sp, #6
     ld  a, (hl)
@@ -44,7 +44,7 @@ __asm
     pop bc
     call  _set_sprite_data    ; preserves BC
 
-    ld  a, (#__save)
+    ldh a, (#__save)
     ldh (__current_bank), a
     ld  (_rROMB0), a
     ld  h, b
@@ -57,7 +57,7 @@ void SetBankedBkgTiles(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *
     x; y; w; h; tiles; bank;
 __asm
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ldh (#__save), a
 
     ldhl  sp, #8
     ld  a, (hl)
@@ -67,7 +67,7 @@ __asm
     pop bc
     call  _set_bkg_tiles    ; preserves BC
 
-    ld  a, (#__save)
+    ldh a, (#__save)
     ldh (__current_bank), a
     ld  (_rROMB0), a
     ld  h, b
@@ -80,7 +80,7 @@ void SetBankedWinTiles(UINT8 x, UINT8 y, UINT8 w, UINT8 h, const unsigned char *
     x; y; w; h; tiles; bank;
 __asm
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ldh (#__save), a
 
     ldhl  sp, #8
     ld  a, (hl)
@@ -90,7 +90,7 @@ __asm
     pop bc
     call  _set_win_tiles    ; preserves BC
 
-    ld  a, (#__save)
+    ldh a, (#__save)
     ldh (__current_bank), a
     ld  (_rROMB0), a
     ld  h, b
@@ -103,7 +103,7 @@ void ReadBankedFarPtr(far_ptr_t * dest, const unsigned char *ptr, UBYTE bank) NO
     dest; ptr; bank;
 __asm
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ldh (#__save), a
 
     ldhl sp, #2
     ld  a, (hl)
@@ -121,7 +121,7 @@ __asm
     ld  a, (hl)
     ld  (de), a
 
-    ld  a, (#__save)
+    ldh a, (#__save)
     ldh (__current_bank), a
     ld  (_rROMB0), a
 
@@ -136,7 +136,7 @@ UWORD ReadBankedUWORD(const unsigned char *ptr, UBYTE bank) NONBANKED NAKED {
 __asm
     ld  c, a
     ldh a, (__current_bank)
-    ld  (#__save), a
+    ldh (#__save), a
 
     ld  a, c
     ldh	(__current_bank), a
@@ -148,7 +148,7 @@ __asm
     ld c, a
     ld b, (hl)
 
-    ld  a, (#__save)
+    ldh a, (#__save)
     ldh (__current_bank), a
     ld  (_rROMB0), a
     ret

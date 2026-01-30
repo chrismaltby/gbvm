@@ -14,6 +14,9 @@ ___bank_scene_1_init = 255
 _scene_1_init::
         VM_LOCK
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Text Set Animation Speed
         VM_SET_CONST_INT8       _text_ff_joypad, 1
         VM_SET_CONST_INT8       _text_draw_speed, 4

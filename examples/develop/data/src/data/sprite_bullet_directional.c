@@ -11,42 +11,42 @@ BANKREF(sprite_bullet_directional)
 #define SPRITE_17_STATE_OPEN 0
 
 const metasprite_t sprite_bullet_directional_metasprite_0[]  = {
-    { 0, 8, 8, 64 }, { 0, -8, 10, 64 },
+    { 8, 16, 8, 64 }, { 0, -8, 10, 64 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_1[]  = {
-    { 0, 8, 12, 64 }, { 0, -8, 14, 64 },
+    { 8, 16, 12, 64 }, { 0, -8, 14, 64 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_2[]  = {
-    { 0, 0, 0, 0 }, { 0, 8, 2, 0 },
+    { 8, 8, 0, 0 }, { 0, 8, 2, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_3[]  = {
-    { 0, 0, 4, 0 }, { 0, 8, 6, 0 },
+    { 8, 8, 4, 0 }, { 0, 8, 6, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_4[]  = {
-    { 0, 8, 8, 0 }, { 0, -8, 10, 0 },
+    { 8, 16, 8, 0 }, { 0, -8, 10, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_5[]  = {
-    { 0, 8, 12, 0 }, { 0, -8, 14, 0 },
+    { 8, 16, 12, 0 }, { 0, -8, 14, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_6[]  = {
-    { 0, 8, 0, 32 }, { 0, -8, 2, 32 },
+    { 8, 16, 0, 32 }, { 0, -8, 2, 32 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_bullet_directional_metasprite_7[]  = {
-    { 0, 8, 4, 32 }, { 0, -8, 6, 32 },
+    { 8, 16, 4, 32 }, { 0, -8, 6, 32 },
     {metasprite_end}
 };
 

@@ -40,14 +40,7 @@ typedef struct animation_t
 
 typedef struct actor_t
 {
-    bool active               : 1;
-    bool pinned               : 1;
-    bool hidden               : 1;
-    bool disabled             : 1;
-    bool anim_noloop          : 1;
-    bool collision_enabled    : 1;
-    bool movement_interrupt   : 1;
-    bool persistent           : 1;
+    uint8_t flags;
     upoint16_t pos;
     direction_e dir;
     rect16_t bounds;
@@ -71,6 +64,15 @@ typedef struct actor_t
     struct actor_t *next;
     struct actor_t *prev;
 } actor_t;
+
+#define ACTOR_FLAG_PINNED       0x01
+#define ACTOR_FLAG_HIDDEN       0x02
+#define ACTOR_FLAG_ANIM_NOLOOP  0x04
+#define ACTOR_FLAG_COLLISION    0x08
+#define ACTOR_FLAG_PERSISTENT   0x10
+#define ACTOR_FLAG_ACTIVE       0x20
+#define ACTOR_FLAG_DISABLED     0x40
+#define ACTOR_FLAG_INTERRUPT    0x80
 
 #define TRIGGER_HAS_ENTER_SCRIPT    1
 #define TRIGGER_HAS_LEAVE_SCRIPT    2

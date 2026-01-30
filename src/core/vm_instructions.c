@@ -188,5 +188,13 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_print_detect,                   BANK(VM_GBPRINTER),     3}, // 0x8C
     {vm_print_overlay,                  BANK(VM_GBPRINTER),     5}, // 0x8D
 
-    {vm_actor_begin_update,             BANK(VM_ACTOR),         2}  // 0x8E
+    {vm_actor_begin_update,             BANK(VM_ACTOR),         2}, // 0x8E
+
+    {vm_actor_move_to_init,             BANK(VM_ACTOR),         3}, // 0x8F
+    {vm_actor_move_to_x,                BANK(VM_ACTOR),         3}, // 0x90
+    {vm_actor_move_to_y,                BANK(VM_ACTOR),         3}, // 0x91
+    {vm_actor_move_to_xy,               BANK(VM_ACTOR),         3}, // 0x92
+    {vm_actor_move_to_set_dir_x,        BANK(VM_ACTOR),         2}, // 0x93    
+    {vm_actor_move_to_set_dir_y,        BANK(VM_ACTOR),         2}, // 0x94
+    {vm_actor_set_anim_moving,          BANK(VM_ACTOR),         2}  // 0x95
 };

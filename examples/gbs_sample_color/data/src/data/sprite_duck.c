@@ -12,12 +12,12 @@ BANKREF(sprite_duck)
 #define SPRITE_27_STATE_OPEN 0
 
 const metasprite_t sprite_duck_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_duck_metasprite_1[]  = {
-    { 0, 8, 4, 0 }, { 0, -8, 6, 0 },
+    { 8, 16, 4, 0 }, { 0, -8, 6, 0 },
     {metasprite_end}
 };
 

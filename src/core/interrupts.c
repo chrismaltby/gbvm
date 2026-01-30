@@ -10,8 +10,8 @@
 
 #define LYC_SYNC_VALUE 150u
 
-UBYTE hide_sprites = FALSE;
-UBYTE show_actors_on_overlay = FALSE;
+UBYTE hide_sprites;                                // default initialized to FALSE
+UBYTE show_actors_on_overlay;                      // default initialized to FALSE
 UBYTE overlay_cut_scanline = LYC_SYNC_VALUE;
 
 void remove_LCD_ISRs(void) BANKED {

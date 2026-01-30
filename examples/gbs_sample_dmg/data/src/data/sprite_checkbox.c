@@ -10,7 +10,7 @@ BANKREF(sprite_checkbox)
 #define SPRITE_8_STATE_DEFAULT 0
 
 const metasprite_t sprite_checkbox_metasprite_0[]  = {
-    { 0, 0, 2, 0 },
+    { 8, 8, 2, 0 },
     {metasprite_end}
 };
 
@@ -19,7 +19,7 @@ const metasprite_t sprite_checkbox_metasprite_1[]  = {
 };
 
 const metasprite_t sprite_checkbox_metasprite_2[]  = {
-    { 0, 0, 0, 0 },
+    { 8, 8, 0, 0 },
     {metasprite_end}
 };
 

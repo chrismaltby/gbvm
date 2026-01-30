@@ -90,6 +90,26 @@ typedef struct SCRIPT_CTX {
 #define VM_OP_OR  8
 #define VM_OP_NOT 9
 
+// math operators
+#define VM_OP_ADD   10
+#define VM_OP_SUB   11
+#define VM_OP_MUL   12
+#define VM_OP_DIV   13
+#define VM_OP_MOD   14
+#define VM_OP_B_AND 15
+#define VM_OP_B_OR  16
+#define VM_OP_B_XOR 17
+#define VM_OP_SHL   18
+#define VM_OP_SHR   19
+#define VM_OP_MIN   20
+#define VM_OP_MAX   21
+#define VM_OP_ATAN2 22
+#define VM_OP_ABS   23
+#define VM_OP_B_NOT 24
+#define VM_OP_NEG   25
+#define VM_OP_ISQRT 26
+#define VM_OP_RND   27
+
 // shared context memory
 extern UWORD script_memory[VM_HEAP_SIZE + (VM_MAX_CONTEXTS * VM_CONTEXT_STACK_SIZE)];  // maximum stack depth is 16 words
 

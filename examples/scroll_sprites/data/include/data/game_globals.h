@@ -58,5 +58,8 @@
 #define ADVENTURE_PUSH_INIT 11
 #define ADVENTURE_PUSH_END 12
 #define STATE_DEFAULT 0
+#define FONT_FONT_SERIF 0
+#define FONT_FONT_RU 1
+#define FONT_GBS_MONO 2
 
 #endif

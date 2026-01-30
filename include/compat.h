@@ -43,5 +43,12 @@
 #endif
 #endif
 
+#ifndef FASTUBYTE
+#if defined(__SDCC) && defined(NINTENDO)
+#define FASTUBYTE SFR
+#else
+#define FASTUBYTE UBYTE
+#endif
+#endif
 
 #endif

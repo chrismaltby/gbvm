@@ -28,10 +28,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_cat),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_cat_interact),
         .reserve_tiles = 4
     },
@@ -51,10 +49,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_signpost),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_savepoint_interact),
         .reserve_tiles = 0
     }

@@ -165,7 +165,7 @@ inline void upoint_translate_angle(upoint16_t *point, uint8_t angle, uint8_t spe
 
 inline void point_translate_angle_to_delta(point16_t *point, uint8_t angle, uint8_t speed) {
     point->x = ((SIN(angle) * (speed)) >> 7);
-    point->y = ((COS(angle) * (speed)) >> 7);
+    point->y = -((COS(angle) * (speed)) >> 7);
 }
 
 // Saturating addition of a signed 16-bit delta onto an unsigned 16-bit base.

@@ -27,10 +27,8 @@ const struct actor_t scene_parallax_example_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_signpost),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_sign_post_5_interact),
         .reserve_tiles = 0
     },
@@ -50,10 +48,8 @@ const struct actor_t scene_parallax_example_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_elephant),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

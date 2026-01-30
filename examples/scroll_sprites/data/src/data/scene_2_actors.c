@@ -30,10 +30,8 @@ const struct actor_t scene_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_slon_metaspritesheet),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_0_interact),
         .reserve_tiles = 0
     },
@@ -53,10 +51,8 @@ const struct actor_t scene_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_6_colors),
         .move_speed = 32,
         .anim_tick = 3,
-        .pinned = TRUE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_PINNED,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = FALSE,
         .script_update = TO_FAR_PTR_T(actor_1_update),
         .reserve_tiles = 0
     },
@@ -76,10 +72,8 @@ const struct actor_t scene_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_static),
         .move_speed = 32,
         .anim_tick = 1,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -98,10 +92,8 @@ const struct actor_t scene_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_6_colors),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

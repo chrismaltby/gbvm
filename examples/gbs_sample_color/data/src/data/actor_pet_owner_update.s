@@ -7,15 +7,14 @@
 
 .area _CODE_255
 
-.LOCAL_TMP0_WAIT_ARGS = -4
-.LOCAL_TMP1_WAIT_ARGS = -4
-.LOCAL_ACTOR = -4
+.LOCAL_TMP0_WAIT_ARGS = -1
+.LOCAL_TMP1_WAIT_ARGS = -1
 
 ___bank_actor_pet_owner_update = 255
 .globl ___bank_actor_pet_owner_update
 
 _actor_pet_owner_update::
-        VM_RESERVE              4
+        VM_RESERVE              1
 
 1$:
         ; Wait 60 frames
@@ -42,16 +41,15 @@ _actor_pet_owner_update::
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
+            .R_INT16    3
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    512
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET_CONST            .LOCAL_ACTOR, 3
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         VM_JUMP                 6$
         ; case 2:
@@ -59,16 +57,15 @@ _actor_pet_owner_update::
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
+            .R_INT16    3
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    -512
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET_CONST            .LOCAL_ACTOR, 3
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         VM_JUMP                 6$
         ; case 3:
@@ -76,16 +73,15 @@ _actor_pet_owner_update::
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
+            .R_INT16    3
             .R_INT16    -512
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET_CONST            .LOCAL_ACTOR, 3
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         VM_JUMP                 6$
         ; case 4:
@@ -93,16 +89,15 @@ _actor_pet_owner_update::
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
+            .R_INT16    3
             .R_INT16    512
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET_CONST            .LOCAL_ACTOR, 3
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         VM_JUMP                 6$
 6$:

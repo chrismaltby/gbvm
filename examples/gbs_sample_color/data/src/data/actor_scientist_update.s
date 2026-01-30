@@ -26,12 +26,14 @@ _actor_scientist_update::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    3072
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 2
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, 0
 
         ; Actor Set Direction To
         VM_SET_CONST            .LOCAL_ACTOR, 2
@@ -48,12 +50,14 @@ _actor_scientist_update::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    3072
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 2
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
         ; Actor Set Direction To
         VM_SET_CONST            .LOCAL_ACTOR, 2
@@ -70,12 +74,14 @@ _actor_scientist_update::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    2560
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 2
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
         ; Actor Set Direction To
         VM_SET_CONST            .LOCAL_ACTOR, 2
@@ -92,12 +98,14 @@ _actor_scientist_update::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    3072
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 2
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, 0
 
         ; Idle
         VM_IDLE

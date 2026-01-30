@@ -10,7 +10,7 @@ BANKREF(sprite_rock)
 #define SPRITE_1_STATE_DEFAULT 0
 
 const metasprite_t sprite_rock_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
@@ -68,8 +68,8 @@ const struct spritesheet_t sprite_rock = {
     .animations_lookup = sprite_rock_animations_lookup,
     .bounds = {
         .left = PX_TO_SUBPX(0),
-        .bottom = PX_TO_SUBPX(7),
-        .right = PX_TO_SUBPX(15),
+        .bottom = PX_TO_SUBPX(8) - 1,
+        .right = PX_TO_SUBPX(16) - 1,
         .top = PX_TO_SUBPX(-8)
     },
     .tileset = TO_FAR_PTR_T(sprite_rock_tileset),

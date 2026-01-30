@@ -26,10 +26,8 @@ const struct actor_t scene_dancefloor_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc007),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -48,10 +46,8 @@ const struct actor_t scene_dancefloor_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc003),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

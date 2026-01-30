@@ -99,6 +99,8 @@ ___bank_script_engine_init = 255
 .globl _adv_knockback_vel_y
 .globl _adv_knockback_frames
 .globl _adv_next_state
+.globl _adv_vel_x
+.globl _adv_vel_y
 
 _script_engine_init::
         VM_RPN

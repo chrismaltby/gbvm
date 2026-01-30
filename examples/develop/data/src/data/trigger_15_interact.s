@@ -27,12 +27,14 @@ GBVM$trigger_15_interact$238eb0b1_2708_426a_9868_1939661132d3$f8f027ef_b818_4038
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    3328
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
 GBVM$trigger_15_interact$6694625e_7adf_463b_9955_7fe76a990359$f8f027ef_b818_4038_9eda_0ac477facb41$trigger$00a28fbb_53e3_4f6e_a324_cac17c4181f5$script = .
 .globl GBVM$trigger_15_interact$6694625e_7adf_463b_9955_7fe76a990359$f8f027ef_b818_4038_9eda_0ac477facb41$trigger$00a28fbb_53e3_4f6e_a324_cac17c4181f5$script

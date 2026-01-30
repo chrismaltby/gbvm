@@ -13,7 +13,7 @@
 UBYTE fade_running;
 UBYTE fade_frames_per_step;
 UBYTE fade_timer;
-UBYTE fade_style = 0;
+UBYTE fade_style;            // default initialized to 0
 
 const UBYTE fade_speeds[] = {0x0, 0x1, 0x3, 0x7, 0xF, 0x1F, 0x3F};
 

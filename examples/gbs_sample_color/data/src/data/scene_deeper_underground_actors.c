@@ -26,10 +26,8 @@ const struct actor_t scene_deeper_underground_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_chest),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_chest_interact),
         .reserve_tiles = 0
     }

@@ -29,10 +29,8 @@ const struct actor_t scene_menu_page_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_checkbox),
         .move_speed = 32,
         .anim_tick = 255,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -51,10 +49,8 @@ const struct actor_t scene_menu_page_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_checkbox),
         .move_speed = 32,
         .anim_tick = 255,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -73,10 +69,8 @@ const struct actor_t scene_menu_page_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_checkbox),
         .move_speed = 32,
         .anim_tick = 255,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -95,10 +89,8 @@ const struct actor_t scene_menu_page_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_checkbox),
         .move_speed = 32,
         .anim_tick = 255,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -117,10 +109,8 @@ const struct actor_t scene_menu_page_2_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_checkbox),
         .move_speed = 32,
         .anim_tick = 255,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

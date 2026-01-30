@@ -70,5 +70,8 @@
 #define ADVENTURE_PUSH_END 12
 #define STATE_DEFAULT 0
 #define STATE_OPEN 1
+#define FONT_FONT_VWF 0
+#define FONT_IEC_8859_8 1
+#define FONT_WINDOWS_1251_CYRILLIC_ 2
 
 #endif

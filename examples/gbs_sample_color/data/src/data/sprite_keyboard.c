@@ -12,7 +12,7 @@ BANKREF(sprite_keyboard)
 #define SPRITE_24_STATE_OPEN 0
 
 const metasprite_t sprite_keyboard_metasprite_0[]  = {
-    { 0, 16, 0, 0 }, { 0, -8, 2, 0 }, { 0, -8, 4, 0 }, { 0, -8, 6, 0 },
+    { 8, 24, 0, 0 }, { 0, -8, 2, 0 }, { 0, -8, 4, 0 }, { 0, -8, 6, 0 },
     {metasprite_end}
 };
 

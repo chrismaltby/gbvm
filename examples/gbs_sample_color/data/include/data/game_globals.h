@@ -91,5 +91,6 @@
 #define STATE_DEFAULT 0
 #define STATE_EXPLODE 1
 #define STATE_OPEN 2
+#define FONT_GBS_VARIABLE_WIDTH 0
 
 #endif

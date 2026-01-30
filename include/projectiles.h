@@ -11,6 +11,7 @@
 #define MAX_PROJECTILE_DEFS 5
 
 extern projectile_def_t projectile_defs[MAX_PROJECTILES];
+extern projectile_t *projectiles_active_head;
 
 void projectiles_init(void) BANKED;
 void projectiles_update(void) NONBANKED;

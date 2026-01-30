@@ -12,17 +12,17 @@ BANKREF(sprite_portal)
 #define SPRITE_16_STATE_OPEN 0
 
 const metasprite_t sprite_portal_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_portal_metasprite_1[]  = {
-    { 0, 8, 4, 0 }, { 0, -8, 6, 0 },
+    { 8, 16, 4, 0 }, { 0, -8, 6, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_portal_metasprite_2[]  = {
-    { 0, 8, 8, 0 }, { 0, -8, 10, 0 },
+    { 8, 16, 8, 0 }, { 0, -8, 10, 0 },
     {metasprite_end}
 };
 

@@ -12,7 +12,7 @@ BANKREF(sprite_dog)
 #define SPRITE_15_STATE_OPEN 0
 
 const metasprite_t sprite_dog_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 

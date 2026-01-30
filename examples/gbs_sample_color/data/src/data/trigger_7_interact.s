@@ -5,15 +5,12 @@
 
 .area _CODE_255
 
-.LOCAL_ACTOR = -4
 
 ___bank_trigger_7_interact = 255
 .globl ___bank_trigger_7_interact
 
 _trigger_7_interact::
         VM_LOCK
-
-        VM_RESERVE              4
 
         ; Text Dialogue
         VM_OVERLAY_CLEAR        0, 0, 20, 4, .UI_COLOR_WHITE, .UI_DRAW_FRAME
@@ -31,15 +28,14 @@ _trigger_7_interact::
         ; -- Calculate coordinate values
         VM_RPN
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
+            .R_INT16    0
             .R_INT16    256
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .ARG2
+        VM_ACTOR_MOVE_TO_Y      .ARG2, ^/(.ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         ; Stop Script
         VM_STOP

@@ -12,12 +12,12 @@ BANKREF(sprite_npc_gardener)
 #define SPRITE_13_STATE_OPEN 0
 
 const metasprite_t sprite_npc_gardener_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { -16, 0, 2, 0 }, { 16, -8, 4, 0 }, { -16, 0, 6, 0 },
+    { 8, 16, 0, 0 }, { -16, 0, 2, 0 }, { 16, -8, 4, 0 }, { -16, 0, 6, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc_gardener_metasprite_1[]  = {
-    { 0, 0, 0, 32 }, { -16, 0, 2, 32 }, { 16, 8, 4, 32 }, { -16, 0, 6, 32 },
+    { 8, 8, 0, 32 }, { -16, 0, 2, 32 }, { 16, 8, 4, 32 }, { -16, 0, 6, 32 },
     {metasprite_end}
 };
 

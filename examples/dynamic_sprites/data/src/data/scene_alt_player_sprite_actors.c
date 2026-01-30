@@ -28,10 +28,8 @@ const struct actor_t scene_alt_player_sprite_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_portal),
         .move_speed = 32,
         .anim_tick = 7,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_1,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_portal_interact),
         .reserve_tiles = 0
     },
@@ -51,10 +49,8 @@ const struct actor_t scene_alt_player_sprite_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_signpost),
         .move_speed = 32,
         .anim_tick = 3,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_signpost_interact),
         .reserve_tiles = 0
     }

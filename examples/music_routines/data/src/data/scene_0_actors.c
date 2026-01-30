@@ -25,8 +25,7 @@ const struct actor_t scene_0_actors[] = {
         .sprite = TO_FAR_PTR_T(spritesheet_0),
         .move_speed = 16,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE
+        .flags = ACTOR_FLAG_COLLISION,
+        .collision_group = COLLISION_GROUP_NONE
     }
 };

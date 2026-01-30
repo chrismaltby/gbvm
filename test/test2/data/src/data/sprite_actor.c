@@ -10,22 +10,22 @@ BANKREF(sprite_actor)
 #define SPRITE_0_STATE_DEFAULT 0
 
 const metasprite_t sprite_actor_metasprite_0[]  = {
-    { 0, 8, 4, 64 }, { 0, -8, 4, 96 },
+    { 8, 16, 4, 64 }, { 0, -8, 4, 96 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_actor_metasprite_1[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_actor_metasprite_2[]  = {
-    { 0, 8, 4, 0 }, { 0, -8, 4, 32 },
+    { 8, 16, 4, 0 }, { 0, -8, 4, 32 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_actor_metasprite_3[]  = {
-    { 0, 0, 0, 32 }, { 0, 8, 2, 32 },
+    { 8, 8, 0, 32 }, { 0, 8, 2, 32 },
     {metasprite_end}
 };
 
@@ -86,8 +86,8 @@ const struct spritesheet_t sprite_actor = {
     .animations_lookup = sprite_actor_animations_lookup,
     .bounds = {
         .left = PX_TO_SUBPX(0),
-        .bottom = PX_TO_SUBPX(7),
-        .right = PX_TO_SUBPX(15),
+        .bottom = PX_TO_SUBPX(8) - 1,
+        .right = PX_TO_SUBPX(16) - 1,
         .top = PX_TO_SUBPX(-8)
     },
     .tileset = TO_FAR_PTR_T(sprite_actor_tileset),

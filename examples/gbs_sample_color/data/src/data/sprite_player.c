@@ -12,42 +12,42 @@ BANKREF(sprite_player)
 #define SPRITE_0_STATE_OPEN 0
 
 const metasprite_t sprite_player_metasprite_0[]  = {
-    { 0, 8, 8, 0 }, { 0, -8, 10, 0 },
+    { 8, 16, 8, 0 }, { 0, -8, 10, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_1[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_2[]  = {
-    { 0, 8, 4, 0 }, { 0, -8, 6, 0 },
+    { 8, 16, 4, 0 }, { 0, -8, 6, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_3[]  = {
-    { 0, 0, 0, 32 }, { 0, 8, 2, 32 },
+    { 8, 8, 0, 32 }, { 0, 8, 2, 32 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_4[]  = {
-    { 0, 8, 20, 0 }, { 0, -8, 22, 0 },
+    { 8, 16, 20, 0 }, { 0, -8, 22, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_5[]  = {
-    { 0, 8, 12, 0 }, { 0, -8, 14, 0 },
+    { 8, 16, 12, 0 }, { 0, -8, 14, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_6[]  = {
-    { 0, 8, 16, 0 }, { 0, -8, 18, 0 },
+    { 8, 16, 16, 0 }, { 0, -8, 18, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_metasprite_7[]  = {
-    { 0, 0, 12, 32 }, { 0, 8, 14, 32 },
+    { 8, 8, 12, 32 }, { 0, 8, 14, 32 },
     {metasprite_end}
 };
 

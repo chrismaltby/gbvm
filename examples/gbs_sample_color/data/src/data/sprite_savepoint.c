@@ -12,12 +12,12 @@ BANKREF(sprite_savepoint)
 #define SPRITE_4_STATE_OPEN 0
 
 const metasprite_t sprite_savepoint_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 0, 32 },
+    { 8, 16, 0, 0 }, { 0, -8, 0, 32 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_savepoint_metasprite_1[]  = {
-    { 0, 8, 2, 0 }, { 0, -8, 2, 32 },
+    { 8, 16, 2, 0 }, { 0, -8, 2, 32 },
     {metasprite_end}
 };
 

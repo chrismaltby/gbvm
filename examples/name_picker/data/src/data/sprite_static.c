@@ -10,7 +10,7 @@ BANKREF(sprite_static)
 #define SPRITE_0_STATE_DEFAULT 0
 
 const metasprite_t sprite_static_metasprite_0[]  = {
-    { 0, 0, 0, 0 },
+    { 8, 8, 0, 0 },
     {metasprite_end}
 };
 

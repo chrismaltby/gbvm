@@ -4,7 +4,7 @@
 #include "vm.h"
 
 trigger_t triggers[MAX_TRIGGERS];
-UBYTE triggers_len = 0;
+UBYTE triggers_len;                    // default initialized to 0
 UBYTE last_trigger_tx;
 UBYTE last_trigger_ty;
 UBYTE last_trigger;

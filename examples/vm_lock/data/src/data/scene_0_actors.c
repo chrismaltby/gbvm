@@ -29,9 +29,8 @@ const struct actor_t scene_0_actors[] = {
         .sprite = TO_FAR_PTR_T(spritesheet_1),
         .move_speed = 16,
         .anim_tick = 15,
-        .pinned = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(script_s0a0_interact),
         .reserve_tiles = 0
     },
@@ -51,9 +50,8 @@ const struct actor_t scene_0_actors[] = {
         .sprite = TO_FAR_PTR_T(spritesheet_2),
         .move_speed = 16,
         .anim_tick = 15,
-        .pinned = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script_update = TO_FAR_PTR_T(script_s0a1_update),
         .reserve_tiles = 0
     },
@@ -73,9 +71,8 @@ const struct actor_t scene_0_actors[] = {
         .sprite = TO_FAR_PTR_T(spritesheet_3),
         .move_speed = 16,
         .anim_tick = 15,
-        .pinned = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

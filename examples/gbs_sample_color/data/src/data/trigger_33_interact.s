@@ -25,12 +25,14 @@ _trigger_33_interact::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    3328
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, 0
 
         ; Load Scene
         VM_SET_CONST_INT8       _fade_frames_per_step, 15

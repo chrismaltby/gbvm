@@ -32,10 +32,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_torch),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -54,10 +52,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_fire),
         .move_speed = 32,
         .anim_tick = 7,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -76,10 +72,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_sage),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_sage_interact),
         .reserve_tiles = 0
     },
@@ -99,10 +93,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_torch),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -121,10 +113,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_fire),
         .move_speed = 32,
         .anim_tick = 7,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -143,10 +133,8 @@ const struct actor_t scene_cave_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_savepoint),
         .move_speed = 32,
         .anim_tick = 31,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_save_point_interact),
         .reserve_tiles = 0
     }

@@ -29,10 +29,8 @@ const struct actor_t scene_title_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_press_start),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -51,10 +49,8 @@ const struct actor_t scene_title_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_continue),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -73,10 +69,8 @@ const struct actor_t scene_title_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_new_game),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -95,10 +89,8 @@ const struct actor_t scene_title_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_button_a),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -117,10 +109,8 @@ const struct actor_t scene_title_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_button_b),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

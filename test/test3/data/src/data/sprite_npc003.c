@@ -10,42 +10,42 @@ BANKREF(sprite_npc003)
 #define SPRITE_1_STATE_DEFAULT 0
 
 const metasprite_t sprite_npc003_metasprite_0[]  = {
-    { 0, 8, 8, 0 }, { 0, -8, 10, 0 },
+    { 8, 16, 8, 0 }, { 0, -8, 10, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_1[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_2[]  = {
-    { 0, 8, 4, 0 }, { 0, -8, 6, 0 },
+    { 8, 16, 4, 0 }, { 0, -8, 6, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_3[]  = {
-    { 0, 0, 0, 32 }, { 0, 8, 2, 32 },
+    { 8, 8, 0, 32 }, { 0, 8, 2, 32 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_4[]  = {
-    { 0, 8, 20, 0 }, { 0, -8, 22, 0 },
+    { 8, 16, 20, 0 }, { 0, -8, 22, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_5[]  = {
-    { 0, 8, 12, 0 }, { 0, -8, 14, 0 },
+    { 8, 16, 12, 0 }, { 0, -8, 14, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_6[]  = {
-    { 0, 8, 16, 0 }, { 0, -8, 18, 0 },
+    { 8, 16, 16, 0 }, { 0, -8, 18, 0 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_npc003_metasprite_7[]  = {
-    { 0, 0, 12, 32 }, { 0, 8, 14, 32 },
+    { 8, 8, 12, 32 }, { 0, 8, 14, 32 },
     {metasprite_end}
 };
 
@@ -114,8 +114,8 @@ const struct spritesheet_t sprite_npc003 = {
     .animations_lookup = sprite_npc003_animations_lookup,
     .bounds = {
         .left = PX_TO_SUBPX(0),
-        .bottom = PX_TO_SUBPX(7),
-        .right = PX_TO_SUBPX(15),
+        .bottom = PX_TO_SUBPX(8) - 1,
+        .right = PX_TO_SUBPX(16) - 1,
         .top = PX_TO_SUBPX(-8)
     },
     .tileset = TO_FAR_PTR_T(sprite_npc003_tileset),

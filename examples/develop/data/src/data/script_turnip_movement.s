@@ -39,16 +39,15 @@ GBVM$script_turnip_movement$753e2e8a_a98d_4a66_b326_b1c61a019237$f8f027ef_b818_4
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
+            .R_REF      .SCRIPT_ARG_0_ACTOR
             .R_INT16    -1024
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET                  .LOCAL_ACTOR, .SCRIPT_ARG_0_ACTOR
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
         VM_JUMP                 2$
 1$:
@@ -57,16 +56,15 @@ GBVM$script_turnip_movement$d565478e_995d_48f4_bbbe_7848a86b71a5$f8f027ef_b818_4
         ; Actor Move Relative
         ; -- Calculate coordinate values
         VM_RPN
+            .R_REF      .SCRIPT_ARG_0_ACTOR
             .R_INT16    1024
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
-        VM_SET                  .LOCAL_ACTOR, .SCRIPT_ARG_0_ACTOR
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_ACTOR_MOVE_TO_SET_DIR_X .ARG2
+        VM_ACTOR_MOVE_TO_X      .ARG2, ^/(.ACTOR_ATTR_CHECK_COLL_WALLS | .ACTOR_ATTR_CHECK_COLL_ACTORS | .ACTOR_ATTR_H_FIRST | .ACTOR_ATTR_RELATIVE_SNAP_TILE)/
+        VM_POP                  3
 
 2$:
 

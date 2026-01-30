@@ -10,7 +10,7 @@ BANKREF(sprite_bullet)
 #define SPRITE_3_STATE_DEFAULT 0
 
 const metasprite_t sprite_bullet_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 0, 32 },
+    { 8, 16, 0, 0 }, { 0, -8, 0, 32 },
     {metasprite_end}
 };
 

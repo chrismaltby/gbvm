@@ -38,7 +38,7 @@ _scene_logo_init::
 
         ; Overlay Move To
         VM_OVERLAY_MOVE_TO      0, 18, 2
-        VM_OVERLAY_WAIT         .UI_MODAL, .UI_WAIT_WINDOW
+        VM_OVERLAY_WAIT         .UI_NONMODAL, .UI_WAIT_WINDOW
 
         ; Wait 120 frames
         VM_SET_CONST            .LOCAL_TMP1_WAIT_ARGS, 120

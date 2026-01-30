@@ -333,37 +333,38 @@ void vm_rpn(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANK
         } else {
             A = THIS->stack_ptr - 2; B = A + 1;
             switch ((UINT8)op) {
-                // arithmetics
-                case '+': *A = *A  +  *B; break;
-                case '-': *A = *A  -  *B; break;
-                case '*': *A = *A  *  *B; break;
-                case '/': *A = *A  /  *B; break;
-                case '%': *A = *A  %  *B; break;
                 // logical
-                case VM_OP_EQ:  *A = (*A  ==  *B); break;
-                case VM_OP_LT:  *A = (*A  <   *B); break;
-                case VM_OP_LE:  *A = (*A  <=  *B); break;
-                case VM_OP_GT:  *A = (*A  >   *B); break;
-                case VM_OP_GE:  *A = (*A  >=  *B); break;
-                case VM_OP_NE:  *A = (*A  !=  *B); break;
-                case VM_OP_AND: *A = ((bool)(*A)  &&  (bool)(*B)); break;
-                case VM_OP_OR:  *A = ((bool)(*A)  ||  (bool)(*B)); break;
-                case VM_OP_NOT: *B = !(*B); continue;
+                case VM_OP_EQ    : *A = (*A == *B); break;
+                case VM_OP_LT    : *A = (*A <  *B); break;
+                case VM_OP_LE    : *A = (*A <= *B); break;
+                case VM_OP_GT    : *A = (*A >  *B); break;
+                case VM_OP_GE    : *A = (*A >= *B); break;
+                case VM_OP_NE    : *A = (*A != *B); break;
+                case VM_OP_AND   : *A = ((bool)(*A) && (bool)(*B)); break;
+                case VM_OP_OR    : *A = ((bool)(*A) || (bool)(*B)); break;
+                case VM_OP_NOT   : *B = !(*B); continue;
+                // arithmetics   
+                case VM_OP_ADD   : *A = *A + *B; break;
+                case VM_OP_SUB   : *A = *A - *B; break;
+                case VM_OP_MUL   : *A = *A * *B; break;
+                case VM_OP_DIV   : *A = *A / *B; break;
+                case VM_OP_MOD   : *A = *A % *B; break;
                 // bit
-                case '&': *A = *A  &  *B; break;
-                case '|': *A = *A  |  *B; break;
-                case '^': *A = *A  ^  *B; break;
-                case 'L': *A = *(uint16_t *)A << (*B & 0x0f); break;
-                case 'R': *A = *(uint16_t *)A >> (*B & 0x0f); break;
+                case VM_OP_B_AND : *A = *A & *B; break;
+                case VM_OP_B_OR  : *A = *A | *B; break;
+                case VM_OP_B_XOR : *A = *A ^ *B; break;
+                case VM_OP_SHL   : *A = *(uint16_t *)A << (*B & 0x0f); break;
+                case VM_OP_SHR   : *A = *(uint16_t *)A >> (*B & 0x0f); break;
                 // funcs
-                case 'm': *A = (*A < *B) ? *A : *B; break;  // min
-                case 'M': *A = (*A > *B) ? *A : *B; break;  // max
-                case 'T': *A = atan2((WORD)*A, (WORD)*B); break;
+                case VM_OP_MIN   : *A = (*A < *B) ? *A : *B; break;
+                case VM_OP_MAX   : *A = (*A > *B) ? *A : *B; break;
+                case VM_OP_ATAN2 : *A = atan2((WORD)*A, (WORD)*B); break;
                 // unary
-                case '@': *B = abs(*B); continue;
-                case '~': *B = ~(*B);   continue;
-                case 'Q': *B = isqrt((UWORD)*B); continue;
-                case 'r': *B = randw() % (UWORD)*B; continue;
+                case VM_OP_ABS   : *B = abs(*B); continue;
+                case VM_OP_B_NOT : *B = ~(*B);   continue;
+                case VM_OP_NEG   : *B = -(*B);   continue;
+                case VM_OP_ISQRT : *B = isqrt((UWORD)*B); continue;
+                case VM_OP_RND   : *B = randw() % (UWORD)*B; continue;
                 // terminator
                 default:
                     SWITCH_ROM(_save);             // restore bank
@@ -470,20 +471,14 @@ void vm_call_native(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UINT8 b
     dummy0; dummy1; THIS; bank; ptr; // suppress warnings
 #if defined(__SDCC) && defined(NINTENDO)
 __asm
-        ldhl sp, #6
+        ldhl sp, #8
         ld a, (hl+)
-        ld e, a
-        ld a, (hl+)
-        ld d, a
-        push de
-        ld a, (hl+)
-        ld e, a
+        ldh (__current_bank), a
+        ld (_rROMB0), a
         ld a, (hl+)
         ld h, (hl)
         ld l, a
-        call ___sdcc_bcall_ehl
-        pop hl
-        ret
+        jp (hl)
 __endasm;
 #endif
 }
@@ -533,7 +528,9 @@ void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL B
 // executes one step in the passed context
 // return zero if script end
 // bank with VM code must be active
-static SFR current_fn_bank;
+static FASTUBYTE current_fn_bank;
+static FASTUBYTE current_fn_nargs;
+static UINT16 current_sp;
 UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR {
     CTX;
 #if defined(__SDCC) && defined(NINTENDO)
@@ -557,16 +554,11 @@ __asm
 
         ld a, (hl+)             ; load current instruction and return if terminator
         or a
-        jr nz, 3$
+        jr z, 3$
 
-        pop af
-        ldh (__current_bank), a
-        ld (_rROMB0), a         ; restore bank
-        xor a
-        ret
+        ld (_current_sp), sp
 
-3$:
-        push bc                 ; store bc
+        push bc                 ; store bc == THIS
         push hl
 
         ld h, #0
@@ -578,7 +570,7 @@ __asm
         add hl, de              ; hl = &script_cmds[instruction].args_len
 
         ld a, (hl-)
-        ld e, a                 ; e = args_len
+        ldh (_current_fn_nargs), a
         ld a, (hl-)
         ldh (_current_fn_bank), a
         ld a, (hl-)
@@ -586,64 +578,73 @@ __asm
         ld c, (hl)              ; bc = fn
 
         pop hl                  ; hl points to the next VM instruction or a first byte of the args
-        ld d, e                 ; d = arg count
-        srl d
+        ldh a, (_current_fn_nargs)
+        srl a
         jr nc, 4$               ; d is even?
-        ld a, (hl+)             ; copy one arg onto stack
-        push af
+        ld d, (hl)              ; copy one arg onto stack
+        inc hl
+        push de
         inc sp
 4$:
         jr z, 1$                ; only one arg?
 2$:
-        ld a, (hl+)
-        push af
-        inc sp
-        ld a, (hl+)
-        push af
-        inc sp
-        dec d
+        ld d, (hl)
+        inc hl
+        ld e, (hl)
+        inc hl
+        push de
+        dec a
         jr nz, 2$               ; loop through remaining args, copy 2 bytes at a time
 1$:
-        push bc                 ; save function pointer
+        ld d, h
+        ld e, l                 ; de points to the next VM instruction
 
-        ld b, h
-        ld c, l                 ; bc points to the next VM instruction
-
-        lda hl, 2(sp)
-        add hl, de              ; add correction
+        ld hl, #_current_sp
         ld a, (hl+)
         ld h, (hl)
         ld l, a
-        ld (hl), c
-        ld c, l
-        ld a, h
-        inc hl
-        ld (hl), b              ; PC = PC + sizeof(instruction) + args_len
-        ld b, a                 ; bc = THIS
+        dec hl
 
-        pop hl                  ; restore function pointer
-        push bc                 ; pushing THIS
+        ld a, (hl-)
+        ld l, (hl)
+        ld h, a                 ; hl = THIS
 
-        push de                 ; not used
-        push de                 ; de: args_len
+        push hl                 ; pushing THIS
+
+        ld a, e
+        ld (hl+), a
+        ld (hl), d              ; PC = PC + sizeof(instruction) + args_len
+
+        ld hl, #_current_sp
+        ld a, (hl+)
+        ld h, (hl)
+        ld l, a
+        push hl                 ; not used
+        push hl                 ; SP to restore
 
         ldh a, (_current_fn_bank)   ; a = script_bank
         ldh (__current_bank), a
         ld (_rROMB0), a         ; switch bank with functions
 
+        ld h, b                 ; restore function pointer
+        ld l, c
         rst 0x20                ; call hl
 
-        pop hl                  ; hl: args_len
-        add hl, sp
-        ld sp, hl               ; deallocate args_len bytes from the stack
-        add sp, #6              ; deallocate dummy word and THIS twice
+        pop hl
+        ld sp, hl
 
         pop af
         ldh (__current_bank), a
         ld (_rROMB0), a         ; restore bank
 
         ld a, #1                ; instruction executed
+        ret
+3$:
+        pop af
+        ldh (__current_bank), a
+        ld (_rROMB0), a         ; restore bank
 
+        xor a                   ; VM_STOP encountered
         ret
 __endasm;
 #endif

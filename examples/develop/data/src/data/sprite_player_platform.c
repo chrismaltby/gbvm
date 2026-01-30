@@ -11,42 +11,42 @@ BANKREF(sprite_player_platform)
 #define SPRITE_10_STATE_OPEN 0
 
 const metasprite_t sprite_player_platform_metasprite_0[]  = {
-    { -12, 0, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 10, 33 }, { 0, 8, 12, 33 },
+    { -4, 8, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 10, 33 }, { 0, 8, 12, 33 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_1[]  = {
-    { -12, 8, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 4, 1 }, { 0, -8, 6, 1 },
+    { -4, 16, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 4, 1 }, { 0, -8, 6, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_2[]  = {
-    { -12, 8, 8, 0 }, { 0, -8, 2, 0 }, { 12, 8, 4, 1 }, { 0, -8, 6, 1 },
+    { -4, 16, 8, 0 }, { 0, -8, 2, 0 }, { 12, 8, 4, 1 }, { 0, -8, 6, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_3[]  = {
-    { -11, 8, 0, 0 }, { 0, -8, 2, 0 }, { 11, 8, 4, 1 }, { 0, -8, 6, 1 },
+    { -3, 16, 0, 0 }, { 0, -8, 2, 0 }, { 11, 8, 4, 1 }, { 0, -8, 6, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_4[]  = {
-    { -12, 8, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 10, 1 }, { 0, -8, 12, 1 },
+    { -4, 16, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 10, 1 }, { 0, -8, 12, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_5[]  = {
-    { -12, 0, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 4, 33 }, { 0, 8, 6, 33 },
+    { -4, 8, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 4, 33 }, { 0, 8, 6, 33 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_6[]  = {
-    { -12, 0, 8, 32 }, { 0, 8, 2, 32 }, { 12, -8, 4, 33 }, { 0, 8, 6, 33 },
+    { -4, 8, 8, 32 }, { 0, 8, 2, 32 }, { 12, -8, 4, 33 }, { 0, 8, 6, 33 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_7[]  = {
-    { -11, 0, 0, 32 }, { 0, 8, 2, 32 }, { 11, -8, 4, 33 }, { 0, 8, 6, 33 },
+    { -3, 8, 0, 32 }, { 0, 8, 2, 32 }, { 11, -8, 4, 33 }, { 0, 8, 6, 33 },
     {metasprite_end}
 };
 
@@ -55,42 +55,42 @@ const metasprite_t sprite_player_platform_metasprite_8[]  = {
 };
 
 const metasprite_t sprite_player_platform_metasprite_9[]  = {
-    { -12, 8, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 14, 1 }, { 0, -8, 16, 1 },
+    { -4, 16, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 14, 1 }, { 0, -8, 16, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_10[]  = {
-    { -12, 8, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 18, 1 }, { 0, -8, 20, 1 },
+    { -4, 16, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 18, 1 }, { 0, -8, 20, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_11[]  = {
-    { -12, 8, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 22, 1 }, { 0, -8, 24, 1 },
+    { -4, 16, 0, 0 }, { 0, -8, 2, 0 }, { 12, 8, 22, 1 }, { 0, -8, 24, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_12[]  = {
-    { -12, 8, 26, 0 }, { 0, -8, 28, 0 }, { 12, 8, 30, 1 }, { 0, -8, 32, 1 },
+    { -4, 16, 26, 0 }, { 0, -8, 28, 0 }, { 12, 8, 30, 1 }, { 0, -8, 32, 1 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_13[]  = {
-    { -12, 8, 26, 0 }, { 0, -8, 28, 0 }, { 12, 0, 30, 33 }, { 0, 8, 32, 33 },
+    { -4, 16, 26, 0 }, { 0, -8, 28, 0 }, { 12, 0, 30, 33 }, { 0, 8, 32, 33 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_14[]  = {
-    { -12, 0, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 14, 33 }, { 0, 8, 16, 33 },
+    { -4, 8, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 14, 33 }, { 0, 8, 16, 33 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_15[]  = {
-    { -12, 0, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 18, 33 }, { 0, 8, 20, 33 },
+    { -4, 8, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 18, 33 }, { 0, 8, 20, 33 },
     {metasprite_end}
 };
 
 const metasprite_t sprite_player_platform_metasprite_16[]  = {
-    { -12, 0, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 22, 33 }, { 0, 8, 24, 33 },
+    { -4, 8, 0, 32 }, { 0, 8, 2, 32 }, { 12, -8, 22, 33 }, { 0, 8, 24, 33 },
     {metasprite_end}
 };
 

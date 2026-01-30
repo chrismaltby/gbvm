@@ -15,6 +15,7 @@
 #include "scroll.h"
 #include "trigger.h"
 #include "vm.h"
+#include "macro.h"
 
 // Feature Flags --------------------------------------------------------------
 // Optional feature flags, set in 'state_defines.h'
@@ -835,7 +836,7 @@ static void player_set_jump_anim(void)
 #ifdef FEAT_PLATFORM_WALL_JUMP
 static void wall_check(void)
 {
-    if (plat_wall_col != 0 && plat_wall_slide)
+    if (plat_wall_col != 0 && plat_wall_slide && plat_next_state != GROUND_STATE)
     {
         plat_next_state = WALL_STATE;
     }
@@ -1735,7 +1736,7 @@ static void state_update_ground(void) {
         if (plat_is_actor_attached)
         {
             // If the platform has been disabled, detach the player
-            if (plat_attached_actor->disabled == TRUE)
+            if (CHK_FLAG(plat_attached_actor->flags, ACTOR_FLAG_DISABLED))
             {
                 plat_next_state = FALL_STATE;
                 plat_is_actor_attached = FALSE;

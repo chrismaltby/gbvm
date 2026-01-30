@@ -11,7 +11,7 @@ BANKREF(sprite_hidden_stairs)
 #define SPRITE_8_STATE_OPEN 0
 
 const metasprite_t sprite_hidden_stairs_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 0, 32 },
+    { 8, 16, 0, 0 }, { 0, -8, 0, 32 },
     {metasprite_end}
 };
 

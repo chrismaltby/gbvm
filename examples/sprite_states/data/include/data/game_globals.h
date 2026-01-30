@@ -59,5 +59,6 @@
 #define STATE_DEFAULT 0
 #define STATE_IN_GRASS 1
 #define STATE_SURPRISED 2
+#define SYMBOL_2 0
 
 #endif

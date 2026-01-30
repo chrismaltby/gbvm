@@ -18,6 +18,9 @@ _scene_2_init::
 
         VM_RESERVE              4
 
+        ; Set Sprite Mode: 8x16
+        VM_SET_SPRITE_MODE      .MODE_8X16
+
         ; Actor Deactivate
         VM_SET_CONST            .LOCAL_ACTOR, 0
         VM_ACTOR_DEACTIVATE     .LOCAL_ACTOR

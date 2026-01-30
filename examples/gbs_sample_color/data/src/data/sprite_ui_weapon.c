@@ -12,7 +12,7 @@ BANKREF(sprite_ui_weapon)
 #define SPRITE_18_STATE_OPEN 0
 
 const metasprite_t sprite_ui_weapon_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 

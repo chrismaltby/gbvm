@@ -41,10 +41,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_rock),
         .move_speed = 16,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_rock_interact),
         .reserve_tiles = 0
     },
@@ -64,10 +62,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_duck),
         .move_speed = 32,
         .anim_tick = 63,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     },
     {
@@ -86,10 +82,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc003),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script_update = TO_FAR_PTR_T(actor_pet_owner_update),
         .script = TO_FAR_PTR_T(actor_pet_owner_interact),
         .reserve_tiles = 0
@@ -110,10 +104,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_cat),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_cat_interact),
         .reserve_tiles = 0
     },
@@ -133,10 +125,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc001),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_angry_guy_interact),
         .reserve_tiles = 0
     },
@@ -156,10 +146,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc001),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_oblivious_guy_interact),
         .reserve_tiles = 0
     },
@@ -179,10 +167,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_signpost),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_sign_post_interact),
         .reserve_tiles = 0
     },
@@ -202,10 +188,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc004),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .script = TO_FAR_PTR_T(actor_hider_interact),
         .reserve_tiles = 0
     },
@@ -225,10 +209,8 @@ const struct actor_t scene_sample_town_actors[] = {
         .sprite = TO_FAR_PTR_T(sprite_npc007),
         .move_speed = 32,
         .anim_tick = 15,
-        .pinned = FALSE,
-        .persistent = FALSE,
+        .flags = ACTOR_FLAG_COLLISION,
         .collision_group = COLLISION_GROUP_NONE,
-        .collision_enabled = TRUE,
         .reserve_tiles = 0
     }
 };

@@ -50,12 +50,14 @@ _cutscene_trigger_interact::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    4352
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
         ; Actor Move To
         ; -- Calculate coordinate values
@@ -64,12 +66,14 @@ _cutscene_trigger_interact::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    5376
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
         ; Actor Move To
         ; -- Calculate coordinate values
@@ -78,12 +82,14 @@ _cutscene_trigger_interact::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    7936
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 0
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
         ; Resume Scene Type Update
         VM_SET_CONST_INT8       _pause_state_update, 0

@@ -235,23 +235,6 @@ OP_VM_SET_CONST   = 0x14
 .endm
 
 OP_VM_RPN          = 0x15
-.ADD               = '+'
-.SUB               = '-'
-.MUL               = '*'
-.DIV               = '/'
-.MOD               = '%'
-.B_AND             = '&'
-.B_OR              = '|'
-.B_XOR             = '^'
-.B_NOT             = '~'
-.SHL               = 'L'
-.SHR               = 'R'
-.ABS               = '@'
-.MIN               = 'm'
-.MAX               = 'M'
-.ISQRT             = 'Q'
-.ATAN2             = 'T'
-.RND               = 'r'
 ;.EQ                = 1
 ;.LT                = 2
 ;.LTE               = 3
@@ -261,6 +244,25 @@ OP_VM_RPN          = 0x15
 .AND               = 7
 .OR                = 8
 .NOT               = 9
+.ADD               = 10
+.SUB               = 11
+.MUL               = 12
+.DIV               = 13
+.MOD               = 14
+.B_AND             = 15
+.B_OR              = 16
+.B_XOR             = 17
+.SHL               = 18
+.SHR               = 19
+.MIN               = 20
+.MAX               = 21
+.ATAN2             = 22
+.ABS               = 23
+.B_NOT             = 24
+.NEG               = 25
+.ISQRT             = 26
+.RND               = 27
+
 ;-- Reverse Polish Notation (RPN) calculator, returns result(s) on the VM stack.
 .macro VM_RPN
         .db OP_VM_RPN
@@ -623,6 +625,90 @@ OP_VM_ACTOR_MOVE_TO             = 0x30
 ;       `.ACTOR_ATTR_DIAGONAL`   - Allow diagonal movement
 .macro VM_ACTOR_MOVE_TO IDX
         .db OP_VM_ACTOR_MOVE_TO, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_INIT        = 0x8F
+;-- Initialises moving actor to a new position. Handles calculating relative offsets, snapping and tile collision checks
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+;    `X`    - New X-coordinate of the actor.
+;    `Y`    - New Y-coordinate of the actor.
+; @param ATTR bit flags:
+;    `.ACTOR_ATTR_H_FIRST`    - Move horizontal first.
+;    `.ACTOR_ATTR_CHECK_COLL` - Respect collisions.
+;    `.ACTOR_ATTR_DIAGONAL`   - Allow diagonal movement
+.macro VM_ACTOR_MOVE_TO_INIT IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_INIT, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_X           = 0x90
+;-- Move actor to a new position along X-axis only.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+;    `X`    - New X-coordinate of the actor.
+;    `Y`    - New Y-coordinate of the actor.
+; @param ATTR bit flags:
+;    `.ACTOR_ATTR_H_FIRST`    - Move horizontal first.
+;    `.ACTOR_ATTR_CHECK_COLL` - Respect collisions.
+;    `.ACTOR_ATTR_DIAGONAL`   - Allow diagonal movement
+.macro VM_ACTOR_MOVE_TO_X IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_X, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_Y           = 0x91
+;-- Move actor to a new position along Y-axis only.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+;    `X`    - New X-coordinate of the actor.
+;    `Y`    - New Y-coordinate of the actor.
+; @param ATTR bit flags:
+;    `.ACTOR_ATTR_H_FIRST`    - Move horizontal first.
+;    `.ACTOR_ATTR_CHECK_COLL` - Respect collisions.
+;    `.ACTOR_ATTR_DIAGONAL`   - Allow diagonal movement
+.macro VM_ACTOR_MOVE_TO_Y IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_Y, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_XY          = 0x92
+;-- Move actor to a new position along both X and Y axes.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+;    `X`    - New X-coordinate of the actor.
+;    `Y`    - New Y-coordinate of the actor.
+; @param ATTR bit flags:
+;    `.ACTOR_ATTR_H_FIRST`    - Move horizontal first.
+;    `.ACTOR_ATTR_CHECK_COLL` - Respect collisions.
+;    `.ACTOR_ATTR_DIAGONAL`   - Allow diagonal movement
+.macro VM_ACTOR_MOVE_TO_XY IDX, ATTR
+        .db OP_VM_ACTOR_MOVE_TO_XY, #<ATTR, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_SET_DIR_X           = 0x93
+;-- Set actor direction to face towards X-axis destination. If actor is already at X-axis destination, direction is not changed.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+;    `X`    - New X-coordinate of the actor.
+;    `Y`    - New Y-coordinate of the actor.
+.macro VM_ACTOR_MOVE_TO_SET_DIR_X IDX
+        .db OP_VM_ACTOR_MOVE_TO_SET_DIR_X, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_MOVE_TO_SET_DIR_Y           = 0x94
+;-- Set actor direction to face towards Y-axis destination. If actor is already at Y-axis destination, direction is not changed.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+;    `X`    - New X-coordinate of the actor.
+;    `Y`    - New Y-coordinate of the actor.
+.macro VM_ACTOR_MOVE_TO_SET_DIR_Y IDX
+        .db OP_VM_ACTOR_MOVE_TO_SET_DIR_Y, #>IDX, #<IDX
+.endm
+
+OP_VM_ACTOR_SET_ANIM_MOVING             = 0x95
+;-- Set actor to moving animation of current facing direction.
+; @param IDX points to the beginning of the pseudo-structure that contains these members:
+;    `ID`   - Actor number.
+.macro VM_ACTOR_SET_ANIM_MOVING IDX
+        .db OP_VM_ACTOR_SET_ANIM_MOVING, #>IDX, #<IDX
 .endm
 
 OP_VM_ACTOR_MOVE_CANCEL         = 0x88

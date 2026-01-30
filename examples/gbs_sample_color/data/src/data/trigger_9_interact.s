@@ -58,12 +58,14 @@ _trigger_9_interact::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    7680
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    0
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 8
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, 0
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, 0
 
         ; Actor Move To
         ; -- Calculate coordinate values
@@ -72,12 +74,14 @@ _trigger_9_interact::
             .R_REF_SET  ^/(.LOCAL_ACTOR + 1)/
             .R_INT16    6400
             .R_REF_SET  ^/(.LOCAL_ACTOR + 2)/
-            .R_INT16    .ACTOR_ATTR_H_FIRST
-            .R_REF_SET  ^/(.LOCAL_ACTOR + 3)/
             .R_STOP
         ; -- Move Actor
         VM_SET_CONST            .LOCAL_ACTOR, 8
-        VM_ACTOR_MOVE_TO        .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_INIT   .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_X .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_X      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
+        VM_ACTOR_MOVE_TO_SET_DIR_Y .LOCAL_ACTOR
+        VM_ACTOR_MOVE_TO_Y      .LOCAL_ACTOR, .ACTOR_ATTR_H_FIRST
 
 4$:
 

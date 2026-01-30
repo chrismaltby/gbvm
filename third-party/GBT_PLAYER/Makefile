@@ -7,7 +7,7 @@ BUILD_DIR = ./build
 OBJ_DIR = ./obj
 
 TARGET = $(BUILD_DIR)/gbt_player.lib
-OBJS = $(OBJ_DIR)/gbt_player.o $(OBJ_DIR)/gbt_player_bank1.o
+OBJS = $(OBJ_DIR)/gbt_player.o
 
 all: directories $(TARGET)
 

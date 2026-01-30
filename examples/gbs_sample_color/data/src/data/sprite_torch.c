@@ -12,7 +12,7 @@ BANKREF(sprite_torch)
 #define SPRITE_1_STATE_OPEN 0
 
 const metasprite_t sprite_torch_metasprite_0[]  = {
-    { 0, 8, 0, 0 }, { 0, -8, 2, 0 },
+    { 8, 16, 0, 0 }, { 0, -8, 2, 0 },
     {metasprite_end}
 };
 
