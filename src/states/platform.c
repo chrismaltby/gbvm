@@ -46,6 +46,9 @@
 #ifndef INPUT_PLATFORM_INTERACT
 #define INPUT_PLATFORM_INTERACT INPUT_A
 #endif
+#ifndef INPUT_PLATFORM_FORCE_TRIGGER
+#define INPUT_PLATFORM_FORCE_TRIGGER INPUT_UP_PRESSED
+#endif
 #ifndef INPUT_PLATFORM_DROP_THROUGH
 #define INPUT_PLATFORM_DROP_THROUGH 0
 #endif
@@ -1451,7 +1454,7 @@ finally_check_actor_col:
 
     if (mask & COL_CHECK_TRIGGERS)
     {
-        trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, INPUT_UP_PRESSED);
+        trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, INPUT_PLATFORM_FORCE_TRIGGER);
     }
 }
 
