@@ -307,7 +307,7 @@ void shmup_update(void) BANKED {
                 camera_x = shooter_dest;
             }
             // Sync camera subpixels with player to prevent visual jitter
-            // (only when player isn't moving horizontaly)
+            // (only when player isn't moving horizontally)
             IF_FREE_MOVEMENT({
                 if (!player_moving || angle == ANGLE_0DEG || angle == ANGLE_180DEG) {
                     camera_x = SUBPX_SNAP_PX(camera_x) | SUBPX_PX_REMAINDER(PLAYER.pos.x);
@@ -321,7 +321,7 @@ void shmup_update(void) BANKED {
                 camera_x = shooter_dest;
             }
             // Sync camera subpixels with player to prevent visual jitter
-            // (only when player isn't moving horizontaly)
+            // (only when player isn't moving horizontally)
             IF_FREE_MOVEMENT({
                 if (!player_moving || angle == ANGLE_0DEG || angle == ANGLE_180DEG) {
                     camera_x = SUBPX_SNAP_PX(camera_x) | SUBPX_PX_REMAINDER(PLAYER.pos.x);
@@ -335,7 +335,7 @@ void shmup_update(void) BANKED {
                 camera_y = shooter_dest;
             }
             // Sync camera subpixels with player to prevent visual jitter
-            // (only when player isn't moving verticaly)
+            // (only when player isn't moving vertically)
             IF_FREE_MOVEMENT({
                 if (!player_moving || angle == ANGLE_90DEG || angle == ANGLE_270DEG) {
                     camera_y = SUBPX_SNAP_PX(camera_y) | SUBPX_PX_REMAINDER(PLAYER.pos.y);
@@ -349,13 +349,13 @@ void shmup_update(void) BANKED {
                 camera_y = shooter_dest;
             }
             // Sync camera subpixels with player to prevent visual jitter
-            // (only when player isn't moving verticaly)
+            // (only when player isn't moving vertically)
             IF_FREE_MOVEMENT({
                 if (!player_moving || angle == ANGLE_90DEG || angle == ANGLE_270DEG) {
                     camera_y = SUBPX_SNAP_PX(camera_y) | SUBPX_PX_REMAINDER(PLAYER.pos.y);
                 }
             })
-        }        
+        }
     }
 
     // Check for collisions caused by auto-scroll
