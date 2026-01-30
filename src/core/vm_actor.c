@@ -464,6 +464,7 @@ void vm_actor_set_spritesheet(SCRIPT_CTX * THIS, INT16 idx, UBYTE spritesheet_ba
     actor->sprite.bank = spritesheet_bank;
     actor->sprite.ptr = (void *)spritesheet;
     load_animations(spritesheet, spritesheet_bank, ANIM_SET_DEFAULT, actor->animations);
+    actor->animation_set = ANIM_SET_DEFAULT;
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
     actor_reset_anim(actor);
 }
@@ -511,6 +512,7 @@ void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) OLDCALL B
     UBYTE * n_actor = VM_REF_TO_PTR(idx);
     actor = actors + *n_actor;
     load_animations(actor->sprite.ptr, actor->sprite.bank, offset, actor->animations);
+    actor->animation_set = offset;
     actor_reset_anim(actor);
 }
 
@@ -527,6 +529,7 @@ void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) 
     actor->sprite.bank = spritesheet_bank;
     actor->sprite.ptr = (void *)spritesheet;
     load_animations(spritesheet, spritesheet_bank, ANIM_SET_DEFAULT, actor->animations);
+    actor->animation_set = ANIM_SET_DEFAULT;
     load_bounds(spritesheet, spritesheet_bank, &actor->bounds);
     actor_reset_anim(actor);
 }
