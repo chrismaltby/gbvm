@@ -181,7 +181,7 @@ static point16_t movement_delta;
 UBYTE adv_knockback_timer;    // Current Knockback frame
 
 // Animation
-UBYTE adv_prev_anim_state;    // Tracks whether the previous player animation before been modified by another state
+UBYTE adv_anim_dirty;         // Tracks whether the player animation has been modified from the default
 
 // Solid actors
 actor_t *adv_attached_actor;  // The last actor the player hit, and that they were attached to
@@ -226,18 +226,19 @@ static void adv_callback_execute(UBYTE i);
 
 inline void adv_set_player_anim_state(UBYTE anim)
 {
-    adv_prev_anim_state = PLAYER.animation_set;
     load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, anim, PLAYER.animations);
     PLAYER.animation_set = anim;
     actor_reset_anim(&PLAYER);
+    adv_anim_dirty = TRUE;
 }
 
 inline void adv_restore_default_anim_state(void)
 {
-    if (adv_prev_anim_state != PLAYER.animation_set) {
-        load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, adv_prev_anim_state, PLAYER.animations);
-        PLAYER.animation_set = adv_prev_anim_state;
-        actor_reset_anim(&PLAYER);      
+    if (adv_anim_dirty) {
+        load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
+        PLAYER.animation_set = 0;
+        actor_reset_anim(&PLAYER);  
+        adv_anim_dirty = FALSE;             
     }
 }
 
@@ -332,7 +333,7 @@ void adventure_init(void) BANKED {
     adv_dash_cooldown_timer = 0;
     adv_knockback_timer = 0;
     adv_push_timer = 0;
-    adv_prev_anim_state = ANIM_SET_DEFAULT;
+    adv_anim_dirty = FALSE;
 }
 
 void adventure_update(void) BANKED {

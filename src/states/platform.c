@@ -321,7 +321,7 @@ UBYTE plat_ladder_block_h;     // Track if player has released horizontal input 
 UBYTE plat_ladder_block_v;     // Track if player has released vertical input since leaving the ladder
 
 // Animation
-UBYTE plat_prev_anim_state;    // Tracks whether the previous player animation before been modified by another state
+UBYTE plat_anim_dirty;         // Tracks whether the player animation has been modified from the default
 
 // Variables for plugins
 BYTE plat_run_stage;           // Tracks the stage of running based on the run type
@@ -432,18 +432,19 @@ inline UBYTE dash_input_pressed(void)
 
 inline void plat_set_player_anim_state(UBYTE anim)
 {
-    plat_prev_anim_state = PLAYER.animation_set;
     load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, anim, PLAYER.animations);
     PLAYER.animation_set = anim;
     actor_reset_anim(&PLAYER);
+    plat_anim_dirty = TRUE;
 }
 
 inline void plat_restore_default_anim_state(void)
 {
-    if (plat_prev_anim_state != PLAYER.animation_set) {
-        load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, plat_prev_anim_state, PLAYER.animations);
-        PLAYER.animation_set = plat_prev_anim_state;
-        actor_reset_anim(&PLAYER);       
+    if (plat_anim_dirty) {
+        load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
+        PLAYER.animation_set = 0;
+        actor_reset_anim(&PLAYER);  
+        plat_anim_dirty = FALSE;             
     }
 }
 
@@ -529,7 +530,7 @@ void platform_init(void) BANKED
     plat_run_stage = RUN_STAGE_NONE;
     plat_nocontrol_h_timer = 0;
     did_interact_actor = FALSE;
-    plat_prev_anim_state = ANIM_SET_DEFAULT;
+    plat_anim_dirty = FALSE;
 
 #ifdef FEAT_PLATFORM_DROP_THROUGH
     plat_drop_timer = 0;
