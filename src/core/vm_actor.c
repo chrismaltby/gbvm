@@ -516,6 +516,17 @@ void vm_actor_set_anim_set(SCRIPT_CTX * THIS, INT16 idx, UWORD offset) OLDCALL B
     actor_reset_anim(actor);
 }
 
+void vm_actor_get_anim_set(SCRIPT_CTX * THIS, INT16 idx, INT16 dest) OLDCALL BANKED {
+    UWORD * A;
+    actor_t *actor;
+
+    act_set_pos_t * params = VM_REF_TO_PTR(idx);
+    actor = actors + (UBYTE)(params->ID);
+
+    if (dest < 0) A = THIS->stack_ptr + dest; else A = script_memory + dest;
+    *A = actor->animation_set;
+}
+
 void vm_actor_set_spritesheet_by_ref(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB) OLDCALL BANKED {
     actor_t *actor;
     UBYTE * n_actor = VM_REF_TO_PTR(idxA);
