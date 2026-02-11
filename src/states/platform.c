@@ -436,6 +436,7 @@ inline UBYTE dash_input_pressed(void)
 inline void plat_set_player_anim_state(UBYTE anim)
 {
     load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, anim, PLAYER.animations);
+    PLAYER.animation_set = anim;
     actor_reset_anim(&PLAYER);
     plat_anim_dirty = TRUE;
 }
@@ -444,6 +445,7 @@ inline void plat_restore_default_anim_state(void)
 {
     if (plat_anim_dirty) {
         load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
+        PLAYER.animation_set = 0;
         actor_reset_anim(&PLAYER);  
         plat_anim_dirty = FALSE;             
     }

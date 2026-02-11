@@ -80,7 +80,7 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_actor_set_spritesheet,          BANK(VM_ACTOR),         5}, // 0x38
     {vm_actor_replace_tile,             BANK(VM_ACTOR),         8}, // 0x39
     {vm_actor_get_pos,                  BANK(VM_ACTOR),         2}, // 0x3A
-    {0, 0, 0},
+    {vm_actor_get_anim_set,             BANK(VM_ACTOR),         4}, // 0x3B
     {vm_actor_get_dir,                  BANK(VM_ACTOR),         4}, // 0x3C
     {vm_actor_set_anim_tick,            BANK(VM_ACTOR),         3}, // 0x3D
     {vm_actor_set_move_speed,           BANK(VM_ACTOR),         3}, // 0x3E
