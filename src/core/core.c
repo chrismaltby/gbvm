@@ -82,7 +82,7 @@ void process_VM(void) {
 
                 camera_update();
                 scroll_update();
-                actors_update();
+                actors_update(FALSE);
                 actors_render();
                 if (projectiles_active_head) {
                     projectiles_update();                               // update projectiles
@@ -175,7 +175,7 @@ void process_VM(void) {
                 toggle_shadow_OAM();
                 camera_update();
                 scroll_repaint();
-                actors_update();
+                actors_update(TRUE);
                 actors_render();
 
                 activate_shadow_OAM();

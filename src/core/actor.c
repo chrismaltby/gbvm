@@ -81,11 +81,11 @@ void player_init(void) BANKED {
     SET_FLAG(PLAYER.flags, ACTOR_FLAG_COLLISION);
 }
 
-void actors_update(void) BANKED {
+void actors_update(UBYTE update_all) BANKED {
     actor_t *actor;
     static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
     static uint8_t actor_tile16_x, actor_tile16_y;
-    static uint8_t tmp_iterator; 
+    static FASTUBYTE tmp_iterator; 
     static FASTUBYTE actor_flags;
 
     // Convert scroll pos to 16px tile coordinates
@@ -122,7 +122,7 @@ void actors_update(void) BANKED {
             continue;
         }
 
-        if ((tmp_iterator++ & 0x3) == 0) {
+        if (update_all || (tmp_iterator++ & 0x3) == 0) {
             // Bottom right coordinate of actor in 16px tile coordinates
             // Subtract bounding box estimate width/height
             // and offset by 64 to allow signed comparisons with screen tiles

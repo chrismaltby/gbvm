@@ -488,7 +488,7 @@ UBYTE ui_run_menu(menu_item_t * start_item, UBYTE bank, UBYTE options, UBYTE cou
         toggle_shadow_OAM();
         camera_update();
         scroll_update();
-        actors_update();
+        actors_update(FALSE);
         actors_render();
         projectiles_render();
         activate_shadow_OAM();
@@ -565,7 +565,7 @@ void ui_run_modal(UBYTE wait_flags) BANKED {
         toggle_shadow_OAM();
         camera_update();
         scroll_update();
-        actors_update();
+        actors_update(FALSE);
         actors_render();
         projectiles_render();
         activate_shadow_OAM();
