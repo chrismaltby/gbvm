@@ -296,7 +296,12 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
                 DL_PUSH_HEAD(actors_inactive_head, actor);
 
                 // activate if the actor is pinned or persistent
-                if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED | ACTOR_FLAG_PERSISTENT)) activate_actor(actor);
+                if (CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED | ACTOR_FLAG_PERSISTENT)){
+                    activate_actor(actor);
+                    if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)){
+                        SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+                    }
+                }
             }
         }
 
