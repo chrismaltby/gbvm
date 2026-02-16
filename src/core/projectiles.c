@@ -43,9 +43,8 @@ static UBYTE min_y;
 static UBYTE max_y;
 #define CLIP_EXT 2U
 
-FASTUBYTE projectiles_update_iterator;
-
 void projectiles_update(void) NONBANKED {
+    static uint8_t tmp_iterator;
 
     projectile = projectiles_active_head;
     prev_projectile = NULL;
@@ -61,6 +60,7 @@ void projectiles_update(void) NONBANKED {
     UBYTE clip_y_bottom = draw_scroll_ty + DEVICE_SCREEN_HEIGHT + CLIP_EXT;
     max_y = (clip_y_bottom > draw_scroll_ty) ? clip_y_bottom : 255U;
 
+    tmp_iterator = game_time;
     while (projectile) {
         if (projectile->def.life_time == 0) {
             remove_projectile();
@@ -99,7 +99,7 @@ void projectiles_update(void) NONBANKED {
         }
         projectile->pos.y = pos;
 
-        if ((projectiles_update_iterator++ & 0x3) == 0) {
+        if ((tmp_iterator++ & 0x3) == 0) {
             actor_t *hit_actor = NULL;
             if (projectile->def.collision_mask == COLLISION_GROUP_PLAYER) {
                 if  (bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
