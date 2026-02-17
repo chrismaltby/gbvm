@@ -322,6 +322,11 @@ static void activate_actor_impl(actor_t *actor) {
         }
     }
 
+    // Immediately hide persistent actors to avoid flash when activating offscreen
+    if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+        SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+    }
+
     SET_FLAG(actor->flags, ACTOR_FLAG_ACTIVE);
     actor_set_anim_idle(actor);
     DL_REMOVE_ITEM(actors_inactive_head, actor);
