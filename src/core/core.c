@@ -109,10 +109,10 @@ void process_VM(void) {
                         core_reset_hook();
                         // kill all threads, but don't clear VM memory
                         script_runner_init(FALSE);
-                        // load start scene
-                        fade_in = !(load_scene(start_scene.ptr, start_scene.bank, TRUE));
                         // load initial player
                         load_player();
+                        // load start scene
+                        fade_in = !(load_scene(start_scene.ptr, start_scene.bank, TRUE));
                         break;
                     }
                     case EXCEPTION_CHANGE_SCENE: {

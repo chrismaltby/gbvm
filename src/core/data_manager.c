@@ -275,6 +275,10 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
         DL_PUSH_HEAD(actors_inactive_head, actors_active_tail);
         activate_actor(&PLAYER);
 
+        scroll_reset();
+        camera_update();
+        scroll_update();
+
         // Add other actors, activate pinned
         if (actors_len != 0) {
             actor_t * actor = actors + 1;
