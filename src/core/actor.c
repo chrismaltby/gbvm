@@ -81,6 +81,68 @@ void player_init(void) BANKED {
     SET_FLAG(PLAYER.flags, ACTOR_FLAG_COLLISION);
 }
 
+void actors_offscreen_purge(void) BANKED {
+    actor_t *actor;
+    static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
+    static uint8_t actor_tile16_x, actor_tile16_y;
+    static FASTUBYTE actor_flags;
+
+    // Convert scroll pos to 16px tile coordinates
+    // allowing full range of scene to be represented in 7 bits
+    // offset by 64 to allow signed comparisons on
+    // unsigned int values (is faster)
+    screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
+    screen_tile16_x_end = screen_tile16_x + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_W;
+    screen_tile16_y = PX_TO_TILE16(draw_scroll_y) + TILE16_OFFSET;
+    screen_tile16_y_end = screen_tile16_y + ACTOR_BOUNDS_TILE16 + SCREEN_TILE16_H;
+
+    actor = actors_active_tail;
+    while (actor) {
+        actor_flags = actor->flags;
+
+       if (CHK_FLAG(actor_flags, ACTOR_FLAG_PINNED)) {
+            actor = actor->prev;
+            continue;
+        }
+
+        // Bottom right coordinate of actor in 16px tile coordinates
+        // Subtract bounding box estimate width/height
+        // and offset by 64 to allow signed comparisons with screen tiles
+        actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+        actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
+
+        if (
+            // Actor right edge < screen left edge
+            (actor_tile16_x < screen_tile16_x) ||
+            // Actor left edge > screen right edge
+            (actor_tile16_x > screen_tile16_x_end) ||
+            // Actor bottom edge < screen top edge
+            (actor_tile16_y < screen_tile16_y) ||
+            // Actor top edge > screen bottom edge
+            (actor_tile16_y > screen_tile16_y_end)
+        ) {
+            // Deactivate if offscreen
+            actor_t * prev = actor->prev;
+            if (actor == &PLAYER || CHK_FLAG(actor_flags, ACTOR_FLAG_PERSISTENT)) {
+                SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+            } else {
+                if (CHK_FLAG(actor_flags, ACTOR_FLAG_DISABLED)) {
+                    CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+                }                        
+                deactivate_actor_impl(actor);
+            }
+            actor = prev;
+            continue;
+        }
+
+        if (CHK_FLAG(actor_flags, ACTOR_FLAG_DISABLED)) {
+            CLR_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+        }
+    
+        actor = actor->prev;
+    }
+}
+
 void actors_update(void) BANKED {
     actor_t *actor;
     static uint8_t screen_tile16_x, screen_tile16_y, screen_tile16_x_end, screen_tile16_y_end;
@@ -301,7 +363,7 @@ static void activate_actor_impl(actor_t *actor) {
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_ACTIVE | ACTOR_FLAG_DISABLED)) return;
 
     // Check if on screen before activating to avoid flash of offscreen actors
-    if (actor != &PLAYER && !CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED) && !CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+    if (!CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
         UBYTE actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
         UBYTE actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
         UBYTE screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
@@ -318,7 +380,11 @@ static void activate_actor_impl(actor_t *actor) {
             // Actor top edge > screen bottom edge
             (actor_tile16_y > screen_tile16_y_end)
         ) {
-            return;
+            if (actor == &PLAYER || CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+                SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+            } else {
+                return;
+            } 
         }
     }
 

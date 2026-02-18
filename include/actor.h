@@ -47,6 +47,7 @@ extern UBYTE allocated_sprite_tiles;
 extern UBYTE allocated_hardware_sprites;
 
 void actors_init(void) BANKED;
+void actors_offscreen_purge(void) BANKED;
 void actors_update(void) BANKED;
 void actors_render(void) NONBANKED;
 void deactivate_actor(actor_t *actor) BANKED;
