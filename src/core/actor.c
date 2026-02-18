@@ -301,7 +301,7 @@ static void activate_actor_impl(actor_t *actor) {
     if (CHK_FLAG(actor->flags, ACTOR_FLAG_ACTIVE | ACTOR_FLAG_DISABLED)) return;
 
     // Check if on screen before activating to avoid flash of offscreen actors
-    if (actor != &PLAYER && !CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED) && !CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+    if (!CHK_FLAG(actor->flags, ACTOR_FLAG_PINNED)) {
         UBYTE actor_tile16_x = SUBPX_TO_TILE16(actor->pos.x) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
         UBYTE actor_tile16_y = SUBPX_TO_TILE16(actor->pos.y) + ACTOR_BOUNDS_TILE16_HALF + TILE16_OFFSET;
         UBYTE screen_tile16_x = PX_TO_TILE16(draw_scroll_x) + TILE16_OFFSET;
@@ -318,7 +318,11 @@ static void activate_actor_impl(actor_t *actor) {
             // Actor top edge > screen bottom edge
             (actor_tile16_y > screen_tile16_y_end)
         ) {
-            return;
+            if (actor == &PLAYER || CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT)) {
+                SET_FLAG(actor->flags, ACTOR_FLAG_DISABLED);
+            } else {
+                return;
+            } 
         }
     }
 
@@ -342,17 +346,15 @@ void activate_actors_in_row(UBYTE x, UBYTE y) BANKED {
     UBYTE x_end = x + SCREEN_TILE_REFRES_W;
 
     while (actor) {
+        actor_t *next = actor->next;
         UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
         if (ty == y) {
             UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
             if ((tx >= x) && (tx < x_end)) {
-                actor_t * next = actor->next;
                 activate_actor_impl(actor);
-                actor = next;
-                continue;
             }
         }
-        actor = actor->next;
+        actor = next;
     }
 }
 
@@ -361,17 +363,27 @@ void activate_actors_in_col(UBYTE x, UBYTE y) BANKED {
     UBYTE y_end = y + SCREEN_TILE_REFRES_H;
 
     while (actor) {
+        actor_t *next = actor->next;
         UBYTE tx = SUBPX_TO_TILE(actor->pos.x);
         if (tx == x) {
             UBYTE ty = SUBPX_TO_TILE(actor->pos.y);
             if ((ty >= y) && (ty < y_end)) {
-                actor_t * next = actor->next;
                 activate_actor_impl(actor);
-                actor = next;
-                continue;
             }
         }
-        actor = actor->next;
+        actor = next;
+    }
+}
+
+void activate_persistent_actors(void) BANKED {
+    actor_t *actor = actors_inactive_head;
+
+    while (actor) {
+        actor_t *next = actor->next;
+        if (CHK_FLAG(actor->flags, ACTOR_FLAG_PERSISTENT | ACTOR_FLAG_PINNED)) {
+            activate_actor_impl(actor);
+        }
+        actor = next;
     }
 }
 

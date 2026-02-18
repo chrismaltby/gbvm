@@ -83,6 +83,7 @@ inline void player_register_collision_with(actor_t *actor) {
 void actors_handle_player_collision(void) BANKED;
 void activate_actors_in_row(UBYTE x, UBYTE y) BANKED;
 void activate_actors_in_col(UBYTE x, UBYTE y) BANKED;
+void activate_persistent_actors(void) BANKED;
 void player_init(void) BANKED;
 
 #endif
