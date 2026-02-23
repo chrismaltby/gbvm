@@ -12,6 +12,15 @@
 #include "linked_list.h"
 #include "game_time.h"
 #include "vm.h"
+#include "data/states_defines.h"
+
+#define SPREAD_4 3
+#define SPREAD_2 1
+#define EVERY_FRAME 0
+
+#ifndef PROJECTILES_COLLISION_SPREAD
+#define PROJECTILES_COLLISION_SPREAD SPREAD_4
+#endif
 
 projectile_t projectiles[MAX_PROJECTILES];
 projectile_def_t projectile_defs[MAX_PROJECTILE_DEFS];
@@ -44,7 +53,9 @@ static UBYTE max_y;
 #define CLIP_EXT 2U
 
 void projectiles_update(void) NONBANKED {
+#if PROJECTILES_COLLISION_SPREAD != EVERY_FRAME
     static uint8_t tmp_iterator;
+#endif
 
     projectile = projectiles_active_head;
     prev_projectile = NULL;
@@ -60,7 +71,10 @@ void projectiles_update(void) NONBANKED {
     UBYTE clip_y_bottom = draw_scroll_ty + DEVICE_SCREEN_HEIGHT + CLIP_EXT;
     max_y = (clip_y_bottom > draw_scroll_ty) ? clip_y_bottom : 255U;
 
+#if PROJECTILES_COLLISION_SPREAD != EVERY_FRAME
     tmp_iterator = game_time;
+#endif
+
     while (projectile) {
         if (projectile->def.life_time == 0) {
             remove_projectile();
@@ -99,7 +113,9 @@ void projectiles_update(void) NONBANKED {
         }
         projectile->pos.y = pos;
 
-        if ((tmp_iterator++ & 0x3) == 0) {
+#if PROJECTILES_COLLISION_SPREAD != EVERY_FRAME
+        if ((tmp_iterator++ & PROJECTILES_COLLISION_SPREAD) == 0) {
+#endif
             actor_t *hit_actor = NULL;
             if (projectile->def.collision_mask == COLLISION_GROUP_PLAYER) {
                 if  (bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
@@ -118,7 +134,9 @@ void projectiles_update(void) NONBANKED {
                     continue;
                 }
             }
+#if PROJECTILES_COLLISION_SPREAD != EVERY_FRAME
         }
+#endif        
 
         prev_projectile = projectile;
         projectile = projectile->next;
