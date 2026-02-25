@@ -131,6 +131,15 @@ OP_VM_JUMP         = 0x09
         .db OP_VM_JUMP, #>LABEL, #<LABEL
 .endm
 
+OP_VM_RATE_LIMIT_CONST = 0x1C
+;-- If the last execution of the same instruction was less than N frames ago, jump to the specified label.
+; @param N Minimum number of frames between two executions of the same instruction.
+; @param IDX Variable to store last call time.
+; @param LABEL Jump label.
+.macro VM_RATE_LIMIT_CONST, N, IDX, LABEL
+        .db OP_VM_RATE_LIMIT_CONST, #>LABEL, #<LABEL, #>IDX, #<IDX, #>N, #<N
+.endm
+
 OP_VM_CALL_FAR     = 0x0A
 ;-- Calls far routine (inter-bank call).
 ; @param BANK Bank number of the routine.

@@ -46,7 +46,7 @@ const SCRIPT_CMD script_cmds[] = {
     {vm_get_tlocal,                     BANK(VM_MAIN),          4}, // 0x19
     {vm_if_const,                       BANK(VM_MAIN),          8}, // 0x1A
     {vm_asm,                            BANK(VM_MAIN),          0}, // 0x1B
-    {0, 0, 0},
+    {vm_rate_limit_const,               BANK(VM_MAIN),          6},  // 0x1C
     {0, 0, 0},
     {0, 0, 0},
     {0, 0, 0},

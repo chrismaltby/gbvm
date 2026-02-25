@@ -15,7 +15,7 @@
       "id": "7baed7cf-0ac6-4128-b3fe-5c2ca461fde2",
       "command": "EVENT_GBVM_SCRIPT",
       "args": {
-        "script": "        VM_PUSH_CONST           28              ; bit less than 45 degrees \n        VM_PUSH_CONST           100\n        VM_SIN_SCALE            .ARG0, .ARG1, 6 \n        VM_PUSH_CONST           100 \n        VM_COS_SCALE            .ARG0, .ARG2, 6\n        VM_RPN\n            .R_INT16    -360\n            .R_REF      .ARG1\n            .R_OPERATOR '*'\n            .R_INT16    220\n            .R_REF      .ARG0\n            .R_OPERATOR '*'\n            .R_STOP\n        VM_SET_INT16            _plat_vel_y, .ARG1\n        VM_SET_INT16            _plat_vel_x, .ARG0\n\n        VM_POP                  5"
+        "script": "        VM_PUSH_CONST           28              ; bit less than 45 degrees \n        VM_PUSH_CONST           100\n        VM_SIN_SCALE            .ARG0, .ARG1, 6 \n        VM_PUSH_CONST           100 \n        VM_COS_SCALE            .ARG0, .ARG2, 6\n        VM_RPN\n            .R_INT16    -360\n            .R_REF      .ARG1\n            .R_OPERATOR .MUL\n            .R_INT16    220\n            .R_REF      .ARG0\n            .R_OPERATOR .MUL\n            .R_REF_MEM_SET  .MEM_I16, _plat_vel_x\n            .R_REF_MEM_SET  .MEM_I16, _plat_vel_y\n            .R_STOP\n\n        VM_POP                  3"
       }
     }
   ],

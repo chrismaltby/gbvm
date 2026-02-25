@@ -186,6 +186,7 @@ void vm_call_native(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UINT8 b
 void vm_asm(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS) OLDCALL NONBANKED NAKED;
 void vm_memset(SCRIPT_CTX * THIS, INT16 idx, INT16 value, INT16 count) OLDCALL BANKED;
 void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL BANKED;
+void vm_rate_limit_const(SCRIPT_CTX * THIS, UWORD n_frames, INT16 idxA, UBYTE * pc) OLDCALL BANKED;
 
 // return TRUE if VM is in locked state
 inline UBYTE VM_ISLOCKED(void) {

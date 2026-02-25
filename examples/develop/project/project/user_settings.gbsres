@@ -11,6 +11,7 @@
   "showNavigator": true,
   "showCollisions": true,
   "showConnections": true,
+  "showSceneScreenGrid": false,
   "previewAsMono": false,
   "showCollisionSlopeTiles": false,
   "favoriteEvents": [

@@ -1,0 +1,4 @@
+{
+  "description": "actor-offscreen",
+  "rules": ["CHECKSCREEN('expected.png')"]
+}

@@ -418,6 +418,17 @@ void vm_rand(SCRIPT_CTX * THIS, INT16 idx, UINT16 min, UINT16 limit) OLDCALL BAN
     *A = (randw() % limit) + min;
 }
 
+// rate limit, jump to label if the last execution of the same instruction was less than N frames ago, otherwise update last execution time
+void vm_rate_limit_const(SCRIPT_CTX * THIS, UWORD n_frames, INT16 idxA, UBYTE * pc) OLDCALL BANKED {
+    UINT16 *A;
+    if (idxA < 0) A = THIS->stack_ptr + idxA; else A = script_memory + idxA;
+    if ((UINT16)(sys_time - *A) >= 0x8000u) {
+        THIS->PC = pc;
+    } else {
+        *A = sys_time + n_frames;
+    }
+}
+
 // sets lock flag for current context
 void vm_lock(SCRIPT_CTX * THIS) OLDCALL BANKED {
     THIS->lock_count++;
