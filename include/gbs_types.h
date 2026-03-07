@@ -51,6 +51,7 @@ typedef struct actor_t
     uint8_t anim_tick;
     uint8_t move_speed;
     uint8_t animation;
+    uint8_t animation_set;
     uint8_t reserve_tiles;
     animation_t animations[8];
     far_ptr_t sprite;

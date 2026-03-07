@@ -236,6 +236,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
         UBYTE n_loaded = load_sprite(PLAYER.base_tile = 0, scn.player_sprite.ptr, scn.player_sprite.bank);
         allocated_sprite_tiles = (n_loaded > scn.reserve_tiles) ? n_loaded : scn.reserve_tiles;
         load_animations(scn.player_sprite.ptr, scn.player_sprite.bank, ANIM_SET_DEFAULT, PLAYER.animations);
+        PLAYER.animation_set = ANIM_SET_DEFAULT;
         load_bounds(scn.player_sprite.ptr, scn.player_sprite.bank, &PLAYER.bounds);
     } else {
         // no player on logo, but still some little amount of actors may be present
@@ -291,6 +292,7 @@ UBYTE load_scene(const scene_t * scene, UBYTE bank, UBYTE init_data) BANKED {
                     actor->base_tile = (idx < sprites_len) ? scene_sprites_base_tiles[idx] : 0;
                 }
                 load_animations((void *)actor->sprite.ptr, actor->sprite.bank, ANIM_SET_DEFAULT, actor->animations);
+                actor->animation_set = ANIM_SET_DEFAULT;
                 // add to inactive list by default
                 CLR_FLAG(actor->flags, ACTOR_FLAG_ACTIVE);
                 DL_PUSH_HEAD(actors_inactive_head, actor);
