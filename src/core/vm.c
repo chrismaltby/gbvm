@@ -543,7 +543,6 @@ void vm_memcpy(SCRIPT_CTX * THIS, INT16 idxA, INT16 idxB, INT16 count) OLDCALL B
 // return zero if script end
 // VM_STEP must not be called from outside, but not declared static, because the symbol address is required for the GBStudio debugger
 static FASTUBYTE current_fn_bank;
-static FASTUBYTE current_fn_nargs;
 static UINT16 current_sp;
 UBYTE VM_STEP(SCRIPT_CTX * CTX) NAKED NONBANKED STEP_FUNC_ATTR {
     CTX;
@@ -576,22 +575,20 @@ __asm
         ld l, a
         add hl, hl
         add hl, hl              ; hl = instruction * sizeof(SCRIPT_CMD)
-        dec hl
-        ld de, #_script_cmds
-        add hl, de              ; hl = &script_cmds[instruction].args_len
+        ld de, #_script_cmds-4
+        add hl, de              ; hl = &script_cmds[instruction]
 
-        ld a, (hl-)
-        ldh (_current_fn_nargs), a
-        ld a, (hl-)
+        ld a, (hl+)
+        ld c, a
+        ld a, (hl+)
+        ld b, a                ; bc = fn
+        ld a, (hl+)
         ldh (_current_fn_bank), a
-        ld a, (hl-)
-        ld b, a
-        ld c, (hl)              ; bc = fn
-
+        ld a, (hl)
+   
         pop hl                  ; hl points to the next VM instruction or a first byte of the args
-        ldh a, (_current_fn_nargs)
         srl a
-        jr nc, 4$               ; d is even?
+        jr nc, 4$               ; a is even?
         ld d, (hl)              ; copy one arg onto stack
         inc hl
         push de
