@@ -569,14 +569,15 @@ __asm
         ld (_current_sp), sp
 
         push bc                 ; store bc == THIS
-        push hl
+        ld d, h
+        ld e, l
 
         ld h, #0
         ld l, a
         add hl, hl
         add hl, hl              ; hl = instruction * sizeof(SCRIPT_CMD)
-        ld de, #_script_cmds-4
-        add hl, de              ; hl = &script_cmds[instruction]
+        ld bc, #_script_cmds-4
+        add hl, bc              ; hl = &script_cmds[instruction]
 
         ld a, (hl+)
         ld c, a
@@ -585,8 +586,9 @@ __asm
         ld a, (hl+)
         ldh (_current_fn_bank), a
         ld a, (hl)
-   
-        pop hl                  ; hl points to the next VM instruction or a first byte of the args
+
+        ld h, d
+        ld l, e                 ; hl points to the next VM instruction or a first byte of the args
         srl a
         jr nc, 4$               ; a is even?
         ld d, (hl)              ; copy one arg onto stack
