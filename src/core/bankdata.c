@@ -13,9 +13,9 @@ __asm
     ldh a, (__current_bank)
     ldh (#__save), a
 
-    ldhl  sp,    #6
+    ldhl  sp, #6
     ld  a, (hl)
-    ldh    (__current_bank), a
+    ldh (__current_bank), a
     ld  (_rROMB0), a
 
     pop bc
@@ -38,7 +38,7 @@ __asm
 
     ldhl  sp, #6
     ld  a, (hl)
-    ldh    (__current_bank), a
+    ldh (__current_bank), a
     ld  (_rROMB0), a
 
     pop bc
@@ -61,7 +61,7 @@ __asm
 
     ldhl  sp, #8
     ld  a, (hl)
-    ldh    (__current_bank), a
+    ldh (__current_bank), a
     ld  (_rROMB0), a
 
     pop bc
@@ -84,7 +84,7 @@ __asm
 
     ldhl  sp, #8
     ld  a, (hl)
-    ldh    (__current_bank), a
+    ldh (__current_bank), a
     ld  (_rROMB0), a
 
     pop bc
@@ -107,7 +107,7 @@ __asm
 
     ldhl sp, #2
     ld  a, (hl)
-    ldh    (__current_bank), a
+    ldh (__current_bank), a
     ld  (_rROMB0), a
 
     ld h, b
@@ -139,7 +139,7 @@ __asm
     ldh (#__save), a
 
     ld  a, c
-    ldh    (__current_bank), a
+    ldh (__current_bank), a
     ld  (_rROMB0), a
 
     ld h, d
