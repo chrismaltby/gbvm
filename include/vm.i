@@ -4,8 +4,8 @@
 ;      order: left-to-right (leftmost argument pushed first)
 
 ; exception ID's
-EXCEPTION_RESET            = 1
-EXCEPTION_CHANGE_SCENE    = 2
+EXCEPTION_RESET         = 1
+EXCEPTION_CHANGE_SCENE  = 2
 EXCEPTION_SAVE          = 3
 EXCEPTION_LOAD          = 4
 
