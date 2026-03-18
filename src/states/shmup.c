@@ -102,7 +102,7 @@ void shmup_init(void) BANKED {
     camera_offset_y = 0;
     camera_deadzone_x = 0;
     camera_deadzone_y = 0;
-    
+
     shooter_direction = PLAYER.dir;
 
     if (shooter_direction == DIR_LEFT) {
@@ -132,7 +132,7 @@ void shmup_init(void) BANKED {
     }
 
     shooter_reached_end = FALSE;
-    
+
     // Initialize camera position for unlocked movement
     IF_FREE_MOVEMENT({
         camera_x = add_signed_clamped_u16(PLAYER.pos.x, PX_TO_SUBPX(camera_offset_x),
@@ -276,7 +276,7 @@ void shmup_update(void) BANKED {
                 }
             }
         }
-        
+
         if (angle != ANGLE_0DEG && angle != ANGLE_180DEG) { // Moved horizontally
             // Step X
             tile_start = SUBPX_TO_TILE(PLAYER.pos.y + PLAYER.bounds.top);
@@ -402,7 +402,7 @@ void shmup_update(void) BANKED {
                 })
             }
         }
-    }    
+    }
 
     IF_FREE_MOVEMENT({
         // Keep player within screen bounds

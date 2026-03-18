@@ -235,8 +235,8 @@ inline void adv_restore_default_anim_state(void)
 {
     if (adv_anim_dirty) {
         load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-        actor_reset_anim(&PLAYER);  
-        adv_anim_dirty = FALSE;             
+        actor_reset_anim(&PLAYER);
+        adv_anim_dirty = FALSE;
     }
 }
 
@@ -350,7 +350,7 @@ void adventure_update(void) BANKED {
                 state_exit_run();
                 break;
             }
-#endif              
+#endif
 #ifdef FEAT_ADVENTURE_DASH
             case DASH_STATE: {
                 state_exit_dash();
@@ -391,7 +391,7 @@ void adventure_update(void) BANKED {
                 state_enter_run();
                 break;
             }
-#endif            
+#endif
 #ifdef FEAT_ADVENTURE_DASH
             case DASH_STATE: {
                 state_enter_dash();
@@ -416,7 +416,7 @@ void adventure_update(void) BANKED {
                 break;
             }
 #endif
-        }  
+        }
     }
 
 
@@ -473,7 +473,7 @@ void adventure_update(void) BANKED {
         } else if (camera_deadzone_x < adv_camera_deadzone_x) {
             camera_deadzone_x++;
         }
-        
+
         if (camera_deadzone_y > adv_camera_deadzone_y) {
             camera_deadzone_y--;
         } else if (camera_deadzone_y < adv_camera_deadzone_y) {
@@ -495,7 +495,7 @@ static void handle_dir_input(void) {
     const WORD base_acc = (adv_state == RUN_STATE) ? adv_run_acc : adv_walk_acc;
 #else
     const WORD max_vel = adv_walk_vel;
-    const WORD base_acc = adv_walk_acc;    
+    const WORD base_acc = adv_walk_acc;
 #endif
 
 #if INPUT_ADVENTURE_MOVE_TYPE == MOVE_TYPE_8_WAY
@@ -513,8 +513,8 @@ static void handle_dir_input(void) {
 
     if (target_x && target_y) {
         // Approximate diagonal movement normalization
-        target_x = (target_x >> 1) + (target_x >> 2);  
-        target_y = (target_y >> 1) + (target_y >> 2);  
+        target_x = (target_x >> 1) + (target_x >> 2);
+        target_y = (target_y >> 1) + (target_y >> 2);
     }
 #if INPUT_ADVENTURE_DIRECTION_TYPE == DIRECTION_TYPE_4_WAY
     // Update facing priority axis
@@ -534,17 +534,17 @@ static void handle_dir_input(void) {
             facing_dir = left ? DIR_LEFT : DIR_RIGHT;
         } else {
             facing_dir = up ? DIR_UP : DIR_DOWN;
-        }	
+        }
 #else
-	    facing_dir = left ? DIR_LEFT : DIR_RIGHT;
+        facing_dir = left ? DIR_LEFT : DIR_RIGHT;
 #endif
     } else if (left) {
         facing_dir = DIR_LEFT;
     } else if (right) {
         facing_dir = DIR_RIGHT;
-    } 
+    }
 #if INPUT_ADVENTURE_DIRECTION_TYPE != DIRECTION_TYPE_HORIZONTAL
-	else if (up) {
+    else if (up) {
         facing_dir = DIR_UP;
     } else if (down) {
         facing_dir = DIR_DOWN;
@@ -567,7 +567,7 @@ static void handle_dir_input(void) {
         facing_dir = DIR_DOWN;
     }
 #else
-	if (INPUT_RECENT_LEFT) {
+    if (INPUT_RECENT_LEFT) {
         target_x = -max_vel;
         facing_dir = DIR_LEFT;
     } else if (INPUT_RECENT_RIGHT) {
@@ -656,7 +656,7 @@ static void move_and_collide(UBYTE mask)
                             }
                         }
                     }
-                } 
+                }
             }
             new_x = MIN(image_width_subpx - EXCLUSIVE_OFFSET(PLAYER.bounds.right), new_x);
         } else if (delta.x < 0) {
@@ -719,25 +719,25 @@ static void move_and_collide(UBYTE mask)
                             adv_attached_actor = NULL;
                             PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x < target_x) {
-                                PLAYER.pos.x = target_x;   
+                                PLAYER.pos.x = target_x;
                             }
-                        }                            
+                        }
                     } else if (tile & COLLISION_RIGHT) {
                         UWORD target_x = TILE_TO_SUBPX(tile_hit_x + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
                         if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
                             adv_attached_actor = NULL;
                             PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x > target_x) {
-                                PLAYER.pos.x = target_x;   
+                                PLAYER.pos.x = target_x;
                             }
                         }
-                    }                        
+                    }
                 }
             }
         } else if (delta.y < 0) {
             UBYTE tile_y = SUBPX_TO_TILE(new_y + PLAYER.bounds.top);
             UBYTE tile = tile_col_test_range_x(COLLISION_BOTTOM, tile_y, tile_start, tile_end);
-            if (tile) {            
+            if (tile) {
                 new_y = TILE_TO_SUBPX(tile_y + 1) - PLAYER.bounds.top;
                 adv_vel_y = 0;
                 if (tile & COLLISION_SLOPE && delta.x == 0) {
@@ -747,16 +747,16 @@ static void move_and_collide(UBYTE mask)
                             adv_attached_actor = NULL;
                             PLAYER.pos.x -= VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x < target_x) {
-                                PLAYER.pos.x = target_x;   
-                            }  
-                        }                          
+                                PLAYER.pos.x = target_x;
+                            }
+                        }
                     } else if (tile & COLLISION_RIGHT) {
                         UWORD target_x = TILE_TO_SUBPX(tile_hit_x + 1) + 1 - EXCLUSIVE_OFFSET(PLAYER.bounds.left);
                         if (PLAYER.pos.x > target_x - MAX_CORNER_PUSH_DISTANCE) {
                             adv_attached_actor = NULL;
                             PLAYER.pos.x += VEL_TO_SUBPX(adv_walk_vel);
                             if (PLAYER.pos.x > target_x) {
-                                PLAYER.pos.x = target_x;   
+                                PLAYER.pos.x = target_x;
                             }
                         }
                     }
@@ -805,7 +805,7 @@ static void move_and_collide(UBYTE mask)
         if (adv_attached_actor != NULL) {
             hit_actor = adv_attached_actor;
             adv_attached_prev_x = hit_actor->pos.x;
-            adv_attached_prev_y = hit_actor->pos.y; 
+            adv_attached_prev_y = hit_actor->pos.y;
         } else {
             hit_actor = initial_hit_actor;
             adv_attached_actor = NULL;
@@ -825,13 +825,13 @@ static void move_and_collide(UBYTE mask)
                 actor_set_dir(hit_actor, FLIPPED_DIR(PLAYER.dir), FALSE);
                 script_execute(hit_actor->script.bank, hit_actor->script.ptr, 0, 1, 0);
             }
-        }        
+        }
     }
 
     if (mask & COL_CHECK_TRIGGERS)
     {
         trigger_activate_at_intersection(&PLAYER.bounds, &PLAYER.pos, FALSE);
-    }    
+    }
 }
 
 
@@ -1011,7 +1011,7 @@ static void state_update_ground(void)
         WORD delta_mp_y = adv_attached_actor->pos.y - adv_attached_prev_y;
         adv_attached_prev_x = adv_attached_actor->pos.x;
         adv_attached_prev_y = adv_attached_actor->pos.y;
-        
+
         if (collision_dir == DIR_DOWN && delta_mp_y > adv_vel_y) {
             adv_vel_y = MAX(0, DELTA_TO_VEL(delta_mp_y));
         } else if (collision_dir == DIR_UP && delta_mp_y < adv_vel_y) {
@@ -1039,7 +1039,7 @@ static void state_update_ground(void)
         if (adv_push_timer == adv_push_delay_frames) {
             adv_next_state = PUSH_STATE;
             return;
-        }                
+        }
         adv_push_timer++;
     } else {
         adv_push_timer = 0;
@@ -1070,7 +1070,7 @@ static void state_update_ground(void)
     } else {
         actor_set_anim_idle(&PLAYER);
     }
-    
+
 }
 
 // DASH_STATE
@@ -1085,7 +1085,7 @@ static void state_enter_dash(void)
     }
 #ifdef ADVENTURE_DASH_ANIM
     adv_set_player_anim_state(ADVENTURE_DASH_ANIM);
-#elif ADVENTURE_ANIM_OVERRIDES_SET  
+#elif ADVENTURE_ANIM_OVERRIDES_SET
     adv_restore_default_anim_state();
 #endif
     adv_callback_execute(DASH_INIT);
@@ -1241,7 +1241,7 @@ static void state_exit_push(void)
 static void state_update_push(void)
 {
     handle_dir_input();
-  
+
     delta.x = VEL_TO_SUBPX(adv_vel_x);
     delta.y = VEL_TO_SUBPX(adv_vel_y);
 

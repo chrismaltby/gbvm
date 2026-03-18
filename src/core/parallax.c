@@ -9,10 +9,10 @@
 parallax_row_t parallax_rows[3];
 parallax_row_t * parallax_row;
 
-static const parallax_row_t parallax_rows_defaults[3] = { PARALLAX_STEP(0, 2, 2), PARALLAX_STEP(2, 4, 1), PARALLAX_STEP(4, 0, 0)}; 
+static const parallax_row_t parallax_rows_defaults[3] = { PARALLAX_STEP(0, 2, 2), PARALLAX_STEP(2, 4, 1), PARALLAX_STEP(4, 0, 0)};
 
 void parallax_init(void) BANKED {
-    memcpy(parallax_rows, parallax_rows_defaults, sizeof(parallax_rows)); 
+    memcpy(parallax_rows, parallax_rows_defaults, sizeof(parallax_rows));
 }
 
 void parallax_LCD_isr(void) NONBANKED NAKED {
@@ -48,16 +48,16 @@ __asm
         jr z, 3$
 
         ld  de, #4
-        add  hl, de             ; skip shift, tile_start, tile_height, shadow_scx 
+        add  hl, de             ; skip shift, tile_start, tile_height, shadow_scx
 
         ld d, h
-        ld a, l   
-        ld hl,#_parallax_row 
+        ld a, l
+        ld hl,#_parallax_row
         ld (hl+), a
         ld (hl), d
         ret
 3$:
-        ld hl,#_parallax_row 
+        ld hl,#_parallax_row
         ld a, #<_parallax_rows
         ld (hl+), a
         ld (hl), #>_parallax_rows

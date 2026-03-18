@@ -24,7 +24,7 @@ _link_next_mode::
 .end_sio_globals:
 
         .area   _GSINIT
-        
+
         xor a
         ld  hl,#.start_sio_globals
         ld  c,#(.end_sio_globals - .start_sio_globals)
@@ -32,7 +32,7 @@ _link_next_mode::
 
         ld  a, #.IO_IDLE
         ld  (_SIO_status), a
-        
+
         ldh (.SC), a            ; use external clock
         ld  a, #.DT_IDLE
         ldh (.SB), a            ; send idle byte
@@ -110,19 +110,19 @@ _link_next_mode::
         ld  (_link_next_mode), a
 
         ld  a, #1
-        ld  (_link_byte_sent), a; link_byte_sent = TRUE 
+        ld  (_link_byte_sent), a; link_byte_sent = TRUE
 5$:
         pop de
         pop bc
         pop hl
 
         WAIT_STAT
-        
+
         pop af
         reti
 
         .area _CODE
-        
+
         ;; Send byte in __io_out to the serial port
 _SIO_send_byte::
         ld  a, #.IO_SENDING

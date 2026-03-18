@@ -136,7 +136,7 @@ void projectiles_update(void) NONBANKED {
             }
 #if PROJECTILES_COLLISION_SPREAD != EVERY_FRAME
         }
-#endif        
+#endif
 
         prev_projectile = projectile;
         projectile = projectile->next;
@@ -212,7 +212,7 @@ void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
         } else if (angle == ANGLE_DOWN) {
             projectile->pos.y += initial_offset;
             projectile->delta_pos.x = 0;
-            projectile->delta_pos.y = move_speed;            
+            projectile->delta_pos.y = move_speed;
         } else {
             INT8 sinv = SIN(angle), cosv = COS(angle);
 

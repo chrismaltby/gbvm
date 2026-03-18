@@ -35,8 +35,8 @@ ___HandleCrash::
         ld      (wCrashA), a
         ld      a, #b___HandleCrash_banked
         ld      (rROMB0), a
-        ld      a, (wCrashA) 
-        jp      ___HandleCrash_banked 
+        ld      a, (wCrashA)
+        jp      ___HandleCrash_banked
 
 
         .area   _CODE_255
@@ -335,7 +335,7 @@ ___HandleCrash_banked::
         ret
 
 loadfont:
-        ld      hl, #.font_data 
+        ld      hl, #.font_data
 4$:
         ld      a, (hl+)
         ld      e, a
@@ -370,16 +370,16 @@ loadfont:
         dec     c
         jr      NZ, 5$
         jr      1$
-        
-.font_data:      
+
+.font_data:
         .dw     #0x9000
         .db     #-8, #0xff
         .db     #0
-        
+
         .dw     #(0x9000 + (0x20 << 4))
         .db     #-8, #0xff
         .db     #0
-        
+
         .dw     #(0x9000 + (0x2D << 4))
         .db     #8
         .db     #0xFF, #0xFF, #0xFF, #0xFF, #0xC3, #0xFF, #0xFF, #0xFF
@@ -470,9 +470,9 @@ loadfont:
         .ascii  " IE:"
         .ascii  "  BANK:"
         .ascii  "R"
-        .dw     __current_bank 
-        .ascii  "V" 
-        .dw     vCrashVBK 
+        .dw     __current_bank
+        .ascii  "V"
+        .dw     vCrashVBK
         .ascii  "W"
         .db     .SVBK, 0xff
         .ascii  " "
@@ -480,11 +480,11 @@ loadfont:
 
         .area   _DATA
 
-wCrashA: 
+wCrashA:
         .ds     1               ; We need at least one working register, and A allows accessing memory
-wCrashIE: 
+wCrashIE:
         .ds     1
-wCrashLCDC: 
+wCrashLCDC:
         .ds     1
 
 
@@ -500,29 +500,29 @@ wCrashLCDC:
         ; These are the initial values of the registers
         ; They are popped off the stack when printed, freeing up stack space
 
-vCrashAF: 
+vCrashAF:
         .ds     2
-vCrashBC: 
+vCrashBC:
         .ds     2
-vCrashDE: 
+vCrashDE:
         .ds     2
-vCrashHL: 
+vCrashHL:
         .ds     2
-vCrashSP: 
+vCrashSP:
         .ds     2
 
         .ds     SCRN_X_B
-vHeldKeys: 
+vHeldKeys:
         .ds     1               ; Keys held on previous frame
-vUnlockCounter: 
+vUnlockCounter:
         .ds     1               ; How many frames until dumps are "unlocked"
-vWhichDump: 
+vWhichDump:
         .ds     1
-vDumpHL: 
+vDumpHL:
         .ds     2
-vDumpSP: 
+vDumpSP:
         .ds     2
-vCrashVBK: 
+vCrashVBK:
         .ds     1
         .ds     4               ; Unused
 

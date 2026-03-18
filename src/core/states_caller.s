@@ -21,21 +21,20 @@ state_call:
         add e                   ; a *= sizeof(far_ptr)
 
         ADD_A_REG16 h, l        ; hl = far_ptr_array[a]
-        
+
         ldh a, (#__current_bank)
         push af                 ; save current bank
-        
+
         ld a, (hl+)             ; load bank
         ldh (#__current_bank), a
         ld (#rROMB0), a         ; switch to routine bank
-        
+
         ld a, (hl+)
         ld h, (hl)
         ld l, a                 ; load offset
         rst 0x20                ; call hl
 
-        pop af       
+        pop af
         ldh (#__current_bank), a
         ld (#rROMB0), a         ; restore bank
         ret
-        

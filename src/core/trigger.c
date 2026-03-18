@@ -49,10 +49,10 @@ UBYTE trigger_activate_at_intersection(rect16_t *bb, upoint16_t *offset, UBYTE f
         return FALSE;
     }
 
-    if (last_trigger != NO_TRIGGER_COLLISON && 
+    if (last_trigger != NO_TRIGGER_COLLISON &&
         (hit_trigger == NO_TRIGGER_COLLISON || hit_trigger != last_trigger)) {
         UBYTE trigger_script_called = FALSE;
-        
+
         if (hit_trigger != NO_TRIGGER_COLLISON && triggers[hit_trigger].script_flags & TRIGGER_HAS_ENTER_SCRIPT) {
             script_execute(triggers[hit_trigger].script.bank, triggers[hit_trigger].script.ptr, 0, 1, 1);
             trigger_script_called = TRUE;
@@ -60,7 +60,7 @@ UBYTE trigger_activate_at_intersection(rect16_t *bb, upoint16_t *offset, UBYTE f
 
         if (triggers[last_trigger].script_flags & TRIGGER_HAS_LEAVE_SCRIPT) {
             script_execute(
-                triggers[last_trigger].script.bank, 
+                triggers[last_trigger].script.bank,
                 triggers[last_trigger].script.ptr, 0, 1, 2);
             trigger_script_called = TRUE;
         }
@@ -69,7 +69,7 @@ UBYTE trigger_activate_at_intersection(rect16_t *bb, upoint16_t *offset, UBYTE f
 
         return trigger_script_called;
     }
-    
+
     last_trigger = hit_trigger;
 
     if (hit_trigger != NO_TRIGGER_COLLISON && triggers[hit_trigger].script_flags & TRIGGER_HAS_ENTER_SCRIPT) {

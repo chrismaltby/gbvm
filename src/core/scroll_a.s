@@ -21,7 +21,7 @@ _GetBkgAddr::
 
 .area _CODE_255
 
-; void scroll_rect(UBYTE * base_addr, UBYTE w, UBYTE h, UBYTE fill) BANKED; 
+; void scroll_rect(UBYTE * base_addr, UBYTE w, UBYTE h, UBYTE fill) BANKED;
 .globl b_scroll_rect
 b_scroll_rect = 255
 

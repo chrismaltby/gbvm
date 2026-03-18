@@ -24,7 +24,7 @@ static const int8_t sine_wave[256] = {
     -49, -46,  -43, -40, -37, -34, -31, -28, -25, -22, -19, -16, -12,  -9,  -6,  -3
 };
 
-inline int8_t SIN(uint8_t A) { 
+inline int8_t SIN(uint8_t A) {
     return sine_wave[A];
 }
 inline int8_t COS(uint8_t A) {

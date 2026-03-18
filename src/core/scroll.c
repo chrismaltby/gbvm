@@ -63,7 +63,7 @@ void scroll_reset(void) BANKED {
     scroll_x        = 0x7FFF;
     scroll_y        = 0x7FFF;
 
-    game_time       = 0; // was in scroll_render_rows() - that is insane, here is not the best place either 
+    game_time       = 0; // was in scroll_render_rows() - that is insane, here is not the best place either
 }
 
 void scroll_update(void) BANKED {
@@ -111,7 +111,7 @@ UBYTE scroll_viewport(parallax_row_t * port) {
             shift_scroll_x = draw_scroll_x >> port->shift;
         }
 
-        port->shadow_scx = shift_scroll_x;        
+        port->shadow_scx = shift_scroll_x;
         UBYTE shift_col = PX_TO_TILE(shift_scroll_x);
 
         // If column is +/- 1 just render next column
@@ -126,8 +126,8 @@ UBYTE scroll_viewport(parallax_row_t * port) {
         } else if (current_col != new_col) {
             // If column differs by more than 1 render entire viewport
             scroll_render_rows(shift_scroll_x, 0, port->start_tile, port->tile_height);
-        }  
-        return FALSE;   
+        }
+        return FALSE;
     } else {
         // last parallax slice OR no parallax
         port->shadow_scx = draw_scroll_x;
@@ -202,7 +202,7 @@ void scroll_render_rows(INT16 scroll_x, INT16 scroll_y, BYTE row_offset, BYTE n_
 void scroll_queue_row(UBYTE x, UBYTE y) {
     while (pending_w_i) {
         // If previous row wasn't fully rendered
-        // render it now before starting next row        
+        // render it now before starting next row
         scroll_load_pending_row();
     }
 
@@ -272,7 +272,7 @@ void scroll_load_row(UBYTE x, UBYTE y) NONBANKED {
 
 void scroll_load_col(UBYTE x, UBYTE y, UBYTE height) NONBANKED {
     _save_bank = CURRENT_BANK;
- 
+
 #ifdef CGB
     if (_is_CGB) {  // Color Column Load
         SWITCH_ROM(image_attr_bank);

@@ -47,7 +47,7 @@ __asm
         dec b
         jr nz, 1$
 
-        ret   
+        ret
 __endasm;
 }
 #endif

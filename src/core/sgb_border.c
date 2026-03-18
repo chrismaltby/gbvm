@@ -13,7 +13,7 @@
 #define SGB_SCR_FREEZE 1
 #define SGB_SCR_UNFREEZE 0
 
-#define SGB_TRANSFER(A,B) map_buf[0]=(A),map_buf[1]=(B),sgb_transfer(map_buf) 
+#define SGB_TRANSFER(A,B) map_buf[0]=(A),map_buf[1]=(B),sgb_transfer(map_buf)
 
 void set_sgb_border(unsigned char * tiledata, size_t tiledata_size, UBYTE tiledata_bank,
                     unsigned char * tilemap,  size_t tilemap_size,  UBYTE tilemap_bank,
@@ -21,7 +21,7 @@ void set_sgb_border(unsigned char * tiledata, size_t tiledata_size, UBYTE tileda
     unsigned char map_buf[20];
     memset(map_buf, 0, sizeof(map_buf));
 
-    SGB_TRANSFER((SGB_MASK_EN << 3) | 1, SGB_SCR_FREEZE); 
+    SGB_TRANSFER((SGB_MASK_EN << 3) | 1, SGB_SCR_FREEZE);
 
     BGP_REG = OBP0_REG = OBP1_REG = 0xE4U;
     SCX_REG = SCY_REG = 0U;
@@ -43,15 +43,15 @@ void set_sgb_border(unsigned char * tiledata, size_t tiledata_size, UBYTE tileda
 
     // transfer tile data
     UBYTE ntiles = (tiledata_size > 256 * 32) ? 0 : tiledata_size >> 5;
-    if ((!ntiles) || (ntiles > 128U)) { 
-        SetBankedBkgData(0, 0, tiledata, tiledata_bank); 
+    if ((!ntiles) || (ntiles > 128U)) {
+        SetBankedBkgData(0, 0, tiledata, tiledata_bank);
         SGB_TRANSFER((SGB_CHR_TRN << 3) | 1, SGB_CHR_BLOCK0);
-        if (ntiles) ntiles -= 128U; 
+        if (ntiles) ntiles -= 128U;
         tiledata += (128 * 32);
-        SetBankedBkgData(0, ntiles << 1, tiledata, tiledata_bank); 
+        SetBankedBkgData(0, ntiles << 1, tiledata, tiledata_bank);
         SGB_TRANSFER((SGB_CHR_TRN << 3) | 1, SGB_CHR_BLOCK1);
-    } else { 
-        SetBankedBkgData(0, ntiles << 1, tiledata, tiledata_bank); 
+    } else {
+        SetBankedBkgData(0, ntiles << 1, tiledata, tiledata_bank);
         SGB_TRANSFER((SGB_CHR_TRN << 3) | 1, SGB_CHR_BLOCK0);
     }
 
@@ -66,6 +66,6 @@ void set_sgb_border(unsigned char * tiledata, size_t tiledata_size, UBYTE tileda
     memset(map_buf, 0, 16);
     set_bkg_data(0, 1, map_buf);
     fill_bkg_rect(0, 0, 20, 18, 0);
-    
-    SGB_TRANSFER((SGB_MASK_EN << 3) | 1, SGB_SCR_UNFREEZE); 
+
+    SGB_TRANSFER((SGB_MASK_EN << 3) | 1, SGB_SCR_UNFREEZE);
 }

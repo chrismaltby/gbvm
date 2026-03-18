@@ -46,7 +46,7 @@ void scroll_init(void) BANKED;
 void scroll_update(void) BANKED;
 
 /**
- * Resets scroll and update the whole screen 
+ * Resets scroll and update the whole screen
  */
 void scroll_repaint(void) BANKED;
 
@@ -65,7 +65,7 @@ UINT8 * GetBkgAddr(void) OLDCALL PRESERVES_REGS(b, c, h, l);
  * @param base_addr address of top-left corner
  * @param w width of the area
  * @param h height of the area
- * @param fill tile id to fill the bottom row 
+ * @param fill tile id to fill the bottom row
  */
 void scroll_rect(UBYTE * base_addr, UBYTE w, UBYTE h, UBYTE fill) OLDCALL BANKED PRESERVES_REGS(b, c);
 

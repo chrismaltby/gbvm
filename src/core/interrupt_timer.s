@@ -25,6 +25,6 @@
         pop hl
 
         WAIT_STAT
-        
+
         pop af
         reti

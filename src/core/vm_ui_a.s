@@ -37,7 +37,7 @@ _itoa_fmt::
     cpl
     ld      E, A
     inc     DE
-    
+
     ld      HL, #__itoa_fmt_len
     ld      A, (HL)
     or      A
@@ -72,7 +72,7 @@ _itoa_fmt::
     push    BC
 
     ld      HL, #(.itoa_fmt_buf + 2)
-    
+
     xor     A           ; clear value
     ld      (HL-), A
     ld      (HL-), A
@@ -82,7 +82,7 @@ _itoa_fmt::
 1$:
     sla     E
     rl      D
-    
+
     ld      A, (HL)
     adc     A
     daa
@@ -108,24 +108,24 @@ _itoa_fmt::
     jr      Z, 8$
     ld      D, A
     ld      A, #'0'
-9$: 
+9$:
     ld      (BC), A
     inc     BC
     dec     D
     jr      NZ, 9$
     ld      A, #5
     ld      (__itoa_fmt_len), A
-8$: 
+8$:
 
     ld      A, (__itoa_fmt_len)
     or      A
     jr      Z, 7$
     ld      A, #1
-7$: 
+7$:
     ld      D, A
     ld      E, #'0'
     ld      HL, #(.itoa_fmt_buf + 2)
-    
+
     ld      A, (HL-)
     and     #0x0f
     add     D
@@ -141,7 +141,7 @@ _itoa_fmt::
     jr      Z, 3$
     cp      #5
     jr      NC, 3$
-    dec     BC  
+    dec     BC
 3$:
     ld      A, (HL)
     swap    A
@@ -159,7 +159,7 @@ _itoa_fmt::
     jr      Z, 4$
     cp      #4
     jr      NC, 4$
-    dec     BC  
+    dec     BC
 4$:
     ld      A, (HL-)
     and     #0x0f
@@ -169,14 +169,14 @@ _itoa_fmt::
     add     A, E
     ld      D, #1       ; make D nonzero
     ld      (BC), A
-    inc     BC  
+    inc     BC
 
     ld      A, (__itoa_fmt_len)
     or      A
     jr      Z, 5$
     cp      #3
     jr      NC, 5$
-    dec     BC  
+    dec     BC
 5$:
     ld      A, (HL)
     swap    A
@@ -193,16 +193,15 @@ _itoa_fmt::
     jr      Z, 6$
     cp      #2
     jr      NC, 6$
-    dec     BC  
+    dec     BC
 6$:
     ld      A, (HL)
     and     #0x0f
     add     A, E
     ld      (BC), A
     inc     BC
-    
+
     xor     A
     ld      (BC), A     ; write trailing #0
 
     ret
-    

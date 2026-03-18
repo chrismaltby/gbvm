@@ -13,7 +13,7 @@ timer_time_t timer_values[MAX_CONCURRENT_TIMERS];
 
 void events_init(UBYTE preserve) BANKED {
     if (preserve) {
-        for (UBYTE i = 0; i < 8; i++) 
+        for (UBYTE i = 0; i < 8; i++)
             input_events[i].handle = 0;
     } else {
         memset(input_slots, 0, sizeof(input_slots));
@@ -39,7 +39,7 @@ void events_update(void) NONBANKED {
 
 void timers_init(UBYTE preserve) BANKED {
     if (preserve) {
-        for (UBYTE i = 0; i != MAX_CONCURRENT_TIMERS; i++) 
+        for (UBYTE i = 0; i != MAX_CONCURRENT_TIMERS; i++)
             timer_events[i].handle = 0;
     } else {
         memset(timer_values, 0, sizeof(timer_values));
@@ -59,8 +59,8 @@ void timers_update(void) NONBANKED {
                     script_execute(event->script_bank, event->script_addr, &event->handle, 0, 0);
                 }
             }
-        
+
         }
         ctimer++;
-    } 
+    }
 }

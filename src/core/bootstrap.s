@@ -1,6 +1,6 @@
 .include "vm.i"
 .include "macro.i"
-        
+
 .area _CODE_255
 
 ___bank_bootstrap_script = 255

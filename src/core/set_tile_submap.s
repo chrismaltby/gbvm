@@ -71,7 +71,7 @@ _set_xy_win_submap::
         ldh     a, (__current_bank)
         push    af
         ld      a, (hl+)
-        ldh	(__current_bank),a
+        ldh    (__current_bank),a
         ld      (#rROMB0), a
 
         ld      a, (hl+)
@@ -96,7 +96,7 @@ _set_xy_win_submap::
         call    .set_xy_win_submap
 
         pop     af
-        ldh	(__current_bank),a
+        ldh    (__current_bank),a
         ld      (#rROMB0), a
         ret
 

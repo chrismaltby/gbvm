@@ -15,7 +15,7 @@ typedef enum {
     RTC_VALUE_SEC = 0x08,
     RTC_VALUE_MIN,
     RTC_VALUE_HOUR,
-    RTC_VALUE_DAY 
+    RTC_VALUE_DAY
 } rtc_dateparts_e;
 
 #define RTC_VALUE_FLAGS 0x0c
@@ -39,7 +39,7 @@ inline void RTC_SET(const rtc_dateparts_e part, const UWORD v) {
     RTC_VALUE_REG = v;
     if (part == RTC_VALUE_DAY) {
         RTC_SELECT(RTC_VALUE_FLAGS);
-        RTC_VALUE_REG = (RTC_VALUE_REG & 0x0e) | (UBYTE)((v >> 8) & 0x01);     
+        RTC_VALUE_REG = (RTC_VALUE_REG & 0x0e) | (UBYTE)((v >> 8) & 0x01);
     }
 }
 

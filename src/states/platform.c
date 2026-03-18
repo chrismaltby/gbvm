@@ -120,7 +120,7 @@
 #define COLLISION_SLOPE_225_RIGHT_BOT COLLISION_SLOPE_225_BOT
 #define COLLISION_SLOPE_225_RIGHT_TOP COLLISION_SLOPE_225_TOP
 #define COLLISION_SLOPE_45_LEFT       (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_45)
-#define COLLISION_SLOPE_225_LEFT_BOT  (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_225_BOT) 
+#define COLLISION_SLOPE_225_LEFT_BOT  (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_225_BOT)
 #define COLLISION_SLOPE_225_LEFT_TOP  (COLLISION_SLOPE_LEFT | COLLISION_SLOPE_225_TOP)
 #define COLLISION_SLOPE_ANY           (COLLISION_SLOPE_45 | COLLISION_SLOPE_225_BOT | COLLISION_SLOPE_225_TOP)
 #define COLLISION_SLOPE               0x70u
@@ -396,7 +396,7 @@ inline UBYTE dash_input_pressed(void)
 #elif INPUT_PLATFORM_DASH == DASH_INPUT_A
     return INPUT_PRESSED(INPUT_A);
 #elif INPUT_PLATFORM_DASH == DASH_INPUT_B
-    return INPUT_PRESSED(INPUT_B);    
+    return INPUT_PRESSED(INPUT_B);
 #elif INPUT_PLATFORM_DASH == DASH_INPUT_DOUBLE_TAP
     // Double-Tap Dash
     if (INPUT_PRESSED(INPUT_LEFT))
@@ -421,7 +421,7 @@ inline UBYTE dash_input_pressed(void)
             plat_tap_timer = DOUBLE_TAP_WINDOW;
         }
     }
-    return FALSE;    
+    return FALSE;
 #elif INPUT_PLATFORM_DASH == DASH_INPUT_DOWN_JUMP
     return (INPUT_PRESSED(INPUT_DOWN) && INPUT_PLATFORM_JUMP) || (INPUT_DOWN && INPUT_PRESSED(INPUT_PLATFORM_JUMP));
 #else
@@ -444,56 +444,56 @@ inline void plat_restore_default_anim_state(void)
 {
     if (plat_anim_dirty) {
         load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
-        actor_reset_anim(&PLAYER);  
-        plat_anim_dirty = FALSE;             
+        actor_reset_anim(&PLAYER);
+        plat_anim_dirty = FALSE;
     }
 }
 
 #endif
 
-static void state_enter_fall(void);      
-static void state_exit_fall(void);      
+static void state_enter_fall(void);
+static void state_exit_fall(void);
 static void state_update_fall(void);
-static void state_enter_ground(void);    
-static void state_exit_ground(void);    
+static void state_enter_ground(void);
+static void state_exit_ground(void);
 static void state_update_ground(void);
 #ifdef FEAT_PLATFORM_JUMP
-static void state_enter_jump(void);      
-static void state_exit_jump(void);      
+static void state_enter_jump(void);
+static void state_exit_jump(void);
 static void state_update_jump(void);
 #endif
 #ifdef FEAT_PLATFORM_DASH
-static void state_enter_dash(void);      
-static void state_exit_dash(void);      
+static void state_enter_dash(void);
+static void state_exit_dash(void);
 static void state_update_dash(void);
 #endif
 #ifdef FEAT_PLATFORM_LADDERS
-static void state_enter_ladder(void);    
-static void state_exit_ladder(void);    
+static void state_enter_ladder(void);
+static void state_exit_ladder(void);
 static void state_update_ladder(void);
 #endif
 #ifdef FEAT_PLATFORM_WALL_JUMP
-static void state_enter_wall(void);      
-static void state_exit_wall(void);      
+static void state_enter_wall(void);
+static void state_exit_wall(void);
 static void state_update_wall(void);
 #endif
 #ifdef FEAT_PLATFORM_KNOCKBACK
-static void state_enter_knockback(void); 
-static void state_exit_knockback(void); 
+static void state_enter_knockback(void);
+static void state_exit_knockback(void);
 static void state_update_knockback(void);
 #endif
 #ifdef FEAT_PLATFORM_BLANK
-static void state_enter_blank(void);     
-static void state_exit_blank(void);     
+static void state_enter_blank(void);
+static void state_exit_blank(void);
 static void state_update_blank(void);
 #endif
 #ifdef FEAT_PLATFORM_RUN
-static void state_enter_run(void);       
-static void state_exit_run(void);       
+static void state_enter_run(void);
+static void state_exit_run(void);
 #endif
 #ifdef FEAT_PLATFORM_FLOAT
-static void state_enter_float(void);     
-static void state_exit_float(void);     
+static void state_enter_float(void);
+static void state_exit_float(void);
 #endif
 
 // End of Function Definitions ------------------------------------------------
@@ -601,7 +601,7 @@ void platform_update(void) BANKED
             break;
         }
 #endif
-#ifdef FEAT_PLATFORM_JUMP        
+#ifdef FEAT_PLATFORM_JUMP
         case JUMP_STATE: {
             state_exit_jump();
             break;
@@ -615,8 +615,8 @@ void platform_update(void) BANKED
         case RUN_STATE: {
             state_exit_run();
             break;
-        }  
-#endif      
+        }
+#endif
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
             state_exit_ladder();
@@ -667,7 +667,7 @@ void platform_update(void) BANKED
         }
 #endif
 
-#ifdef FEAT_PLATFORM_JUMP        
+#ifdef FEAT_PLATFORM_JUMP
         case JUMP_STATE: {
             state_enter_jump();
             break;
@@ -681,7 +681,7 @@ void platform_update(void) BANKED
         case RUN_STATE: {
             state_enter_run();
             break;
-        }  
+        }
 #endif
 #ifdef FEAT_PLATFORM_LADDERS
         case LADDER_STATE: {
@@ -935,8 +935,8 @@ static void dash_init(void)
         if (col) {
             plat_next_state = FALL_STATE;
             return;
-        }     
-#endif        
+        }
+#endif
     }
 
     plat_is_actor_attached = FALSE;
@@ -1142,7 +1142,7 @@ static void move_and_collide(UBYTE mask)
         }
 
         UBYTE tile_x = SUBPX_TO_TILE(new_x + bounds_edge);
-        
+
         UBYTE tile = tile_col_test_range_y(hit_flag, tile_x, tile_y_start, tile_y_end);
 
         if (tile)
@@ -1160,7 +1160,7 @@ static void move_and_collide(UBYTE mask)
                 (IS_SLOPE_LEFT(prev_on_slope) != moving_right)))
             {
                 goto finally_update_x;
-            }               
+            }
 #endif
             if (moving_right)
             {
@@ -1409,7 +1409,7 @@ finally_check_actor_col:
                     {
                         const UBYTE moving_right = PLAYER.pos.x < hit_actor->pos.x;
 
-                        plat_delta_x = (hit_actor->pos.x - PLAYER.pos.x) + 
+                        plat_delta_x = (hit_actor->pos.x - PLAYER.pos.x) +
                             (moving_right
                                 ? (hit_actor->bounds.left - EXCLUSIVE_OFFSET(PLAYER.bounds.right))
                                 : (EXCLUSIVE_OFFSET(hit_actor->bounds.right) - PLAYER.bounds.left));
@@ -1499,10 +1499,10 @@ static void state_enter_fall(void) {
     plat_is_actor_attached = FALSE;
 #ifdef PLATFORM_FALL_ANIM
     plat_set_player_anim_state(PLATFORM_FALL_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
+#elif PLATFORM_ANIM_OVERRIDES_SET
     plat_restore_default_anim_state();
 #endif
-    plat_callback_execute(FALL_INIT); 
+    plat_callback_execute(FALL_INIT);
 }
 
 static void state_exit_fall(void) {
@@ -1858,7 +1858,7 @@ static void state_enter_jump(void) {
     // Calculate jump boost value based on horizontal velocity
     if (plat_run_boost != 0) {
         UWORD abs_vel_x = MAX(plat_vel_x, -plat_vel_x);
-#ifdef FEAT_PLATFORM_RUN                
+#ifdef FEAT_PLATFORM_RUN
         UBYTE boost_ratio = abs_vel_x / (plat_run_vel >> 7);
 #else
         UBYTE boost_ratio = abs_vel_x / (plat_walk_vel >> 7);
@@ -1893,7 +1893,7 @@ static void state_update_jump(void) {
         plat_vel_y = MIN(reduced_vel_y, 0);
 #endif
 
-        // Handle jump velocity overflow 
+        // Handle jump velocity overflow
         if (plat_vel_y > 0) {
             plat_vel_y = WORD_MIN;
         }
@@ -2028,7 +2028,7 @@ static void state_enter_dash(void) {
     }
 #ifdef PLATFORM_DASH_ANIM
     plat_set_player_anim_state(PLATFORM_DASH_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
+#elif PLATFORM_ANIM_OVERRIDES_SET
     plat_restore_default_anim_state();
 #endif
     plat_callback_execute(DASH_INIT);
@@ -2312,7 +2312,7 @@ static void state_update_ladder(void) {
         actor_set_anim_idle(&PLAYER);
 #else
         actor_stop_anim(&PLAYER);
-#endif            
+#endif
     } else {
         actor_set_anim(&PLAYER, ANIM_CLIMB);
     }
@@ -2332,10 +2332,10 @@ static void state_enter_wall(void) {
     plat_run_stage = RUN_STAGE_NONE;
 #ifdef PLATFORM_WALL_SLIDE_ANIM
     plat_set_player_anim_state(PLATFORM_WALL_SLIDE_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
+#elif PLATFORM_ANIM_OVERRIDES_SET
     plat_restore_default_anim_state();
 #endif
-    plat_callback_execute(WALL_INIT);    
+    plat_callback_execute(WALL_INIT);
 }
 
 static void state_exit_wall(void) {
@@ -2433,7 +2433,7 @@ static void state_enter_knockback(void) {
     plat_drop_timer = 0;
 #ifdef PLATFORM_KNOCKBACK_ANIM
     plat_set_player_anim_state(PLATFORM_KNOCKBACK_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
+#elif PLATFORM_ANIM_OVERRIDES_SET
     plat_restore_default_anim_state();
 #endif
     plat_callback_execute(KNOCKBACK_INIT);
@@ -2443,7 +2443,7 @@ static void state_exit_knockback(void) {
     plat_vel_x = 0;
     plat_callback_execute(KNOCKBACK_END);
 }
-        
+
 static void state_update_knockback(void) {
     // Horizontal Movement --------------------------------------------
 
@@ -2455,7 +2455,7 @@ static void state_update_knockback(void) {
 
     // Vertical Movement ----------------------------------------------
 
-    // Normal gravity        
+    // Normal gravity
     plat_vel_y += plat_grav;
     plat_vel_y = MIN(plat_vel_y, plat_max_fall_vel);
     plat_delta_y += VEL_TO_SUBPX(plat_vel_y);
@@ -2465,7 +2465,7 @@ static void state_update_knockback(void) {
     move_and_collide(COL_CHECK_ALL);
 
     // Counters -------------------------------------------------------
-    
+
     COUNTER_DECREMENT(plat_knockback_timer);
     if (plat_knockback_timer != 0) {
         plat_next_state = KNOCKBACK_STATE;
@@ -2484,16 +2484,16 @@ static void state_enter_blank(void) {
     plat_jump_type = JUMP_TYPE_NONE;
 #ifdef PLATFORM_BLANK_ANIM
     plat_set_player_anim_state(PLATFORM_BLANK_ANIM);
-#elif PLATFORM_ANIM_OVERRIDES_SET  
+#elif PLATFORM_ANIM_OVERRIDES_SET
     plat_restore_default_anim_state();
 #endif
-    plat_callback_execute(BLANK_INIT);  
+    plat_callback_execute(BLANK_INIT);
 }
 
 static void state_exit_blank(void) {
     plat_vel_x = 0;
     plat_vel_y = 0;
-    plat_callback_execute(BLANK_END);    
+    plat_callback_execute(BLANK_END);
 }
 
 static void state_update_blank(void) {

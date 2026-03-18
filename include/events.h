@@ -10,7 +10,7 @@ typedef struct script_event_t {
 } script_event_t;
 
 extern script_event_t input_events[8];
-extern UBYTE input_slots[8]; 
+extern UBYTE input_slots[8];
 
 typedef struct timer_time_t {
     UBYTE value, remains;
