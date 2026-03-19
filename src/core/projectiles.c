@@ -60,8 +60,8 @@ void projectiles_update(void) NONBANKED {
     projectile = projectiles_active_head;
     prev_projectile = NULL;
 
-    UBYTE draw_scroll_tx = PX_TO_TILE(draw_scroll_x);
-    UBYTE draw_scroll_ty = PX_TO_TILE(draw_scroll_y);
+    UBYTE draw_scroll_tx = PX_TO_TILE(MAX(0, draw_scroll_x));
+    UBYTE draw_scroll_ty = PX_TO_TILE(MAX(0, draw_scroll_y));
     UBYTE clip_x_left = draw_scroll_tx - CLIP_EXT;
     min_x = (clip_x_left < draw_scroll_tx) ? clip_x_left : 0U;
     UBYTE clip_x_right = draw_scroll_tx + DEVICE_SCREEN_WIDTH + CLIP_EXT;
