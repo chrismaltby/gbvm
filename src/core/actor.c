@@ -451,7 +451,7 @@ actor_t *actor_with_script_in_front_of_player(UBYTE grid_size) BANKED {
     offset.x = PLAYER.pos.x;
     offset.y = PLAYER.pos.y;
     point_translate_dir_word(&offset, PLAYER.dir, PX_TO_SUBPX(grid_size));
-    actor_t *actor = &PLAYER;
+    actor_t *actor = PLAYER.prev;
 
     const UWORD a_left   = offset.x + PLAYER.bounds.left;
     const UWORD a_right  = offset.x + PLAYER.bounds.right;
