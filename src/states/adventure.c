@@ -25,6 +25,7 @@
 // #define FEAT_ADVENTURE_RUN
 // #define FEAT_ADVENTURE_KNOCKBACK
 // #define FEAT_ADVENTURE_PUSH
+// #define FEAT_ADVENTURE_PULL
 
 // End of Feature Flags -------------------------------------------------------
 
@@ -50,7 +51,8 @@
     (defined(FEAT_ADVENTURE_DASH) && defined(ADVENTURE_DASH_ANIM)) || \
     (defined(FEAT_ADVENTURE_KNOCKBACK) && defined(ADVENTURE_KNOCKBACK_ANIM)) || \
     (defined(FEAT_ADVENTURE_BLANK) && defined(ADVENTURE_BLANK_ANIM)) || \
-    (defined(FEAT_ADVENTURE_PUSH) && defined(ADVENTURE_PUSH_ANIM))
+    (defined(FEAT_ADVENTURE_PUSH) && defined(ADVENTURE_PUSH_ANIM)) || \
+    (defined(FEAT_ADVENTURE_PULL) && defined(ADVENTURE_PULL_ANIM))
 
 #define MOVE_TYPE_4_WAY 0
 #define MOVE_TYPE_8_WAY 1
@@ -118,6 +120,7 @@ typedef enum
     BLANK_STATE,
     RUN_STATE,
     PUSH_STATE,
+    PULL_STATE,
 } state_e;
 
 typedef enum
@@ -135,6 +138,8 @@ typedef enum
     RUN_END,
     PUSH_INIT,
     PUSH_END,
+    PULL_INIT,
+    PULL_END,
     CALLBACK_SIZE
 } callback_e;
 
@@ -158,6 +163,7 @@ UBYTE adv_dash_frames;        // Number of frames for dashing
 UBYTE adv_dash_ready_frames;  // Frames before the player can dash again
 UBYTE adv_dash_deadzone;      // Override camera deadzone when in dash state
 UBYTE adv_push_delay_frames;  // Frames before entering push state
+UBYTE adv_push_grace_frames;  // Frames of grace period before exiting push state
 
 // End of Engine Fields -------------------------------------------------------
 
@@ -207,6 +213,16 @@ UBYTE adv_camera_transitioning; // Flag to track if we're animating back from da
 
 // Push
 UBYTE adv_push_timer;         // Number of frames pushing against a wall
+UBYTE adv_push_exit_timer;    // Grace period frames before exiting push state
+UWORD adv_push_hold_frames;   // Frames the player has been pushing the same pushable actor in the same direction
+direction_e adv_push_dir;     // Direction when push state started
+
+// Pull
+UBYTE adv_pull_timer;         // Number of frames pulling
+UBYTE adv_pull_exit_timer;    // Grace period frames before exiting pull state
+UWORD adv_pull_hold_frames;   // Frames the player has been pulling in the same direction
+direction_e adv_pull_dir;     // Direction the actor is being pulled (opposite of player facing)
+actor_t *adv_pull_actor;      // The actor being pulled
 
 // End of Runtime State -------------------------------------------------------
 
@@ -216,6 +232,12 @@ static void move_and_collide(UBYTE mask);
 static void handle_dir_input(void);
 static void adv_deceleration(void);
 static void dash_init(void);
+#ifdef FEAT_ADVENTURE_PUSH
+static UBYTE can_push_actor(actor_t *actor, direction_e dir);
+#endif
+#ifdef FEAT_ADVENTURE_PULL
+static UBYTE can_pull_actor(actor_t *actor, direction_e dir);
+#endif
 
 void adv_state_script_attach(SCRIPT_CTX *THIS) OLDCALL BANKED;
 void adv_state_script_detach(SCRIPT_CTX *THIS) OLDCALL BANKED;
@@ -299,6 +321,12 @@ static void state_enter_push(void);
 static void state_exit_push(void);
 static void state_update_push(void);
 #endif
+#ifdef FEAT_ADVENTURE_PULL
+static void state_enter_pull(void);
+static void state_exit_pull(void);
+static void state_update_pull(void);
+#endif
+
 
 // End of Function Definitions ------------------------------------------------
 
@@ -331,6 +359,10 @@ void adventure_init(void) BANKED {
     adv_dash_cooldown_timer = 0;
     adv_knockback_timer = 0;
     adv_push_timer = 0;
+    adv_push_exit_timer = 0;
+    adv_pull_timer = 0;
+    adv_pull_exit_timer = 0;
+    adv_pull_actor = NULL;
 }
 
 void adventure_update(void) BANKED {
@@ -375,6 +407,12 @@ void adventure_update(void) BANKED {
                 break;
             }
 #endif
+#ifdef FEAT_ADVENTURE_PULL
+            case PULL_STATE: {
+                state_exit_pull();
+                break;
+            }
+#endif
         }
 
         adv_state = adv_next_state;
@@ -416,6 +454,12 @@ void adventure_update(void) BANKED {
                 break;
             }
 #endif
+#ifdef FEAT_ADVENTURE_PULL
+            case PULL_STATE: {
+                state_enter_pull();
+                break;
+            }
+#endif
         }  
     }
 
@@ -447,6 +491,13 @@ void adventure_update(void) BANKED {
 #ifdef FEAT_ADVENTURE_PUSH
         case PUSH_STATE: {
             state_update_push();
+            break;
+        }
+#endif
+
+#ifdef FEAT_ADVENTURE_PULL
+        case PULL_STATE: {
+            state_update_pull();
             break;
         }
 #endif
@@ -1046,6 +1097,24 @@ static void state_update_ground(void)
     }
 #endif
 
+#ifdef FEAT_ADVENTURE_PULL
+    // Check if player pressed interact in front of a pullable actor
+    if (INPUT_PRESSED(INPUT_ADVENTURE_INTERACT)) {
+        upoint16_t front_offset = { PLAYER.pos.x, PLAYER.pos.y };
+        // Probe 4 pixels in front of the player
+        point_translate_dir_word(&front_offset, facing_dir, PX_TO_SUBPX(4));
+        actor_t* hit = actor_overlapping_bb(&PLAYER.bounds, &front_offset, &PLAYER);
+
+        if (hit != NULL && (hit->collision_group & COLLISION_GROUP_FLAG_PULLABLE)) {
+            adv_pull_actor = hit;
+            // The pull direction is walking BACKWARDS from where you are facing
+            adv_pull_dir = FLIPPED_DIR(facing_dir);
+            adv_next_state = PULL_STATE;
+            return;
+        }
+    }
+#endif
+
 #ifdef FEAT_ADVENTURE_DASH
     if (adv_dash_cooldown_timer == 0 && dash_input_pressed()) {
         adv_next_state = DASH_STATE;
@@ -1222,6 +1291,52 @@ static void state_exit_run(void)
 // PUSH_STATE
 
 #ifdef FEAT_ADVENTURE_PUSH
+
+// Check if a pushable actor can move one step in the given direction
+// Returns TRUE if the path is clear (no wall tiles, no other actors)
+static UBYTE can_push_actor(actor_t *actor, direction_e dir) {
+    upoint16_t test_pos;
+    test_pos.x = actor->pos.x;
+    test_pos.y = actor->pos.y;
+
+    // Offset by 1 pixel in the push direction
+    UBYTE step = PX_TO_SUBPX(1);
+    if (dir == DIR_LEFT)       test_pos.x -= step;
+    else if (dir == DIR_RIGHT) test_pos.x += step;
+    else if (dir == DIR_UP)    test_pos.y -= step;
+    else if (dir == DIR_DOWN)  test_pos.y += step;
+
+    // Check tile collisions at the leading edge
+    UBYTE tile_start, tile_end, tile_edge;
+    if (dir == DIR_LEFT || dir == DIR_RIGHT) {
+        tile_start = SUBPX_TO_TILE(test_pos.y + actor->bounds.top);
+        tile_end   = SUBPX_TO_TILE(test_pos.y + actor->bounds.bottom);
+        if (dir == DIR_LEFT) {
+            tile_edge = SUBPX_TO_TILE(test_pos.x + actor->bounds.left);
+            if (tile_col_test_range_y(COLLISION_RIGHT, tile_edge, tile_start, tile_end)) return FALSE;
+        } else {
+            tile_edge = SUBPX_TO_TILE(test_pos.x + actor->bounds.right);
+            if (tile_col_test_range_y(COLLISION_LEFT, tile_edge, tile_start, tile_end)) return FALSE;
+        }
+    } else {
+        tile_start = SUBPX_TO_TILE(test_pos.x + actor->bounds.left);
+        tile_end   = SUBPX_TO_TILE(test_pos.x + actor->bounds.right);
+        if (dir == DIR_UP) {
+            tile_edge = SUBPX_TO_TILE(test_pos.y + actor->bounds.top);
+            if (tile_col_test_range_x(COLLISION_BOTTOM, tile_edge, tile_start, tile_end)) return FALSE;
+        } else {
+            tile_edge = SUBPX_TO_TILE(test_pos.y + actor->bounds.bottom);
+            if (tile_col_test_range_x(COLLISION_TOP, tile_edge, tile_start, tile_end)) return FALSE;
+        }
+    }
+
+    // Check for overlapping actors (excluding the player)
+    actor_t *blocking = actor_overlapping_bb(&actor->bounds, &test_pos, actor);
+    if (blocking != NULL && blocking != &PLAYER) return FALSE;
+
+    return TRUE;
+}
+
 static void state_enter_push(void)
 {
 #ifdef ADVENTURE_PUSH_ANIM
@@ -1230,6 +1345,9 @@ static void state_enter_push(void)
     adv_restore_default_anim_state();
 #endif
     actor_set_dir(&PLAYER, facing_dir, TRUE);
+    adv_push_exit_timer = 0;
+    adv_push_hold_frames = 0;
+    adv_push_dir = facing_dir;
     adv_callback_execute(PUSH_INIT);
 }
 
@@ -1251,9 +1369,41 @@ static void state_update_push(void)
     move_and_collide(COL_CHECK_ALL);
 
     // Check if player is still pushing against an obstacle
-    if (!(joy & INPUT_DPAD) || prev_x != PLAYER.pos.x || prev_y != PLAYER.pos.y) {
+    if (!(joy & INPUT_DPAD)) {
+        // D-pad released — exit immediately
+        adv_push_exit_timer = 0;
         adv_next_state = GROUND_STATE;
         return;
+    } else if (facing_dir != adv_push_dir) {
+        // Direction changed — reset hold counter and update push direction
+        adv_push_hold_frames = 0;
+        adv_push_dir = facing_dir;
+    } else if (prev_x != PLAYER.pos.x || prev_y != PLAYER.pos.y) {
+        // Position changed — reset hold counter, count grace frames
+        adv_push_hold_frames = 0;
+        if (adv_push_exit_timer < adv_push_grace_frames) {
+            adv_push_exit_timer++;
+        } else {
+            // Grace period expired, still not blocked — exit push state
+            adv_push_exit_timer = 0;
+            adv_next_state = GROUND_STATE;
+            return;
+        }
+    } else {
+        // Still blocked, same direction — increment hold counter, reset grace timer
+        adv_push_exit_timer = 0;
+        if (adv_push_hold_frames < 0xFFFF) {
+            adv_push_hold_frames++;
+        }
+    }
+
+    // Fire pushable actor script only if the actor can move in the push direction
+    if (adv_attached_actor != NULL &&
+        (adv_attached_actor->collision_group & COLLISION_GROUP_FLAG_PUSHABLE) &&
+        adv_attached_actor->script.bank &&
+        (adv_attached_actor->hscript_hit & SCRIPT_TERMINATED) &&
+        can_push_actor(adv_attached_actor, adv_push_dir)) {
+        script_execute(adv_attached_actor->script.bank, adv_attached_actor->script.ptr, &(adv_attached_actor->hscript_hit), 3, (INT16)2, (INT16)adv_push_dir, (INT16)adv_push_hold_frames);
     }
 
     // Facing and animation update
@@ -1262,6 +1412,183 @@ static void state_update_push(void)
     } else {
         actor_set_anim_idle(&PLAYER);
     }
+}
+#endif
+
+// PULL_STATE
+
+#ifdef FEAT_ADVENTURE_PULL
+
+// Check if a pullable actor can move one step in the given direction
+// Also checks if the PLAYER has room to move in the same direction
+// Returns TRUE if the path is clear for both actor and player
+static UBYTE can_pull_actor(actor_t *actor, direction_e dir) {
+    UBYTE step = PX_TO_SUBPX(1);
+    UBYTE tile_start, tile_end, tile_edge;
+
+    // --- Check actor clearance ---
+    upoint16_t test_pos;
+    test_pos.x = actor->pos.x;
+    test_pos.y = actor->pos.y;
+
+    if (dir == DIR_LEFT)       test_pos.x -= step;
+    else if (dir == DIR_RIGHT) test_pos.x += step;
+    else if (dir == DIR_UP)    test_pos.y -= step;
+    else if (dir == DIR_DOWN)  test_pos.y += step;
+
+    if (dir == DIR_LEFT || dir == DIR_RIGHT) {
+        tile_start = SUBPX_TO_TILE(test_pos.y + actor->bounds.top);
+        tile_end   = SUBPX_TO_TILE(test_pos.y + actor->bounds.bottom);
+        if (dir == DIR_LEFT) {
+            tile_edge = SUBPX_TO_TILE(test_pos.x + actor->bounds.left);
+            if (tile_col_test_range_y(COLLISION_RIGHT, tile_edge, tile_start, tile_end)) return FALSE;
+        } else {
+            tile_edge = SUBPX_TO_TILE(test_pos.x + actor->bounds.right);
+            if (tile_col_test_range_y(COLLISION_LEFT, tile_edge, tile_start, tile_end)) return FALSE;
+        }
+    } else {
+        tile_start = SUBPX_TO_TILE(test_pos.x + actor->bounds.left);
+        tile_end   = SUBPX_TO_TILE(test_pos.x + actor->bounds.right);
+        if (dir == DIR_UP) {
+            tile_edge = SUBPX_TO_TILE(test_pos.y + actor->bounds.top);
+            if (tile_col_test_range_x(COLLISION_BOTTOM, tile_edge, tile_start, tile_end)) return FALSE;
+        } else {
+            tile_edge = SUBPX_TO_TILE(test_pos.y + actor->bounds.bottom);
+            if (tile_col_test_range_x(COLLISION_TOP, tile_edge, tile_start, tile_end)) return FALSE;
+        }
+    }
+
+    actor_t *blocking = actor_overlapping_bb(&actor->bounds, &test_pos, actor);
+    if (blocking != NULL && blocking != &PLAYER) return FALSE;
+
+    // --- Check player clearance in the same direction ---
+    upoint16_t player_test;
+    player_test.x = PLAYER.pos.x;
+    player_test.y = PLAYER.pos.y;
+
+    if (dir == DIR_LEFT)       player_test.x -= step;
+    else if (dir == DIR_RIGHT) player_test.x += step;
+    else if (dir == DIR_UP)    player_test.y -= step;
+    else if (dir == DIR_DOWN)  player_test.y += step;
+
+    if (dir == DIR_LEFT || dir == DIR_RIGHT) {
+        tile_start = SUBPX_TO_TILE(player_test.y + PLAYER.bounds.top);
+        tile_end   = SUBPX_TO_TILE(player_test.y + PLAYER.bounds.bottom);
+        if (dir == DIR_LEFT) {
+            tile_edge = SUBPX_TO_TILE(player_test.x + PLAYER.bounds.left);
+            if (tile_col_test_range_y(COLLISION_RIGHT, tile_edge, tile_start, tile_end)) return FALSE;
+        } else {
+            tile_edge = SUBPX_TO_TILE(player_test.x + PLAYER.bounds.right);
+            if (tile_col_test_range_y(COLLISION_LEFT, tile_edge, tile_start, tile_end)) return FALSE;
+        }
+    } else {
+        tile_start = SUBPX_TO_TILE(player_test.x + PLAYER.bounds.left);
+        tile_end   = SUBPX_TO_TILE(player_test.x + PLAYER.bounds.right);
+        if (dir == DIR_UP) {
+            tile_edge = SUBPX_TO_TILE(player_test.y + PLAYER.bounds.top);
+            if (tile_col_test_range_x(COLLISION_BOTTOM, tile_edge, tile_start, tile_end)) return FALSE;
+        } else {
+            tile_edge = SUBPX_TO_TILE(player_test.y + PLAYER.bounds.bottom);
+            if (tile_col_test_range_x(COLLISION_TOP, tile_edge, tile_start, tile_end)) return FALSE;
+        }
+    }
+
+    // Check for actors blocking the player (excluding the pull target)
+    blocking = actor_overlapping_bb(&PLAYER.bounds, &player_test, &PLAYER);
+    if (blocking != NULL && blocking != actor) return FALSE;
+
+    return TRUE;
+}
+
+static void state_enter_pull(void)
+{
+#ifdef ADVENTURE_PULL_ANIM
+    adv_set_player_anim_state(ADVENTURE_PULL_ANIM);
+#elif ADVENTURE_ANIM_OVERRIDES_SET
+    adv_restore_default_anim_state();
+#endif
+    // Player faces the actor they're pulling (opposite of movement direction)
+    actor_set_dir(&PLAYER, FLIPPED_DIR(adv_pull_dir), TRUE);
+    adv_pull_exit_timer = 0;
+    adv_pull_hold_frames = 0;
+    temp_x = PLAYER.pos.x;
+    temp_y = PLAYER.pos.y;
+    adv_callback_execute(PULL_INIT);
+}
+
+static void state_exit_pull(void)
+{
+    adv_pull_actor = NULL;
+    adv_callback_execute(PULL_END);
+}
+
+static void state_update_pull(void)
+{
+    // 1. Lock engine-driven movement
+    adv_vel_x = 0; adv_vel_y = 0;
+    delta.x = 0; delta.y = 0;
+
+    // 2. Exit condition: Release Interact button
+    if (!(joy & INPUT_ADVENTURE_INTERACT)) {
+        adv_next_state = GROUND_STATE;
+        return;
+    }
+
+    // 3. Exit if player presses any direction other than the pull direction
+    if (joy & INPUT_DPAD) {
+        UBYTE is_pulling_correctly = FALSE;
+        if ((adv_pull_dir == DIR_LEFT && (joy & INPUT_LEFT)) ||
+            (adv_pull_dir == DIR_RIGHT && (joy & INPUT_RIGHT)) ||
+            (adv_pull_dir == DIR_UP && (joy & INPUT_UP)) ||
+            (adv_pull_dir == DIR_DOWN && (joy & INPUT_DOWN))) {
+            is_pulling_correctly = TRUE;
+        }
+        if (!is_pulling_correctly) {
+            adv_next_state = GROUND_STATE;
+            return;
+        }
+
+        // 4. Check if the actor can move in the pull direction
+        if (adv_pull_actor == NULL || !can_pull_actor(adv_pull_actor, adv_pull_dir)) {
+            // Actor or player is blocked: idle, reset counter
+            actor_set_anim_idle(&PLAYER);
+            actor_set_dir(&PLAYER, FLIPPED_DIR(adv_pull_dir), FALSE);
+            adv_pull_hold_frames = 0;
+            return;
+        }
+
+        // 5. If player or actor moved since last frame (script moved them), reset counter
+        if (PLAYER.pos.x != temp_x || PLAYER.pos.y != temp_y) {
+            adv_pull_hold_frames = 0;
+        }
+
+        // 6. Increment hold counter (only counts while stationary)
+        if (adv_pull_hold_frames < 0xFFFF) {
+            adv_pull_hold_frames++;
+        }
+
+        // 7. Fire pull script every frame (script checks direction & hold time)
+        if (adv_pull_actor->script.bank &&
+            (adv_pull_actor->hscript_hit & SCRIPT_TERMINATED)) {
+
+            script_execute(adv_pull_actor->script.bank,
+                adv_pull_actor->script.ptr,
+                &(adv_pull_actor->hscript_hit),
+                3, (INT16)4, (INT16)adv_pull_dir, (INT16)adv_pull_hold_frames);
+        }
+
+        // 8. Play pull animation
+        actor_set_dir(&PLAYER, FLIPPED_DIR(adv_pull_dir), TRUE);
+    } else {
+        // No direction pressed — stay in pull state but idle
+        actor_set_anim_idle(&PLAYER);
+        actor_set_dir(&PLAYER, FLIPPED_DIR(adv_pull_dir), FALSE);
+        adv_pull_hold_frames = 0;
+    }
+
+    // 10. Store position for next frame's movement detection
+    temp_x = PLAYER.pos.x;
+    temp_y = PLAYER.pos.y;
 }
 #endif
 
