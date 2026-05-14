@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include <rand.h>
+#include <setjmp.h>
 
 #include "system.h"
 #include "interrupts.h"
@@ -40,6 +41,7 @@ extern const UBYTE bootstrap_script[];
 extern void core_reset_hook(void); 
 
 UBYTE pause_state_update;
+static jmp_buf exception_env;
 
 void core_reset(void) BANKED {
     // cleanup core stuff
@@ -58,131 +60,132 @@ void core_reset(void) BANKED {
     music_init_events(FALSE);
 }
 
+
+NORETURN void generate_exception(UBYTE code, void const * params_offset, UBYTE params_bank) BANKED {
+	UBYTE fade_in = TRUE;
+	switch (code) {
+		case EXCEPTION_RESET: {
+			// remove previous LCD ISR's
+			remove_LCD_ISRs();
+			// reset everything
+			core_reset_hook();
+			// kill all threads, but don't clear VM memory
+			script_runner_init(FALSE);
+			// load start scene
+			fade_in = !(load_scene(start_scene.ptr, start_scene.bank, TRUE));
+			// load initial player
+			load_player();
+			break;
+		}
+		case EXCEPTION_CHANGE_SCENE: {
+			// remove previous LCD ISR's
+			remove_LCD_ISRs();
+			// kill all threads, but don't clear variables 
+			script_runner_init(FALSE);
+			// reset timers on scene change
+			timers_init(FALSE);
+			// reset input events on scene change
+			events_init(FALSE);
+			// reset music events
+			music_init_events(FALSE);
+			// load scene
+			far_ptr_t scene;
+			ReadBankedFarPtr(&scene, params_offset, params_bank);
+			fade_in = !(load_scene(scene.ptr, scene.bank, TRUE));
+			break;
+		}
+		case EXCEPTION_SAVE: {
+			data_save(ReadBankedUBYTE(params_offset, params_bank));
+			goto skip_init;
+		}
+		case EXCEPTION_LOAD: {
+			fade_out_modal();
+			// remove previous LCD ISR's
+			remove_LCD_ISRs();
+			// load game state from SRAM
+			vm_loaded_state = data_load(ReadBankedUBYTE(params_offset, params_bank));
+			load_scene(current_scene.ptr, current_scene.bank, FALSE);
+			fade_in = FALSE;
+			break;
+		}
+		default: {
+			// nothing: suppress any unknown exception
+			goto skip_init;
+		}
+	}
+
+	CRITICAL {
+		switch (scene_LCD_type) {
+			case LCD_parallax: 
+				add_LCD(parallax_LCD_isr);
+				break;
+			case LCD_fullscreen:
+				add_LCD(fullscreen_LCD_isr);
+				break;
+			default:
+				add_LCD(simple_LCD_isr);
+				break;
+		}
+		LYC_REG = 0u;
+	}
+	if (!hide_sprites) SHOW_SPRITES;    // show sprites back if we switched LCD ISR while sprites were hidden 
+
+	pause_state_update = false;
+	
+	player_init();
+	state_init();
+	toggle_shadow_OAM();
+	camera_update();
+	scroll_repaint();
+	activate_persistent_actors();
+	actors_update();
+	actors_render();
+
+	activate_shadow_OAM();
+
+	if (fade_in) fade_in_modal();
+	
+skip_init:
+	longjmp(exception_env, 1);
+}
+
 void process_VM(void) {
+	setjmp(exception_env);
     while (TRUE) {
-        switch (script_runner_update()) {
-            case RUNNER_DONE:
-            case RUNNER_IDLE: {                
-                input_update();
-                if (INPUT_SOFT_RESTART) {
-                    // kill all threads and clear VM memory 
-                    script_runner_init(TRUE);
-                    // execute bootstrap script              
-                    script_execute(BANK(bootstrap_script), bootstrap_script, 0, 0);
-                    break;
-                }
-                if (!VM_ISLOCKED()) {
-                    if (joy != 0) events_update();                      // update joypad events (must be the first)
-                    if (!pause_state_update) state_update();                                     // update current scene, depending on its type
-                    if ((game_time & 0x0F) == 0x00) timers_update();    // update timers
-                    music_events_update();                              // update music events
-                }
+        if (script_runner_update()) {              
+			input_update();
+			if (INPUT_SOFT_RESTART) {
+				// kill all threads and clear VM memory 
+				script_runner_init(TRUE);
+				// execute bootstrap script              
+				script_execute(BANK(bootstrap_script), bootstrap_script, 0, 0);
+				continue;
+			}
+			if (!VM_ISLOCKED()) {
+				if (joy != 0) events_update();                      // update joypad events (must be the first)
+				if (!pause_state_update) state_update();                                     // update current scene, depending on its type
+				if ((game_time & 0x0F) == 0x00) timers_update();    // update timers
+				music_events_update();                              // update music events
+			}
 
-                toggle_shadow_OAM();                
+			toggle_shadow_OAM();                
 
-                camera_update();
-                scroll_update();
-                actors_update();
-                actors_render();
-                if (projectiles_active_head) {
-                    projectiles_update();                               // update projectiles
-                    projectiles_render();                               // render projectiles
-                }
-                ui_update();
-                actors_handle_player_collision();
+			camera_update();
+			scroll_update();
+			actors_update();
+			actors_render();
+			if (projectiles_active_head) {
+				projectiles_update();                               // update projectiles
+				projectiles_render();                               // render projectiles
+			}
+			ui_update();
+			actors_handle_player_collision();
 
-                game_time++;
+			game_time++;
 
-                activate_shadow_OAM();
+			activate_shadow_OAM();
 
-                wait_vbl_done();
-                break;
-            }
-            case RUNNER_BUSY: break;
-            case RUNNER_EXCEPTION: {
-                UBYTE fade_in = TRUE;
-                switch (vm_exception_code) {
-                    case EXCEPTION_RESET: {
-                        // remove previous LCD ISR's
-                        remove_LCD_ISRs();
-                        // reset everything
-                        core_reset_hook();
-                        // kill all threads, but don't clear VM memory
-                        script_runner_init(FALSE);
-                        // load start scene
-                        fade_in = !(load_scene(start_scene.ptr, start_scene.bank, TRUE));
-                        // load initial player
-                        load_player();
-                        break;
-                    }
-                    case EXCEPTION_CHANGE_SCENE: {
-                        // remove previous LCD ISR's
-                        remove_LCD_ISRs();
-                        // kill all threads, but don't clear variables 
-                        script_runner_init(FALSE);
-                        // reset timers on scene change
-                        timers_init(FALSE);
-                        // reset input events on scene change
-                        events_init(FALSE);
-                        // reset music events
-                        music_init_events(FALSE);
-                        // load scene
-                        far_ptr_t scene;
-                        ReadBankedFarPtr(&scene, vm_exception_params_offset, vm_exception_params_bank);
-                        fade_in = !(load_scene(scene.ptr, scene.bank, TRUE));
-                        break;
-                    }
-                    case EXCEPTION_SAVE: {
-                        data_save(ReadBankedUBYTE(vm_exception_params_offset, vm_exception_params_bank));
-                        continue;
-                    }
-                    case EXCEPTION_LOAD: {
-                        fade_out_modal();
-                        // remove previous LCD ISR's
-                        remove_LCD_ISRs();
-                        // load game state from SRAM
-                        vm_loaded_state = data_load(ReadBankedUBYTE(vm_exception_params_offset, vm_exception_params_bank));
-                        load_scene(current_scene.ptr, current_scene.bank, FALSE);
-                        fade_in = FALSE;
-                        break;
-                    }
-                    default: {
-                        // nothing: suppress any unknown exception
-                        continue;
-                    }
-                }
-
-                CRITICAL {
-                    switch (scene_LCD_type) {
-                        case LCD_parallax: 
-                            add_LCD(parallax_LCD_isr);
-                            break;
-                        case LCD_fullscreen:
-                            add_LCD(fullscreen_LCD_isr);
-                            break;
-                        default:
-                            add_LCD(simple_LCD_isr);
-                            break;
-                    }
-                    LYC_REG = 0u;
-                }
-                if (!hide_sprites) SHOW_SPRITES;    // show sprites back if we switched LCD ISR while sprites were hidden 
-
-                pause_state_update = false;
-                
-                player_init();
-                state_init();
-                toggle_shadow_OAM();
-                camera_update();
-                scroll_repaint();
-                activate_persistent_actors();
-                actors_update();
-                actors_render();
-
-                activate_shadow_OAM();
-
-                if (fade_in) fade_in_modal();
-            }
+			wait_vbl_done();
         }
     }
 }

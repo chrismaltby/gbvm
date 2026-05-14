@@ -51,4 +51,10 @@
 #endif
 #endif
 
+#ifndef NORETURN
+#ifdef __SDCC
+#defiene NORETURN	_Noreturn
+#endif
+#endif
+
 #endif
