@@ -169,51 +169,58 @@ void projectiles_render(void) NONBANKED {
     SWITCH_ROM(_save_bank);
 }
 
+inline void projectile_set_dir_anim(projectile_t *projectile, UBYTE dir)
+{
+    projectile->frame = projectile->frame_start = projectile->def.animations[dir].start;
+    projectile->frame_end = projectile->def.animations[dir].end + 1;
+}
+
 void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
-    projectile_t *projectile = projectiles_inactive_head;
+    static projectile_t *projectile;
+    projectile = projectiles_inactive_head;
     if (projectile) {
         memcpy(&projectile->def, &projectile_defs[index], sizeof(projectile_def_t));
 
-        // Set correct projectile frames based on angle
-        UBYTE dir = DIR_UP;
-        if (angle <= 224) {
-            if (angle >= 160) {
-                dir = DIR_LEFT;
-            } else if (angle > 96) {
-                dir = DIR_DOWN;
-            } else if (angle >= 32) {
-                dir = DIR_RIGHT;
-            }
-        }
-
-        // set animation
-        projectile->frame = projectile->frame_start = projectile->def.animations[dir].start;
-        projectile->frame_end = projectile->def.animations[dir].end + 1;
-
-        // set coordinates
-        UINT16 initial_offset = projectile->def.initial_offset;
-        UINT8 move_speed = projectile->def.move_speed;
-
-        projectile->pos.x = pos->x;
-        projectile->pos.y = pos->y;
-
         if (angle == ANGLE_LEFT) {
-            projectile->pos.x -= initial_offset;
-            projectile->delta_pos.x = -move_speed;
+            projectile_set_dir_anim(projectile, DIR_LEFT);
+            projectile->pos.x = pos->x - projectile->def.initial_offset;
+            projectile->pos.y = pos->y;
+            projectile->delta_pos.x = -projectile->def.move_speed;
             projectile->delta_pos.y = 0;
         } else if (angle == ANGLE_RIGHT) {
-            projectile->pos.x += initial_offset;
-            projectile->delta_pos.x = move_speed;
+            projectile_set_dir_anim(projectile, DIR_RIGHT);
+            projectile->pos.x = pos->x + projectile->def.initial_offset;
+            projectile->pos.y = pos->y;
+            projectile->delta_pos.x = projectile->def.move_speed;
             projectile->delta_pos.y = 0;
         } else if (angle == ANGLE_UP) {
-            projectile->pos.y -= initial_offset;
+            projectile_set_dir_anim(projectile, DIR_UP);
+            projectile->pos.x = pos->x;
+            projectile->pos.y = pos->y - projectile->def.initial_offset;
             projectile->delta_pos.x = 0;
-            projectile->delta_pos.y = -move_speed;
+            projectile->delta_pos.y = -projectile->def.move_speed;
         } else if (angle == ANGLE_DOWN) {
-            projectile->pos.y += initial_offset;
+            projectile_set_dir_anim(projectile, DIR_DOWN);
+            projectile->pos.x = pos->x;
+            projectile->pos.y = pos->y + projectile->def.initial_offset;
             projectile->delta_pos.x = 0;
-            projectile->delta_pos.y = move_speed;            
+            projectile->delta_pos.y = projectile->def.move_speed;
         } else {
+            // Set correct projectile frames based on angle
+            UBYTE dir = DIR_UP;
+            if (angle <= 224) {
+                if (angle >= 160) {
+                    dir = DIR_LEFT;
+                } else if (angle > 96) {
+                    dir = DIR_DOWN;
+                } else if (angle >= 32) {
+                    dir = DIR_RIGHT;
+                }
+            }
+            projectile_set_dir_anim(projectile, dir);
+            projectile->pos.x = pos->x;
+            projectile->pos.y = pos->y;
+            UINT16 initial_offset = projectile->def.initial_offset;
             INT8 sinv = SIN(angle), cosv = COS(angle);
 
             // Offset by initial amount
@@ -227,7 +234,7 @@ void projectile_launch(UBYTE index, upoint16_t *pos, UBYTE angle) BANKED {
                 projectile->pos.y -= ((cosv * (UINT8)(initial_offset)) >> 7);
             }
 
-            point_translate_angle_to_delta(&projectile->delta_pos, angle, move_speed);
+            point_translate_angle_to_delta(&projectile->delta_pos, angle, projectile->def.move_speed);
         }
 
         LL_REMOVE_HEAD(projectiles_inactive_head);
