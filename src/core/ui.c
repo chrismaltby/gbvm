@@ -78,6 +78,8 @@ const UBYTE * text_sound_data;
 UBYTE overlay_priority;
 UBYTE text_palette;
 
+UBYTE tile_cache_letters[TEXT_BUFFER_LEN];
+
 void ui_init(void) BANKED {
     vwf_direction               = UI_PRINT_LEFTTORIGHT;
     vwf_current_font_idx        = 0;
@@ -98,6 +100,7 @@ void ui_init(void) BANKED {
     ui_current_tile_bank        = 0;
     ui_prev_tile                = TEXT_BUFFER_START;
     ui_prev_tile_bank           = 0;
+    memset(tile_cache_letters, 0xFF, TEXT_BUFFER_LEN);
 
     ui_set_pos(0, MENU_CLOSED_Y);
 
@@ -205,6 +208,7 @@ void ui_set_start_tile(UBYTE start_tile, UBYTE start_tile_bank) BANKED {
     ui_prev_tile_bank = ui_current_tile_bank = start_tile_bank;
     vwf_current_offset = 0;
     memset(vwf_tile_data, text_bkg_fill, sizeof(vwf_tile_data));
+    memset(tile_cache_letters, 0xFF, TEXT_BUFFER_LEN);
 }
 
 void ui_print_shift_char(void * dest, const void * src, UBYTE bank) OLDCALL;
@@ -255,6 +259,24 @@ UBYTE ui_print_render(const unsigned char ch) {
         return FALSE;
     } else {
         if (vwf_current_offset) ui_next_tile();
+        if (!_is_CGB) {
+            UBYTE cached = 0xFF;
+            for (UBYTE i = 0; i != TEXT_BUFFER_LEN; i++) {
+                if (tile_cache_letters[i] == letter) { cached = TEXT_BUFFER_START + i; break; }
+            }
+            if (cached != 0xFF) {
+                ui_prev_tile = cached;
+                ui_prev_tile_bank = 0;
+                vwf_current_offset = 0u;
+                return TRUE;
+            }
+            {
+                UBYTE slot = ui_current_tile - TEXT_BUFFER_START;
+                if (slot < TEXT_BUFFER_LEN) {
+                    tile_cache_letters[slot] = letter;
+                }
+            }
+        }
         ui_load_tile(bitmap, vwf_current_font_bank);
         ui_next_tile();
         vwf_current_offset = 0u;
@@ -331,6 +353,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 if ((vwf_current_offset) && ((old_flags & FONT_VWF) != 0) && ((vwf_current_font_desc.attr & FONT_VWF) == 0)) {
                     ui_dest_ptr++;
                 }
+                memset(tile_cache_letters, 0xFF, TEXT_BUFFER_LEN);
                 break;
             }
             case 0x03:

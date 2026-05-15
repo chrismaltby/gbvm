@@ -67,6 +67,8 @@ extern UBYTE * text_scroll_addr;
 extern UBYTE text_scroll_width, text_scroll_height;
 extern UBYTE text_scroll_fill;
 
+extern UBYTE tile_cache_letters[];
+
 extern UBYTE text_sound_mask;
 extern UBYTE text_sound_bank;
 extern const UBYTE * text_sound_data;
