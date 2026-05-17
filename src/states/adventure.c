@@ -227,6 +227,7 @@ static void adv_callback_execute(UBYTE i);
 inline void adv_set_player_anim_state(UBYTE anim)
 {
     load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, anim, PLAYER.animations);
+    PLAYER.animation_set = anim;
     actor_reset_anim(&PLAYER);
     adv_anim_dirty = TRUE;
 }
@@ -235,6 +236,7 @@ inline void adv_restore_default_anim_state(void)
 {
     if (adv_anim_dirty) {
         load_animations(PLAYER.sprite.ptr, PLAYER.sprite.bank, 0, PLAYER.animations);
+        PLAYER.animation_set = 0;
         actor_reset_anim(&PLAYER);  
         adv_anim_dirty = FALSE;             
     }
@@ -331,6 +333,7 @@ void adventure_init(void) BANKED {
     adv_dash_cooldown_timer = 0;
     adv_knockback_timer = 0;
     adv_push_timer = 0;
+    adv_anim_dirty = FALSE;
 }
 
 void adventure_update(void) BANKED {

@@ -853,6 +853,14 @@ OP_VM_ACTOR_GET_POS             = 0x3A
         .db OP_VM_ACTOR_GET_POS, #>IDX, #<IDX
 .endm
 
+OP_VM_ACTOR_GET_ANIM_SET        = 0x3B
+;-- Gets actor animation set.
+; @param IDX Variable that contains the actor number.
+; @param DEST Target variable that receive the actor animation set.
+.macro VM_ACTOR_GET_ANIM_SET IDX, DEST
+        .db OP_VM_ACTOR_GET_ANIM_SET, #>DEST, #<DEST, #>IDX, #<IDX
+.endm
+
 OP_VM_ACTOR_GET_DIR             = 0x3C
 ;-- Gets actor direction.
 ; @param IDX Variable that contains the actor number.
