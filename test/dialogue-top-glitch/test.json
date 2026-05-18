@@ -1,0 +1,4 @@
+{
+  "description": "dialogue-skip",
+  "rules": ["CHECKSCREEN('expected.png')"]
+}
