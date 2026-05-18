@@ -137,16 +137,28 @@ void ui_load_tiles(void) BANKED {
 
 void ui_draw_frame_row(void * dest, UBYTE tile, UBYTE width) OLDCALL;
 
+#ifdef CGB
+void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr) OLDCALL;
+#endif
+
 void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
     if (height == 0) return;
+    UBYTE * base_addr = GetWinAddr() + (y << 5) + x;
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = VBK_ATTRIBUTES;
-        fill_win_rect(x, y, width, height, overlay_priority | (text_palette & 0x07u));
-        VBK_REG = VBK_TILES;
+        UBYTE attr = overlay_priority | (text_palette & 0x07u);
+        ui_draw_frame_row_cgb(base_addr, ui_frame_tl_tiles, width, attr);
+        if (--height == 0) return;
+        if (height > 1)
+            for (UBYTE i = height - 1; i != 0; i--) {
+                base_addr += 32;
+                ui_draw_frame_row_cgb(base_addr, ui_frame_l_tiles, width, attr);
+            }
+        base_addr += 32;
+        ui_draw_frame_row_cgb(base_addr, ui_frame_bl_tiles, width, attr);
+        return;
     }
 #endif
-    UBYTE * base_addr = GetWinAddr() + (y << 5) + x;
     ui_draw_frame_row(base_addr, ui_frame_tl_tiles, width);
     if (--height == 0) return;
     if (height > 1)

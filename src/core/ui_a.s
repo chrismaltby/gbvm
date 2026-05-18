@@ -227,3 +227,74 @@ _ui_draw_frame_row::
         ld (hl), e
 2$:
         ret
+
+; void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr);
+
+_ui_draw_frame_row_cgb::
+        ldhl sp, #6
+        ld a, (hl-)     ; attr
+        ld d, a
+        ld a, (hl-)     ; width
+        ld c, a
+        ld a, (hl-)     ; tile
+        ld e, a
+        ld a, (hl-)     ; dest high
+        ld l, (hl)      ; dest low
+        ld h, a
+
+.ui_draw_frame_row_cgb::
+        ld a, c
+        or a
+        jr z, 2$
+
+        ; left
+        WAIT_STAT
+        xor a
+        ldh (.VBK), a
+        ld (hl), e
+        ld a, #1
+        ldh (.VBK), a
+        ld (hl), d
+        inc hl
+
+        dec c
+        jr z, 9$
+
+        inc e
+
+        ld b, c
+        dec b
+        jr z, 1$
+
+3$:
+        ; center
+        WAIT_STAT
+        xor a
+        ldh (.VBK), a
+        ld (hl), e
+        ld a, #1
+        ldh (.VBK), a
+        ld (hl), d
+        inc hl
+
+        dec c
+        dec b
+        jr nz, 3$
+
+1$:
+        ; right
+        inc e
+        WAIT_STAT
+        xor a
+        ldh (.VBK), a
+        ld (hl), e
+        ld a, #1
+        ldh (.VBK), a
+        ld (hl), d
+
+9$:
+        ; reset .VBK back to 0
+        xor a
+        ldh (.VBK), a
+2$:
+        ret
