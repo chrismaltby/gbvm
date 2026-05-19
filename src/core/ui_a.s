@@ -189,7 +189,7 @@ _ui_print_shift_char::
 _ui_draw_frame_row::
         ldhl sp, #5
         ld a, (hl-)
-        ld c, a
+        ld b, a
         ld a, (hl-)
         ld e, a
         ld a, (hl-)
@@ -197,45 +197,61 @@ _ui_draw_frame_row::
         ld h, a
 
 .ui_draw_frame_row::
-        ld a, c
+        ld a, b
         or a
-        jr z, 2$
+        ret z
 
         WAIT_STAT
         ld (hl), e
-        inc hl
 
-        dec c
-        jr z, 2$
+        dec b
+        ret z
 
         inc e
-
-        ld b, c
-        dec b
-        jr z, 1$
-3$:
-        WAIT_STAT
-        ld (hl), e
         inc hl
 
-        dec c
         dec b
-        jr nz, 3$
+        jr z, 2$
 1$:
+        WAIT_STAT
+        ld (hl), e
+        inc hl
+
+        dec b
+        jr nz, 1$
+2$:
         inc e
         WAIT_STAT
         ld (hl), e
-2$:
+
         ret
 
-; void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr);
 
+        ; requires that A = 0
+        ; requires that C stores .VBK
+        ;
+        ; both of these requirement still hold after the execution of this macro
+        ; as such its possible to use it multiple time in a row
+.macro TRANSFER_TILE_AND_ATTR ?lbl
+        inc a
+        ldh (c), a        ; switch to VRAM bank 1
+lbl:
+        ldh a, (_STAT_REG)
+        and #STATF_BUSY
+        jr nz, lbl
+        
+        ld (hl), d
+        ldh (c), a        ; switch to VRAM bank 0
+        ld (hl), e
+.endm
+
+; void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr);
 _ui_draw_frame_row_cgb::
         ldhl sp, #6
         ld a, (hl-)     ; attr
         ld d, a
         ld a, (hl-)     ; width
-        ld c, a
+        ld b, a
         ld a, (hl-)     ; tile
         ld e, a
         ld a, (hl-)     ; dest high
@@ -243,61 +259,30 @@ _ui_draw_frame_row_cgb::
         ld h, a
 
 .ui_draw_frame_row_cgb::
-        ld a, c
+        ld a, b
         or a
+        ret z
+
+        ; setup for TRANSFER_TILE_AND_ATTR
+        xor a
+        ld c, #.VBK
+        
+        TRANSFER_TILE_AND_ATTR
+
+        dec b
+        ret z
+
+        inc e
+        inc hl
+
+        dec b
         jr z, 2$
-
-        ; left
-        xor a
-        ldh (.VBK), a
-        WAIT_STAT        
-        ld (hl), e
-        ld a, #1
-        ldh (.VBK), a
-        WAIT_STAT
-        ld (hl), d
-        inc hl
-
-        dec c
-        jr z, 9$
-
-        inc e
-
-        ld b, c
-        dec b
-        jr z, 1$
-
-3$:
-        ; center
-        xor a
-        ldh (.VBK), a
-        WAIT_STAT        
-        ld (hl), e
-        ld a, #1
-        ldh (.VBK), a
-        WAIT_STAT
-        ld (hl), d
-        inc hl
-
-        dec c
-        dec b
-        jr nz, 3$
-
 1$:
-        ; right
-        inc e
-        xor a
-        ldh (.VBK), a
-        WAIT_STAT        
-        ld (hl), e
-        ld a, #1
-        ldh (.VBK), a
-        WAIT_STAT
-        ld (hl), d
-
-9$:
-        ; reset .VBK back to 0
-        xor a
-        ldh (.VBK), a
+        TRANSFER_TILE_AND_ATTR
+        inc hl
+        dec b
+        jr nz, 1$
 2$:
+        inc e
+        TRANSFER_TILE_AND_ATTR
         ret
