@@ -248,12 +248,13 @@ _ui_draw_frame_row_cgb::
         jr z, 2$
 
         ; left
-        WAIT_STAT
         xor a
         ldh (.VBK), a
+        WAIT_STAT        
         ld (hl), e
         ld a, #1
         ldh (.VBK), a
+        WAIT_STAT
         ld (hl), d
         inc hl
 
@@ -268,12 +269,13 @@ _ui_draw_frame_row_cgb::
 
 3$:
         ; center
-        WAIT_STAT
         xor a
         ldh (.VBK), a
+        WAIT_STAT        
         ld (hl), e
         ld a, #1
         ldh (.VBK), a
+        WAIT_STAT
         ld (hl), d
         inc hl
 
@@ -284,12 +286,13 @@ _ui_draw_frame_row_cgb::
 1$:
         ; right
         inc e
-        WAIT_STAT
         xor a
         ldh (.VBK), a
+        WAIT_STAT        
         ld (hl), e
         ld a, #1
         ldh (.VBK), a
+        WAIT_STAT
         ld (hl), d
 
 9$:
