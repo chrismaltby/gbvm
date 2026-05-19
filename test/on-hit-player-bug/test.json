@@ -1,0 +1,4 @@
+{
+  "description": "projectiles-disappear",
+  "rules": ["CHECKSCREEN('expected.png')"]
+}
