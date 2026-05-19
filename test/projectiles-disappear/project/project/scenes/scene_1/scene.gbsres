@@ -1,0 +1,90 @@
+{
+  "_resourceType": "scene",
+  "id": "8e4f1f9d-d4ea-4e79-89c6-25a388370165",
+  "_index": 0,
+  "name": "Scene 1",
+  "backgroundId": "1e5f9d6a-bdbc-43e6-8c34-22f5bb5dea05",
+  "tilesetId": "",
+  "width": 20,
+  "height": 18,
+  "type": "ADVENTURE",
+  "colorModeOverride": "none",
+  "paletteIds": [],
+  "spritePaletteIds": [],
+  "collisions": "",
+  "autoFadeSpeed": 1,
+  "symbol": "scene_1",
+  "x": 200,
+  "y": 144,
+  "script": [
+    {
+      "command": "EVENT_SET_INPUT_SCRIPT",
+      "args": {
+        "input": [
+          "b"
+        ],
+        "override": true,
+        "__scriptTabs": "press"
+      },
+      "children": {
+        "true": [
+          {
+            "command": "EVENT_LOAD_PROJECTILE_SLOT",
+            "args": {
+              "__section": "projectile",
+              "slot": 0,
+              "spriteSheetId": "581d34d0-9591-4e6e-a609-1d94f203b0cd",
+              "spriteStateId": "",
+              "speed": 0,
+              "animSpeed": 255,
+              "lifeTime": 4,
+              "initialOffset": 17,
+              "loopAnim": true,
+              "destroyOnHit": false,
+              "collisionGroup": "3",
+              "collisionMask": [
+                "3"
+              ]
+            },
+            "id": "6a30cb29-4cd4-47e3-984e-a7371cbdd736"
+          },
+          {
+            "command": "EVENT_LAUNCH_PROJECTILE_SLOT",
+            "args": {
+              "__section": "source",
+              "actorId": "$self$",
+              "x": 0,
+              "y": 0,
+              "directionType": "actor",
+              "otherActorId": "$self$",
+              "direction": "right",
+              "angle": 0,
+              "angleVariable": "L0",
+              "targetActorId": "$self$",
+              "slot": 0
+            },
+            "id": "33de16ef-29b9-4413-a15a-fe8b2cde028a"
+          },
+          {
+            "command": "EVENT_WAIT",
+            "args": {
+              "time": {
+                "type": "number",
+                "value": 0.5
+              },
+              "frames": {
+                "type": "number",
+                "value": 1
+              }
+            },
+            "id": "3f41d6a5-79cb-4fee-8a55-c4017a725066"
+          }
+        ]
+      },
+      "id": "854f43ba-dd50-4e14-8706-386e9c998a6f"
+    }
+  ],
+  "playerHit1Script": [],
+  "playerHit2Script": [],
+  "playerHit3Script": []
+}

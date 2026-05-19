@@ -1,0 +1,10 @@
+{
+  "description": "actor-move-to",
+  "rules": [
+    [
+      "ASSERT_NE(DATA('WRAM', ADDR('_projectiles_active_head', 'WRAM'), 2), array(\"B\", [0x00, 0x00]))",
+      "_projectiles_active_head is not null"
+    ],
+    "CHECKSCREEN('expected.png')"
+  ]
+}

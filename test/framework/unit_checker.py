@@ -72,6 +72,18 @@ def ASSERT_EQ(a, b):
         )
     return a == b
 
+def ASSERT_NE(a, b):
+    if a == b:
+        diff = get_diff(a, b)
+        sys.stdout.write(
+            "\nAssertion failed:\n\n{:s}\n{:s}\n\n{:s}\n\n".format(
+                green("- Expected values to differ"),
+                red("+ Received equal values"),
+                diff
+            )
+        )
+    return a != b
+
 def get_diff(a, b):
     a_str = pprint.pformat(a) 
     b_str = pprint.pformat(b)    
