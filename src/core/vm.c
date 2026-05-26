@@ -9,6 +9,7 @@
 #include "vm.h"
 #include "math.h"
 #include "compat.h"
+#include "core.h"
 
 BANKREF(VM_MAIN)
 
@@ -26,11 +27,6 @@ SCRIPT_CTX * old_executing_ctx, * executing_ctx;
 UBYTE vm_lock_state;
 // loaded state
 UBYTE vm_loaded_state;
-// exception flsg
-UBYTE vm_exception_code;
-UBYTE vm_exception_params_length;
-UBYTE vm_exception_params_bank;
-const void * vm_exception_params_offset;
 
 // we need BANKED functions here to have two extra words before arguments
 // we will put VM stuff there
@@ -444,11 +440,9 @@ void vm_unlock(SCRIPT_CTX * THIS) OLDCALL BANKED {
 
 // raises VM exception
 void vm_raise(SCRIPT_CTX * THIS, UBYTE code, UBYTE size) OLDCALL BANKED {
-    vm_exception_code = code;
-    vm_exception_params_length = size;
-    vm_exception_params_bank = THIS->bank;
-    vm_exception_params_offset = THIS->PC;
+    void const * params_offset = THIS->PC;
     THIS->PC += size;
+	generate_exception(code, params_offset, THIS->bank);
 }
 
 // sets variable indirect
@@ -764,7 +758,6 @@ UBYTE script_runner_update(void) NONBANKED {
     waitable = TRUE;
     counter = INSTRUCTIONS_PER_QUANT;
     while (executing_ctx) {
-        vm_exception_code = EXCEPTION_CODE_NONE;
         executing_ctx->waitable = FALSE;
         if ((executing_ctx->terminated != FALSE) || (!VM_STEP(executing_ctx))) {
             // update lock state
@@ -779,11 +772,6 @@ UBYTE script_runner_update(void) NONBANKED {
             // next context
             if (old_executing_ctx) executing_ctx = old_executing_ctx->next; else executing_ctx = first_ctx;
         } else {
-            // check exception
-            if (vm_exception_code) {
-                SWITCH_ROM(_save);
-                return RUNNER_EXCEPTION;
-            }
             // loop until waitable state or quant is expired
             if (!(executing_ctx->waitable) && (counter--)) continue;
             // exit while loop if context switching is locked
@@ -795,9 +783,6 @@ UBYTE script_runner_update(void) NONBANKED {
         }
     }
     SWITCH_ROM(_save);
-
-    // return 0 if all threads are finished
-    if (first_ctx == 0) return RUNNER_DONE;
-    // return 1 if all threads in waitable state else return 2
-    if (waitable) return RUNNER_IDLE; else return RUNNER_BUSY;
+	
+	return waitable;
 }

@@ -7,6 +7,7 @@
 
 #include "actor.h"
 #include "bankdata.h"
+#include "core.h"
 #include "data_manager.h"
 
 BANKREF(VM_SCENE)
@@ -19,12 +20,9 @@ void vm_scene_push(void) OLDCALL BANKED {
 }
 
 static void raise_change_scene_exception(void) {
-    vm_exception_code = EXCEPTION_CHANGE_SCENE;
-    vm_exception_params_length = sizeof(far_ptr_t);
-    vm_exception_params_bank = 1; // any bank
-    vm_exception_params_offset = &scene_stack_ptr->scene;
     PLAYER.pos = scene_stack_ptr->pos;
     PLAYER.dir = scene_stack_ptr->dir;
+	generate_exception(EXCEPTION_CHANGE_SCENE, &scene_stack_ptr->scene, 0);
 }
 
 void vm_scene_pop(void) OLDCALL BANKED {

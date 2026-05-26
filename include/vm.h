@@ -141,11 +141,6 @@ extern SCRIPT_CTX * old_executing_ctx, * executing_ctx;
 extern UBYTE vm_lock_state;
 // loaded state
 extern UBYTE vm_loaded_state;
-// exception flag and parameters
-extern UBYTE vm_exception_code;
-extern UBYTE vm_exception_params_length;
-extern UBYTE vm_exception_params_bank;
-extern const void * vm_exception_params_offset;
 
 // script core functions
 void vm_push(SCRIPT_CTX * THIS, UWORD value) OLDCALL BANKED;
