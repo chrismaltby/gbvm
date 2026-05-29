@@ -247,16 +247,28 @@ void vm_overlay_scroll(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UB
     scroll_rect(base_addr, w, h, ((color) ? ui_white_tile : ui_black_tile));
 }
 
-void set_xy_win_submap(const UBYTE * source, UBYTE bank, UBYTE width, UBYTE x, UBYTE y, UBYTE w, UBYTE h) OLDCALL;
+void set_xy_win_submap(const UBYTE * source, UBYTE bank, UBYTE image_tile_width, UBYTE x, UBYTE y, UBYTE w, UBYTE h) NONBANKED
+{
+    UBYTE _save = CURRENT_BANK;
+    SWITCH_ROM(bank);
+    set_win_submap(x, y, w, h, source, image_tile_width);
+    SWITCH_ROM(_save);
+}
+
+void set_xy_win_submap_attributes(const UBYTE * source, UBYTE bank, UBYTE image_tile_width, UBYTE x, UBYTE y, UBYTE w, UBYTE h) NONBANKED
+{
+    UBYTE _save = CURRENT_BANK;
+    SWITCH_ROM(bank);
+    set_win_submap_attributes(x, y, w, h, source, image_tile_width);
+    SWITCH_ROM(_save);
+}
 
 void vm_overlay_set_submap(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE scene_x, UBYTE scene_y) OLDCALL BANKED {
     THIS;
     UWORD offset = (scene_y * image_tile_width) + scene_x;
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = VBK_ATTRIBUTES;
-        set_xy_win_submap(image_attr_ptr + offset, image_attr_bank, image_tile_width, x, y, w, h);
-        VBK_REG = VBK_TILES;
+        set_xy_win_submap_attributes(image_attr_ptr + offset, image_attr_bank, image_tile_width, x, y, w, h);
     }
 #endif
     set_xy_win_submap(image_ptr + offset, image_bank, image_tile_width, x, y, w, h);
@@ -267,9 +279,7 @@ void vm_overlay_set_submap_ex(SCRIPT_CTX * THIS, INT16 params_idx) OLDCALL BANKE
     UWORD offset = (params->scene_y * image_tile_width) + params->scene_x;
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = VBK_ATTRIBUTES;
-        set_xy_win_submap(image_attr_ptr + offset, image_attr_bank, image_tile_width, params->x, params->y, params->w, params->h);
-        VBK_REG = VBK_TILES;
+        set_xy_win_submap_attributes(image_attr_ptr + offset, image_attr_bank, image_tile_width, params->x, params->y, params->w, params->h);
     }
 #endif
     set_xy_win_submap(image_ptr + offset, image_bank, image_tile_width, params->x, params->y, params->w, params->h);
