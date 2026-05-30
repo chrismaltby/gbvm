@@ -1,0 +1,209 @@
+{
+  "_resourceType": "engineFieldValues",
+  "engineFieldValues": [
+    {
+      "id": "fade_style",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_COYOTE_TIME",
+      "value": 1
+    },
+    {
+      "id": "FEAT_PLATFORM_DROP_THROUGH",
+      "value": 1
+    },
+    {
+      "id": "SHOOTER_MOVEMENT_TYPE",
+      "value": "MOVEMENT_TYPE_FREE"
+    },
+    {
+      "id": "SHOOTER_TRIGGER_ACTIVATION",
+      "value": "ON_PLAYER_COLLISION"
+    },
+    {
+      "id": "SHOOTER_WALL_COLLISION_GROUP",
+      "value": "COLLISION_GROUP_3"
+    },
+    {
+      "id": "shooter_scroll_speed",
+      "value": 16
+    },
+    {
+      "id": "INPUT_PLATFORM_INTERACT",
+      "value": "INPUT_UP"
+    },
+    {
+      "id": "INPUT_PLATFORM_FORCE_TRIGGER",
+      "value": "FALSE"
+    },
+    {
+      "id": "plat_walk_vel",
+      "value": 6144
+    },
+    {
+      "id": "plat_walk_acc",
+      "value": 0
+    },
+    {
+      "id": "plat_min_vel",
+      "value": 6144
+    },
+    {
+      "id": "plat_dec",
+      "value": 778
+    },
+    {
+      "id": "plat_turn_acc",
+      "value": 2048
+    },
+    {
+      "id": "plat_grav",
+      "value": 2048
+    },
+    {
+      "id": "plat_max_fall_vel",
+      "value": 20480
+    },
+    {
+      "id": "plat_air_dec",
+      "value": 204
+    },
+    {
+      "id": "plat_run_acc",
+      "value": 409
+    },
+    {
+      "id": "plat_run_vel",
+      "value": 8192
+    },
+    {
+      "id": "plat_jump_vel",
+      "value": 16384
+    },
+    {
+      "id": "plat_hold_grav",
+      "value": 1024
+    },
+    {
+      "id": "plat_jump_hold_vel",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_RUN",
+      "value": 1
+    },
+    {
+      "id": "plat_climb_vel",
+      "value": 4096
+    },
+    {
+      "id": "FEAT_PLATFORM_LADDERS_DROP",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_LADDERS_WALK_OFF",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_LADDERS_HOP",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_LADDERS",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_SLOPES",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_KNOCKBACK",
+      "value": 0
+    },
+    {
+      "id": "topdown_grid",
+      "value": 8
+    },
+    {
+      "id": "plat_coyote_frames",
+      "value": 0
+    },
+    {
+      "id": "plat_jump_buffer_frames",
+      "value": 1
+    },
+    {
+      "id": "FEAT_PLATFORM_DOUBLE_JUMP",
+      "value": 1
+    },
+    {
+      "id": "plat_jump_reduction",
+      "value": 0
+    },
+    {
+      "id": "FEAT_PLATFORM_WALL_JUMP",
+      "value": 1
+    },
+    {
+      "id": "plat_wall_kick",
+      "value": 819
+    },
+    {
+      "id": "plat_drop_through_active",
+      "value": 1
+    },
+    {
+      "id": "FEAT_PLATFORM_FLOAT",
+      "value": 0
+    },
+    {
+      "id": "INPUT_PLATFORM_FLOAT",
+      "value": "FLOAT_INPUT_HOLD_UP"
+    },
+    {
+      "id": "plat_float_vel",
+      "value": 2048
+    },
+    {
+      "id": "FEAT_PLATFORM_BLANK",
+      "value": 1
+    },
+    {
+      "id": "plat_extra_jumps",
+      "value": 0
+    },
+    {
+      "id": "plat_camera_block",
+      "value": "PLATFORM_CAMERA_LOCK_SCREEN_LEFT"
+    },
+    {
+      "id": "FEAT_PLATFORM_DASH",
+      "value": 0
+    },
+    {
+      "id": "plat_dash_dist",
+      "value": 0
+    },
+    {
+      "id": "plat_dash_frames",
+      "value": 1
+    },
+    {
+      "id": "plat_dash_ready_frames",
+      "value": 128
+    },
+    {
+      "id": "plat_dash_deadzone",
+      "value": 16
+    },
+    {
+      "id": "plat_wall_jump_max",
+      "value": 2
+    },
+    {
+      "id": "INPUT_PLATFORM_DROP_THROUGH",
+      "value": "DROP_THRU_INPUT_DOWN_HOLD"
+    }
+  ]
+}

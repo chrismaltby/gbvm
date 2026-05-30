@@ -1,0 +1,34 @@
+{
+  "_resourceType": "trigger",
+  "id": "ab6b26a8-b1b9-46a9-8415-d08505bf41c6",
+  "name": "",
+  "prefabId": "",
+  "x": 8,
+  "y": 11,
+  "symbol": "trigger_1",
+  "prefabScriptOverrides": {},
+  "width": 3,
+  "height": 2,
+  "script": [
+    {
+      "command": "EVENT_TEXT_DRAW",
+      "args": {
+        "text": "SUCCESS",
+        "x": 1,
+        "y": 1,
+        "location": "background"
+      },
+      "id": "a2c2f1cd-4f22-4d0b-8fde-aa4f7e8d6386"
+    },
+    {
+      "command": "EVENT_GBVM_SCRIPT",
+      "args": {
+        "script": "VM_TEST_TERMINATE .TEST_WAIT_VBL",
+        "__collapse": false
+      },
+      "id": "c0301f9f-7220-4555-a44b-a17f7727ef29"
+    }
+  ],
+  "leaveScript": [],
+  "_index": 1
+}
