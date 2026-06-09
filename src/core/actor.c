@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "system.h"
-#include "interrupts.h"
+#include "interrupts/interrupts.h"
 #include "game_time.h"
 #include "scroll.h"
 #include "linked_list.h"

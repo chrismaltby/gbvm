@@ -6,7 +6,7 @@
 #include <rand.h>
 
 #include "system.h"
-#include "interrupts.h"
+#include "interrupts/interrupts.h"
 #include "bankdata.h"
 #include "game_time.h"
 #include "actor.h"
@@ -30,7 +30,6 @@
     #include "data/border.h"
 #endif
 #include "palette.h"
-#include "parallax.h"
 #include "shadow.h"
 #include "data/data_bootstrap.h"
 
@@ -152,20 +151,7 @@ void process_VM(void) {
                     }
                 }
 
-                CRITICAL {
-                    switch (scene_LCD_type) {
-                        case LCD_parallax:
-                            add_LCD(parallax_LCD_isr);
-                            break;
-                        case LCD_fullscreen:
-                            add_LCD(fullscreen_LCD_isr);
-                            break;
-                        default:
-                            add_LCD(simple_LCD_isr);
-                            break;
-                    }
-                    LYC_REG = 0u;
-                }
+                add_LCD_ISRs(scene_LCD_type);
                 if (!hide_sprites) SHOW_SPRITES;    // show sprites back if we switched LCD ISR while sprites were hidden
 
                 pause_state_update = false;

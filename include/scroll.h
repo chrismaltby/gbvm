@@ -4,7 +4,7 @@
 #include <gbdk/platform.h>
 
 #include "compat.h"
-#include "parallax.h"
+#include "interrupts/parallax.h"
 
 #define SCROLL_BANK 1
 #define SCREEN_TILES_W 20  // 160 >> 3 = 20

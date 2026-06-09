@@ -14,7 +14,7 @@
 #include "load_save.h"
 #include "bankdata.h"
 #include "data_manager.h"
-#include "interrupts.h"
+#include "interrupts/interrupts.h"
 
 BANKREF(VM_GAMEBOY)
 

@@ -4,7 +4,7 @@
 
 #include <string.h>
 
-#include "parallax.h"
+#include "interrupts/parallax.h"
 
 parallax_row_t parallax_rows[3];
 parallax_row_t * parallax_row;

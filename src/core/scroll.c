@@ -11,7 +11,7 @@
 #include "game_time.h"
 #include "math.h"
 #include "fade_manager.h"
-#include "parallax.h"
+#include "interrupts/parallax.h"
 #include "palette.h"
 
 // put submap of a large map to screen
