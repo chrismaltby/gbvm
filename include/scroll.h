@@ -51,16 +51,6 @@ void scroll_update(void) BANKED;
 void scroll_repaint(void) BANKED;
 
 /**
- * Get base address of window map
- */
-UINT8 * GetWinAddr(void) OLDCALL PRESERVES_REGS(b, c, h, l);
-
-/**
- * Get base address of background map
- */
-UINT8 * GetBkgAddr(void) OLDCALL PRESERVES_REGS(b, c, h, l);
-
-/**
  * Scrolls rectangle area of VRAM filemap by base address 1 row up
  * @param base_addr address of top-left corner
  * @param w width of the area

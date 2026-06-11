@@ -48,8 +48,10 @@ unsigned char ui_text_data[TEXT_MAX_LENGTH + 1];
 
 // char printer internals
 static UBYTE * ui_text_ptr;
-static UBYTE * ui_dest_ptr;
-static UBYTE * ui_dest_base;
+static UBYTE ui_dest_x;
+static UBYTE ui_dest_y;
+static UBYTE ui_base_x;
+static UBYTE ui_base_y;
 static UBYTE ui_current_tile;
 static UBYTE ui_current_tile_bank;
 static UBYTE ui_prev_tile;
@@ -65,9 +67,11 @@ font_desc_t vwf_current_font_desc;
 UBYTE vwf_current_font_bank;
 UBYTE vwf_current_font_idx;
 
-UBYTE * text_render_base_addr;
+UBYTE text_render_layer;
 
-UBYTE * text_scroll_addr;
+UBYTE text_scroll_layer;
+UBYTE text_scroll_x;
+UBYTE text_scroll_y;
 UBYTE text_scroll_width, text_scroll_height;
 UBYTE text_scroll_fill;
 
@@ -77,6 +81,20 @@ const UBYTE * text_sound_data;
 
 UBYTE overlay_priority;
 UBYTE text_palette;
+
+static void goto_base_xy(void)
+{
+    ui_dest_x = ui_base_x;
+    ui_dest_y = ui_base_y;
+}
+
+static void goto_xy(UBYTE x, UBYTE y)
+{
+    ui_base_x = x;
+    ui_base_y = y;
+    ui_dest_x = x;
+    ui_dest_y = y;
+}
 
 void ui_init(void) BANKED {
     vwf_direction               = UI_PRINT_LEFTTORIGHT;
@@ -106,10 +124,11 @@ void ui_init(void) BANKED {
     text_draw_speed             = 1;
     current_text_speed          = 0;
 
-    ui_dest_ptr = ui_dest_base  = (text_render_base_addr = GetWinAddr()) + 32 + 1;
+    text_render_layer = UI_TEXT_LAYER_WIN;
+    goto_xy(1, 1);
 
-    text_scroll_addr            = GetWinAddr();
-    text_scroll_width           = 20;
+    text_scroll_layer = UI_TEXT_LAYER_WIN;
+    text_scroll_width           = DEVICE_SCREEN_WIDTH;
     text_scroll_height          = 8;
     text_scroll_fill            = ui_white_tile;
 
@@ -143,31 +162,26 @@ void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr) OLD
 
 void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
     if (height == 0) return;
-    UBYTE * base_addr = GetWinAddr() + (y << 5) + x;
 #ifdef CGB
     if (_is_CGB) {
         UBYTE attr = overlay_priority | (text_palette & 0x07u);
-        ui_draw_frame_row_cgb(base_addr, ui_frame_tl_tiles, width, attr);
+        ui_draw_frame_row_cgb(get_win_xy_addr(x, y), ui_frame_tl_tiles, width, attr);
         if (--height == 0) return;
         if (height > 1)
             for (UBYTE i = height - 1; i != 0; i--) {
-                base_addr += 32;
-                ui_draw_frame_row_cgb(base_addr, ui_frame_l_tiles, width, attr);
+                ui_draw_frame_row_cgb(get_win_xy_addr(x, y + i), ui_frame_l_tiles, width, attr);
             }
-        base_addr += 32;
-        ui_draw_frame_row_cgb(base_addr, ui_frame_bl_tiles, width, attr);
+        ui_draw_frame_row_cgb(get_win_xy_addr(x, y + height), ui_frame_bl_tiles, width, attr);
         return;
     }
 #endif
-    ui_draw_frame_row(base_addr, ui_frame_tl_tiles, width);
+    ui_draw_frame_row(get_win_xy_addr(x, y), ui_frame_tl_tiles, width);
     if (--height == 0) return;
     if (height > 1)
         for (UBYTE i = height - 1; i != 0; i--) {
-            base_addr += 32;
-            ui_draw_frame_row(base_addr, ui_frame_l_tiles, width);
+            ui_draw_frame_row(get_win_xy_addr(x, y + i), ui_frame_l_tiles, width);
         }
-    base_addr += 32;
-    ui_draw_frame_row(base_addr, ui_frame_bl_tiles, width);
+    ui_draw_frame_row(get_win_xy_addr(x, y + height), ui_frame_bl_tiles, width);
 }
 
 inline void ui_load_tile(const UBYTE * tiledata, UBYTE bank) {
@@ -274,17 +288,23 @@ UBYTE ui_print_render(const unsigned char ch) {
     }
 }
 
-inline void ui_set_tile(UBYTE * addr, UBYTE tile, UBYTE bank) {
+inline void ui_set_tile(UBYTE layer, UBYTE x, UBYTE y, UBYTE tile, UBYTE bank) {
 #ifdef CGB
     if (_is_CGB) {
-        VBK_REG = VBK_ATTRIBUTES;
-        set_vram_byte(addr, overlay_priority | ((bank) ? ((text_palette & 0x07u) | 0x08u) : (text_palette & 0x07u)));
-        VBK_REG = VBK_TILES;
+        UBYTE bank_bitmask = bank ? 0x08u : 0x00;
+        UBYTE attribute = overlay_priority | bank_bitmask | (text_palette & 0x07u);
+        if(layer == UI_TEXT_LAYER_WIN)
+            set_win_attribute_xy(x, y, attribute);
+        else
+            set_bkg_attribute_xy(x, y, attribute);
     }
 #else
     bank;
 #endif
-    set_vram_byte(addr, tile);
+    if(layer == UI_TEXT_LAYER_WIN)
+        set_win_tile_xy(x, y, tile);
+    else
+        set_bkg_tile_xy(x, y, tile);
 }
 
 UBYTE ui_draw_text_buffer_char(void) BANKED {
@@ -304,10 +324,14 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
         ui_text_ptr = ui_text_data;
         // VRAM destination
         if ((text_options & TEXT_OPT_PRESERVE_POS) == 0) {
-            ui_dest_base = text_render_base_addr + 32 + 1;                  // gotoxy(1,1)
-            if (vwf_direction == UI_PRINT_RIGHTTOLEFT) ui_dest_base += 17;  // right_to_left initial pos correction
+            goto_xy(1,1);
+            if (vwf_direction == UI_PRINT_RIGHTTOLEFT)
+            {
+                // right_to_left initial pos correction
+                ui_base_x += (DEVICE_SCREEN_WIDTH-3);
+            }
             // initialize current pointer with corrected base value
-            ui_dest_ptr = ui_dest_base;
+            ui_dest_x = ui_base_x;
             // tileno destination
             ui_print_reset();
         }
@@ -341,13 +365,15 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 UBYTE old_flags = vwf_current_font_desc.attr;
                 MemcpyBanked(&vwf_current_font_desc, font->ptr, sizeof(font_desc_t), vwf_current_font_bank = font->bank);
                 if ((vwf_current_offset) && ((old_flags & FONT_VWF) != 0) && ((vwf_current_font_desc.attr & FONT_VWF) == 0)) {
-                    ui_dest_ptr++;
+                    ui_dest_x++;
                 }
                 break;
             }
             case 0x03:
-                // gotoxy
-                ui_dest_ptr = ui_dest_base = text_render_base_addr + (*++ui_text_ptr - 1u) + (*++ui_text_ptr - 1u) * 32u;
+                // goto (x,y) location
+                UBYTE x = (*++ui_text_ptr - 1u);
+                UBYTE y = (*++ui_text_ptr - 1u);
+                goto_xy(x, y);
                 if (vwf_current_offset) ui_print_reset();
                 break;
             case 0x04: {
@@ -356,7 +382,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 if (dx > 0) dx--;
                 BYTE dy = (BYTE)(*++ui_text_ptr);
                 if (dy > 0) dy--;
-                ui_dest_base = ui_dest_ptr += dx + dy * 32u;
+                goto_xy(ui_dest_x + dx, ui_dest_y + dy);
                 if (vwf_current_offset) ui_print_reset();
                 break;
             }
@@ -397,7 +423,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 break;
             case '\n':  // 0x0a
                 // new line
-                ui_dest_ptr = ui_dest_base += 32u;
+                goto_xy(ui_base_x, ui_base_y+1);
                 if (vwf_current_offset) ui_print_reset();
                 break;
             case 0x0b:
@@ -405,7 +431,8 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 break;
             case '\r':  // 0x0d
                 // new line and scroll the text area
-                if ((ui_dest_ptr + 32u) > (UBYTE *)((((UWORD)text_scroll_addr + ((UWORD)text_scroll_height << 5)) & 0xFFE0) - 1)) {
+                if((ui_dest_y + 1) > (text_scroll_y + text_scroll_height)) {
+                    uint8_t* text_scroll_addr = (text_scroll_layer == UI_TEXT_LAYER_WIN) ? get_win_xy_addr(text_scroll_x, text_scroll_y) : get_bkg_xy_addr(text_scroll_x, text_scroll_y);
                     scroll_rect(text_scroll_addr, text_scroll_width, text_scroll_height, text_scroll_fill);
 #ifdef CGB
                     if (_is_CGB) {
@@ -414,9 +441,10 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                         VBK_REG = VBK_TILES;
                     }
 #endif
-                    ui_dest_ptr = ui_dest_base;
+                    goto_base_xy();
                 } else {
-                    ui_dest_ptr = ui_dest_base += 32u;
+                    goto_base_xy();
+                    ui_dest_y++;
                 }
                 if (vwf_current_offset) ui_print_reset();
                 break;
@@ -426,10 +454,10 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 // fall down to default
             default:
                 if (ui_print_render(*ui_text_ptr)) {
-                    ui_set_tile(ui_dest_ptr, ui_prev_tile, ui_prev_tile_bank);
-                    if (vwf_direction == UI_PRINT_LEFTTORIGHT)  ui_dest_ptr++; else ui_dest_ptr--;
+                    ui_set_tile(text_render_layer, ui_dest_x, ui_dest_y, ui_prev_tile, ui_prev_tile_bank);
+                    if (vwf_direction == UI_PRINT_LEFTTORIGHT)  ui_dest_x++; else ui_dest_x--;
                 }
-                if (vwf_current_offset) ui_set_tile(ui_dest_ptr, ui_current_tile, ui_current_tile_bank);
+                if (vwf_current_offset) ui_set_tile(text_render_layer, ui_dest_x, ui_dest_y, ui_current_tile, ui_current_tile_bank);
                 ui_text_ptr++;
                 return TRUE;
         }

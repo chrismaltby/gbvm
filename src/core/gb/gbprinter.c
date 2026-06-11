@@ -94,7 +94,7 @@ uint8_t gbprinter_print_overlay(uint8_t start, uint8_t rows, uint8_t margins) BA
     uint8_t tile_data[16], error, packets, pkt_count = 0;
     if ((packets = rows >> 1) == 0) return PRN_STATUS_OK;
 
-    uint8_t * map = GetWinAddr() + ((uint16_t)start << 5);
+    uint8_t * map = get_win_xy_addr(0, start);
     printer_tile_num = 0;
     for (uint8_t y = packets << 1; y != 0; y--, map += 0x20) {
         for (uint8_t x = 0, *row = map; x != 20; x++, row++) {

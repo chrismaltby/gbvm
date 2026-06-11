@@ -1,24 +1,5 @@
 .include "global.s"
 
-.area _CODE
-
-_GetWinAddr::
-        ldh     a,(.LCDC)
-        bit     LCDCF_B_WIN9C00,a
-        jr      Z,.is98
-        jr      .is9c
-
-_GetBkgAddr::
-        ldh     a,(.LCDC)
-        bit     LCDCF_B_BG9C00,a
-        jr      NZ,.is9c
-.is98:
-        ld      de,#0x9800      ; DE = origin
-        ret
-.is9c:
-        ld      de,#0x9C00      ; DE = origin
-        ret
-
 .area _CODE_255
 
 ; void scroll_rect(UBYTE * base_addr, UBYTE w, UBYTE h, UBYTE fill) BANKED;
