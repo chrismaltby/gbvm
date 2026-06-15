@@ -44,7 +44,7 @@ TARGET = $(ROM_BUILD_DIR)/rom.gb
 ASRC = $(foreach dir,$(TOP)src/$(PLAT),$(notdir $(wildcard $(dir)/*.s))) 
 CSRC = $(foreach dir,$(TOP)src,$(notdir $(wildcard $(dir)/*.c))) 
 ACORE = $(foreach dir,$(TOP)src/core/$(PLAT),$(notdir $(wildcard $(dir)/*.s))) 
-CCORE = $(foreach dir,$(TOP)src/core,$(notdir $(wildcard $(dir)/*.c))) 
+CCORE = $(foreach dir,$(TOP)src/core,$(notdir $(wildcard $(dir)/*.c))) $(foreach dir,$(TOP)src/core/$(PLAT),$(notdir $(wildcard $(dir)/*.c)))
 CSTATES = $(foreach dir,$(TOP)src/states,$(notdir $(wildcard $(dir)/*.c))) 
 ASTATES = $(foreach dir,$(TOP)src/states/$(PLAT),$(notdir $(wildcard $(dir)/*.s))) 
 
@@ -129,6 +129,9 @@ $(OBJDIR):
 	mkdir -p $(TOP)$(OBJDIR)
 
 $(TOP)$(OBJDIR)/%.o:	$(TOP)src/core/%.c
+	$(CC) $(CFLAGS) -Wf-MMD $(filter -Wf-ba%, $(subst .d,-Wf-ba,$(suffix $(<:%.c=%)))) -c -o $@ $<
+
+$(TOP)$(OBJDIR)/%.o:	$(TOP)src/core/$(PLAT)/%.c
 	$(CC) $(CFLAGS) -Wf-MMD $(filter -Wf-ba%, $(subst .d,-Wf-ba,$(suffix $(<:%.c=%)))) -c -o $@ $<
 
 $(TOP)$(OBJDIR)/%.o:	$(TOP)src/core/$(PLAT)/%.s
