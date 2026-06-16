@@ -431,7 +431,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                 break;
             case '\r':  // 0x0d
                 // new line and scroll the text area
-                if((ui_dest_y + 1) > (text_scroll_y + text_scroll_height)) {
+                if((ui_dest_y + 1) > (text_scroll_y + text_scroll_height-1)) {
                     uint8_t* text_scroll_addr = (text_scroll_layer == UI_TEXT_LAYER_WIN) ? get_win_xy_addr(text_scroll_x, text_scroll_y) : get_bkg_xy_addr(text_scroll_x, text_scroll_y);
                     scroll_rect(text_scroll_addr, text_scroll_width, text_scroll_height, text_scroll_fill);
 #ifdef CGB
@@ -443,8 +443,7 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
 #endif
                     goto_base_xy();
                 } else {
-                    goto_base_xy();
-                    ui_dest_y++;
+                    goto_xy(ui_base_x, ui_base_y+1);
                 }
                 if (vwf_current_offset) ui_print_reset();
                 break;
