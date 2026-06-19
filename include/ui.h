@@ -61,9 +61,14 @@ extern UBYTE vwf_current_font_bank;
 extern UBYTE vwf_current_font_idx;
 extern UBYTE vwf_tile_data[16 * 2];
 
-extern UBYTE * text_render_base_addr;
+#define UI_TEXT_LAYER_WIN 0
+#define UI_TEXT_LAYER_BKG 1
 
-extern UBYTE * text_scroll_addr;
+extern UBYTE text_render_layer;
+
+extern UBYTE text_scroll_layer;
+extern UBYTE text_scroll_x;
+extern UBYTE text_scroll_y;
 extern UBYTE text_scroll_width, text_scroll_height;
 extern UBYTE text_scroll_fill;
 

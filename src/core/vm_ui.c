@@ -141,7 +141,10 @@ void vm_display_text(SCRIPT_CTX * THIS, UBYTE options, UBYTE start_tile) OLDCALL
 // switch text rendering to window or background
 void vm_switch_text_layer(SCRIPT_CTX * THIS, UBYTE target) OLDCALL BANKED {
     THIS;
-    if (target) text_render_base_addr = GetWinAddr(); else text_render_base_addr = GetBkgAddr();
+    if (target)
+        text_render_layer = UI_TEXT_LAYER_WIN;
+    else
+        text_render_layer = UI_TEXT_LAYER_BKG;
 }
 
 // set position of overlayed window
@@ -189,7 +192,9 @@ void vm_overlay_move_to(SCRIPT_CTX * THIS, UBYTE pos_x, UBYTE pos_y, BYTE speed)
 // set autoscroll parameters
 void vm_overlay_set_scroll(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE color) OLDCALL BANKED {
     THIS;
-    text_scroll_addr = GetWinAddr() + (y << 5) + x;
+    text_scroll_layer = UI_TEXT_LAYER_WIN;
+    text_scroll_x = x;
+    text_scroll_y = y;
     text_scroll_width = w; text_scroll_height = h;
     text_scroll_fill = (color) ? ui_white_tile : ui_black_tile;
 }
@@ -215,7 +220,7 @@ void vm_overlay_clear(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBY
 // shows overlay
 void vm_overlay_show(SCRIPT_CTX * THIS, UBYTE pos_x, UBYTE pos_y, UBYTE color, UBYTE options) OLDCALL BANKED {
     THIS;
-    if ((pos_x < 20u) && (pos_y < 18u)) vm_overlay_clear(THIS, 0, 0, 20u - pos_x, 18u - pos_y, color, options);
+    if ((pos_x < DEVICE_SCREEN_WIDTH) && (pos_y < DEVICE_SCREEN_HEIGHT)) vm_overlay_clear(THIS, 0, 0, DEVICE_SCREEN_WIDTH - pos_x, DEVICE_SCREEN_HEIGHT - pos_y, color, options);
     ui_set_pos(pos_x << 3, pos_y << 3);
 }
 
@@ -234,7 +239,7 @@ void vm_set_font(SCRIPT_CTX * THIS, UBYTE font_index) OLDCALL BANKED {
 
 void vm_overlay_scroll(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBYTE color) OLDCALL BANKED {
     THIS;
-    UBYTE * base_addr = GetWinAddr() + (y << 5) + x;
+    UBYTE * base_addr = get_win_xy_addr(x, y);
 #ifdef CGB
     if (_is_CGB) {
         VBK_REG = VBK_ATTRIBUTES;
