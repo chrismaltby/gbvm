@@ -183,3 +183,106 @@ _ui_print_shift_char::
         ld  (#rROMB0), a
 
         ret
+
+; void ui_draw_frame_row(void * dest, UBYTE tile, UBYTE width);
+
+_ui_draw_frame_row::
+        ldhl sp, #5
+        ld a, (hl-)
+        ld b, a
+        ld a, (hl-)
+        ld e, a
+        ld a, (hl-)
+        ld l, (hl)
+        ld h, a
+
+.ui_draw_frame_row::
+        ld a, b
+        or a
+        ret z
+
+        WAIT_STAT
+        ld (hl), e
+
+        dec b
+        ret z
+
+        inc e
+        inc hl
+
+        dec b
+        jr z, 2$
+1$:
+        WAIT_STAT
+        ld (hl), e
+        inc hl
+
+        dec b
+        jr nz, 1$
+2$:
+        inc e
+        WAIT_STAT
+        ld (hl), e
+
+        ret
+
+
+        ; requires that A = 0
+        ; requires that C stores .VBK
+        ;
+        ; both of these requirement still hold after the execution of this macro
+        ; as such its possible to use it multiple time in a row
+.macro TRANSFER_TILE_AND_ATTR ?lbl
+        inc a
+        ldh (c), a        ; switch to VRAM bank 1
+lbl:
+        ldh a, (_STAT_REG)
+        and #STATF_BUSY
+        jr nz, lbl
+        
+        ld (hl), d
+        ldh (c), a        ; switch to VRAM bank 0
+        ld (hl), e
+.endm
+
+; void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr);
+_ui_draw_frame_row_cgb::
+        ldhl sp, #6
+        ld a, (hl-)     ; attr
+        ld d, a
+        ld a, (hl-)     ; width
+        ld b, a
+        ld a, (hl-)     ; tile
+        ld e, a
+        ld a, (hl-)     ; dest high
+        ld l, (hl)      ; dest low
+        ld h, a
+
+.ui_draw_frame_row_cgb::
+        ld a, b
+        or a
+        ret z
+
+        ; setup for TRANSFER_TILE_AND_ATTR
+        xor a
+        ld c, #.VBK
+        
+        TRANSFER_TILE_AND_ATTR
+
+        dec b
+        ret z
+
+        inc e
+        inc hl
+
+        dec b
+        jr z, 2$
+1$:
+        TRANSFER_TILE_AND_ATTR
+        inc hl
+        dec b
+        jr nz, 1$
+2$:
+        inc e
+        TRANSFER_TILE_AND_ATTR
+        ret

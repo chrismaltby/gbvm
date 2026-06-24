@@ -154,10 +154,26 @@ void ui_load_tiles(void) BANKED {
     set_bkg_data(ui_black_tile, 1, vwf_tile_data);
 }
 
+#ifdef CGB
+void ui_draw_frame_row(void * dest, UBYTE tile, UBYTE width) OLDCALL;
+void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr) OLDCALL;
+#endif
+
 void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
     if (height == 0) return;
 #ifdef CGB
     if (_is_CGB) {
+        UBYTE attr = overlay_priority | (text_palette & 0x07u);
+        ui_draw_frame_row_cgb(get_win_xy_addr(x, y), ui_frame_tl_tiles, width, attr);
+        if (--height == 0) return;
+        if (height > 1)
+            for (UBYTE i = height - 1; i != 0; i--) {
+                ui_draw_frame_row_cgb(get_win_xy_addr(x, y + i), ui_frame_l_tiles, width, attr);
+            }
+        ui_draw_frame_row_cgb(get_win_xy_addr(x, y + height), ui_frame_bl_tiles, width, attr);
+        return;
+    }
+#elif DEVICE_SUPPORTS_COLOR
         UBYTE attr = overlay_priority | (text_palette & 0x07u);
         fill_win_rect_attributes(x, y, width, height, attr);
     }
