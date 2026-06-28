@@ -184,49 +184,6 @@ _ui_print_shift_char::
 
         ret
 
-; void ui_draw_frame_row(void * dest, UBYTE tile, UBYTE width);
-
-_ui_draw_frame_row::
-        ldhl sp, #5
-        ld a, (hl-)
-        ld b, a
-        ld a, (hl-)
-        ld e, a
-        ld a, (hl-)
-        ld l, (hl)
-        ld h, a
-
-.ui_draw_frame_row::
-        ld a, b
-        or a
-        ret z
-
-        WAIT_STAT
-        ld (hl), e
-
-        dec b
-        ret z
-
-        inc e
-        inc hl
-
-        dec b
-        jr z, 2$
-1$:
-        WAIT_STAT
-        ld (hl), e
-        inc hl
-
-        dec b
-        jr nz, 1$
-2$:
-        inc e
-        WAIT_STAT
-        ld (hl), e
-
-        ret
-
-
         ; requires that A = 0
         ; requires that C stores .VBK
         ;

@@ -154,8 +154,6 @@ void ui_load_tiles(void) BANKED {
     set_bkg_data(ui_black_tile, 1, vwf_tile_data);
 }
 
-void ui_draw_frame_row(void * dest, UBYTE tile, UBYTE width) OLDCALL;
-
 #ifdef CGB
 void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr) OLDCALL;
 #endif
@@ -174,14 +172,27 @@ void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
         ui_draw_frame_row_cgb(get_win_xy_addr(x, y + height), ui_frame_bl_tiles, width, attr);
         return;
     }
+#elif DEVICE_SUPPORTS_COLOR
+    UBYTE attr = overlay_priority | (text_palette & 0x07u);
+    fill_win_rect_attributes(x, y, width, height, attr);
 #endif
-    ui_draw_frame_row(get_win_xy_addr(x, y), ui_frame_tl_tiles, width);
-    if (--height == 0) return;
-    if (height > 1)
-        for (UBYTE i = height - 1; i != 0; i--) {
-            ui_draw_frame_row(get_win_xy_addr(x, y + i), ui_frame_l_tiles, width);
-        }
-    ui_draw_frame_row(get_win_xy_addr(x, y + height), ui_frame_bl_tiles, width);
+    // Top edge
+    set_win_tile_xy(x, y, ui_frame_tl_tiles);
+    fill_win_rect(x + 1, y, width - 2, 1, ui_frame_t_tiles);
+    set_win_tile_xy(x + width-1, y, ui_frame_tr_tiles);
+    if (height > 2)
+    {
+        // Left edge
+        fill_win_rect(x, y + 1, 1, height-2, ui_frame_l_tiles);
+        // Inner
+        fill_win_rect(x + 1, y + 1, width - 2, height-2, ui_frame_bg_tiles);
+        // Right edge
+        fill_win_rect(x + width-1, y + 1, 1, height-2, ui_frame_r_tiles);
+    }
+    // Bottom edge
+    set_win_tile_xy(x, y + height-1, ui_frame_bl_tiles);
+    fill_win_rect(x + 1, y + height-1, width - 2, 1, ui_frame_b_tiles);
+    set_win_tile_xy(x + width-1, y + height-1, ui_frame_br_tiles);
 }
 
 inline void ui_load_tile(const UBYTE * tiledata, UBYTE bank) {
