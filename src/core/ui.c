@@ -155,7 +155,6 @@ void ui_load_tiles(void) BANKED {
 }
 
 #ifdef CGB
-void ui_draw_frame_row(void * dest, UBYTE tile, UBYTE width) OLDCALL;
 void ui_draw_frame_row_cgb(void * dest, UBYTE tile, UBYTE width, UBYTE attr) OLDCALL;
 #endif
 
@@ -174,9 +173,8 @@ void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED {
         return;
     }
 #elif DEVICE_SUPPORTS_COLOR
-        UBYTE attr = overlay_priority | (text_palette & 0x07u);
-        fill_win_rect_attributes(x, y, width, height, attr);
-    }
+    UBYTE attr = overlay_priority | (text_palette & 0x07u);
+    fill_win_rect_attributes(x, y, width, height, attr);
 #endif
     // Top edge
     set_win_tile_xy(x, y, ui_frame_tl_tiles);
