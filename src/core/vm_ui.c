@@ -217,7 +217,11 @@ void vm_overlay_clear(SCRIPT_CTX * THIS, UBYTE x, UBYTE y, UBYTE w, UBYTE h, UBY
 // shows overlay
 void vm_overlay_show(SCRIPT_CTX * THIS, UBYTE pos_x, UBYTE pos_y, UBYTE color, UBYTE options) OLDCALL BANKED {
     THIS;
-    if ((pos_x < 20u) && (pos_y < 18u)) vm_overlay_clear(THIS, 0, 0, 20u - pos_x, 18u - pos_y, color, options);
+    UBYTE vis_w = (pos_x < 20u) ? 20u - pos_x : 0u;
+    UBYTE vis_h = (pos_y < 18u) ? 18u - pos_y : 0u;
+    if (vis_w < 20u) vm_overlay_clear(THIS, vis_w, 0u, 20u - vis_w, 18u, color, 0u);
+    if (vis_h < 18u && vis_w) vm_overlay_clear(THIS, 0u, vis_h, vis_w, 18u - vis_h, color, 0u);
+    if (vis_w && vis_h) vm_overlay_clear(THIS, 0u, 0u, vis_w, vis_h, color, options);
     ui_set_pos(pos_x << 3, pos_y << 3);
 }
 
