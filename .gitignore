@@ -28,3 +28,4 @@ __pycache__
 /test/*/*.bmp
 /third-party/*/build
 /unused
+.DS_Store
