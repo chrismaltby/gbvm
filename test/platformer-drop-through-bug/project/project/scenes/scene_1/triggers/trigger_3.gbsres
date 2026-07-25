@@ -1,0 +1,34 @@
+{
+  "_resourceType": "trigger",
+  "id": "d8931e52-a9b1-40a2-a045-a257cae34289",
+  "name": "",
+  "prefabId": "",
+  "x": 7,
+  "y": 8,
+  "symbol": "trigger_2",
+  "prefabScriptOverrides": {},
+  "width": 1,
+  "height": 1,
+  "script": [
+    {
+      "command": "EVENT_TEXT_DRAW",
+      "args": {
+        "text": "FAIL LEFT",
+        "x": 1,
+        "y": 1,
+        "location": "background"
+      },
+      "id": "7477f1e7-4db2-4c21-804a-106ecc25f884"
+    },
+    {
+      "command": "EVENT_GBVM_SCRIPT",
+      "args": {
+        "script": "VM_TEST_TERMINATE .TEST_WAIT_VBL",
+        "__collapse": false
+      },
+      "id": "3640f609-879a-46fa-b4f2-0760b6c8e65a"
+    }
+  ],
+  "leaveScript": [],
+  "_index": 2
+}

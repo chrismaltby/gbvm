@@ -1,0 +1,6 @@
+{
+  "description": "platformer-drop-through-bug",
+  "rules": [
+    "CHECKSCREEN('expected.png')"
+  ]
+}

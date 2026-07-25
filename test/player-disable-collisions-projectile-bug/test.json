@@ -1,0 +1,4 @@
+{
+  "description": "player-disable-collisions-projectile-bug",
+  "rules": ["CHECKSCREEN('expected.png')"]
+}

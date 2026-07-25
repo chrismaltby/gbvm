@@ -1312,8 +1312,8 @@ static void move_and_collide(UBYTE mask)
             tile = tile_col_test_range_x(COLLISION_TOP, new_tile_y, tile_x_start, tile_x_end);
             if (tile) {
 #ifdef FEAT_PLATFORM_DROP_THROUGH
-                // Only drop through platforms without a bottom collision
-                if (plat_drop_timer && !(tile & COLLISION_BOTTOM))
+                // Only drop if every collision under the player can be dropped through
+                if (plat_drop_timer && !tile_col_test_range_x(COLLISION_BOTTOM, new_tile_y, tile_x_start, tile_x_end))
                 {
                     goto finally_update_y;
                 }

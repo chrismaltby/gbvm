@@ -155,6 +155,8 @@ void vm_beginthread(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE b
             *(ctx->stack_ptr++) = (UWORD)A;
             THIS->PC += 2;
         }
+    } else {
+        THIS->PC += nargs * 2;
     }
 }
 //

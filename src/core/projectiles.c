@@ -12,6 +12,7 @@
 #include "linked_list.h"
 #include "game_time.h"
 #include "vm.h"
+#include "macro.h"
 #include "data/states_defines.h"
 
 #define SPREAD_4 3
@@ -118,7 +119,7 @@ void projectiles_update(void) NONBANKED {
 #endif
             actor_t *hit_actor = NULL;
             if (projectile->def.collision_mask == COLLISION_GROUP_PLAYER) {
-                if  (bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
+                if  (CHK_FLAG(PLAYER.flags, ACTOR_FLAG_COLLISION) && bb_intersects(&projectile->def.bounds, &projectile->pos, &PLAYER.bounds, &PLAYER.pos)) {
                     hit_actor = &PLAYER;
                 }
             } else {

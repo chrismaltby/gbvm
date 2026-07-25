@@ -44,7 +44,7 @@ DEMO:
 recording.dem:
 	$(EMU) -demorec recording.dem -rom $(ROM_BUILD_DIR)/rom.gb
 
-expected.png:
+expected.png: capture.bmp
 	magick capture.bmp expected.png
 
 data:
