@@ -45,7 +45,7 @@ inline UBYTE itoa_format(INT16 v, UBYTE * d, UBYTE dlen) {
     return len;
 }
 
-static const unsigned char * load_text(const unsigned char * s, INT16 * args) NONBANKED {
+static const unsigned char * load_text(const unsigned char * s, INT16 * args, SCRIPT_CTX * THIS) NONBANKED {
     unsigned char * d = ui_text_data;
     while (*s) {
         if (*s == '%') {
@@ -62,6 +62,14 @@ static const unsigned char * load_text(const unsigned char * s, INT16 * args) NO
                 case 'c':
                     *d++ = (unsigned char)(*args);
                     break;
+                // null-terminated string from an array of variables
+                case 's': {
+                    const INT16 * text = (const INT16 *)VM_REF_TO_PTR(*args);
+                    while (*text && (d < (ui_text_data + TEXT_MAX_LENGTH))) {
+                        *d++ = (unsigned char)(*text++);
+                    }
+                    break;
+                }
                 // text tempo from variable
                 case 't':
                     *d++ = 0x01u;
@@ -100,7 +108,7 @@ void vm_load_text(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE nar
         *dargs-- = *((INT16 *)VM_REF_TO_PTR(*sargs));
         ++sargs;
     }
-    THIS->PC = load_text((const unsigned char *)sargs, (INT16 *)(ui_text_data + (sizeof(ui_text_data) - sizeof(INT16))));
+    THIS->PC = load_text((const unsigned char *)sargs, (INT16 *)(ui_text_data + (sizeof(ui_text_data) - sizeof(INT16))), THIS);
 }
 
 // renders UI text into buffer indirectly
@@ -108,7 +116,7 @@ void vm_load_text_ex(DUMMY0_t dummy0, DUMMY1_t dummy1, SCRIPT_CTX * THIS, UBYTE 
     dummy0; dummy1; // suppress warnings
     INT16* arg0 = VM_REF_TO_PTR(FN_ARG0);
     SWITCH_ROM(*(UBYTE *)(arg0));
-    load_text(*(const unsigned char **)(arg0 - 1), (INT16 *)(arg0 - 2));
+    load_text(*(const unsigned char **)(arg0 - 1), (INT16 *)(arg0 - 2), THIS);
     if (n) THIS->stack_ptr -= n;
 }
 

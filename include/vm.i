@@ -980,6 +980,7 @@ OP_VM_ACTOR_SET_ANIM_SET        = 0x84
 ; * `%d`  Render a variable value.
 ; * `%Dn` Render a variable value with `n` length.
 ; * `%c`  Render a character based on the variable value.
+; * `%s`  Render a null-terminated string from a variable containing an array address.
 
 ; The variables need to be defined before the `.asciz` call using `.dw` followed by a list of `N` variables in the order they'll be rendered.
 
