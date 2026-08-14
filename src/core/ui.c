@@ -429,6 +429,9 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
                     ui_set_tile(ui_dest_ptr, ui_prev_tile, ui_prev_tile_bank);
                     if (vwf_direction == UI_PRINT_LEFTTORIGHT)  ui_dest_ptr++; else ui_dest_ptr--;
                 }
+                if (((UWORD)ui_dest_ptr & ~0x1F) != ((UWORD)ui_dest_base & ~0x1F)) {
+                    ui_dest_ptr -= 32u;
+                }
                 if (vwf_current_offset) ui_set_tile(ui_dest_ptr, ui_current_tile, ui_current_tile_bank);
                 ui_text_ptr++;
                 return TRUE;
