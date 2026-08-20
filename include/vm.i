@@ -584,6 +584,13 @@ OP_VM_CALL_NATIVE     = 0x2D
         .db OP_VM_CALL_NATIVE, #>PTR, #<PTR, #<BANK
 .endm
 
+;-- Calls native code by the far pointer.
+; @param BANK Bank number of the native routine.
+; @param PTR Address of the native routine.
+.macro VM_CALL_NATIVE_FUNC FUNC
+        .db OP_VM_CALL_NATIVE, #>FUNC, #<FUNC, #<b'FUNC
+.endm
+
 OP_VM_MEMSET          = 0x76
 ;-- Clears VM memory.
 ; @param DEST First variable to be cleared.
