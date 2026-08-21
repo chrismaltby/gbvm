@@ -427,7 +427,9 @@ UBYTE ui_draw_text_buffer_char(void) BANKED {
             default:
                 if (ui_print_render(*ui_text_ptr)) {
                     ui_set_tile(ui_dest_ptr, ui_prev_tile, ui_prev_tile_bank);
-                    if (vwf_direction == UI_PRINT_LEFTTORIGHT)  ui_dest_ptr++; else ui_dest_ptr--;
+                    UBYTE col = (UBYTE)(UWORD)ui_dest_ptr;
+                    if (vwf_direction == UI_PRINT_LEFTTORIGHT) col++; else col--;
+                    ui_dest_ptr = (UBYTE *)(((UWORD)ui_dest_ptr & 0xFFE0u) | (col & 0x1Fu));
                 }
                 if (vwf_current_offset) ui_set_tile(ui_dest_ptr, ui_current_tile, ui_current_tile_bank);
                 ui_text_ptr++;
