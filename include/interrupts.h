@@ -1,6 +1,13 @@
 #ifndef INTERRUPTS_H_INCLUDE
 #define INTERRUPTS_H_INCLUDE
 
+// Used in LCD interrupt handlers to wait until writing PPU registers is safe
+#ifdef NINTENDO
+#define HBLANK_WAIT while(STAT_REG & STATF_BUSY)
+#else
+#define HBLANK_WAIT
+#endif
+
 extern UINT8 hide_sprites;
 extern UBYTE show_actors_on_overlay;
 

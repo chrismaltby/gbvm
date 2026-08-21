@@ -36,12 +36,12 @@ void simple_LCD_isr(void) NONBANKED {
     } else {
         if (LYC_REG < overlay_cut_scanline) {
             if ((WX_REG == DEVICE_WINDOW_PX_OFFSET_X) && (show_actors_on_overlay == FALSE)) {
-                while (STAT_REG & STATF_BUSY) ;
+                HBLANK_WAIT;
                 HIDE_SPRITES;
             }
             LYC_REG = overlay_cut_scanline;
         } else {
-            while (STAT_REG & STATF_BUSY) ;
+            HBLANK_WAIT;
             WX_REG = 0, HIDE_WIN;
             if (!hide_sprites) SHOW_SPRITES;
             LYC_REG = LYC_SYNC_VALUE;
@@ -57,7 +57,7 @@ void fullscreen_LCD_isr(void) NONBANKED {
         SCY_REG = draw_scroll_y;
         LYC_REG = (9 * 8) - 1;
     } else {
-        while (STAT_REG & STATF_BUSY) ;
+        HBLANK_WAIT;
         LCDC_REG |= LCDCF_BG8000;
         LYC_REG = LYC_SYNC_VALUE;
     }
