@@ -5,11 +5,11 @@
 
 #include "compat.h"
 
-#define TO_FAR_PTR_T(A) {.bank = (UBYTE)&(__bank_ ## A), .ptr = (void *)&(A)}
+#define TO_FAR_PTR_T(A) {.bank = (UWORD)&(__bank_ ## A), .ptr = (void *)&(A)}
 #define TO_FAR_ARGS(T, A) (T)(A).ptr, (A).bank
 
 #ifndef BANK
-#define BANK(VARNAME) ( (UBYTE) & __bank_ ## VARNAME )
+#define BANK(VARNAME) ( (UBYTE)((UWORD)& __bank_ ## VARNAME) )
 #endif
 #ifndef BANKREF
 #define BANKREF(VARNAME) void __func_ ## VARNAME(void) BANKED NAKED { \

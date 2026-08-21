@@ -64,7 +64,7 @@ void load_bkg_tileset(const tileset_t* tiles, UBYTE bank) BANKED {
     UWORD n_tiles = ReadBankedUWORD(&(tiles->n_tiles), bank);
 
     // load first background chunk, align to zero tile
-    UBYTE * data = tiles->tiles;
+    const UBYTE * data = tiles->tiles;
     if (n_tiles < 128) {
         if ((UBYTE)n_tiles) SetBankedBkgData(0, n_tiles, data, bank);
         return;
@@ -160,7 +160,7 @@ void load_bounds(const spritesheet_t *sprite, UBYTE bank, rect16_t * res_bounds)
 
 UBYTE do_load_palette(palette_entry_t * dest, const palette_t * palette, UBYTE bank) BANKED {
     UBYTE mask = ReadBankedUBYTE(&palette->mask, bank);
-    palette_entry_t * sour = palette->cgb_palette;
+    const palette_entry_t * sour = palette->cgb_palette;
     for (UBYTE i = mask; (i); i >>= 1, dest++) {
         if ((i & 1) == 0) continue;
         MemcpyBanked(dest, sour, sizeof(palette_entry_t), bank);
