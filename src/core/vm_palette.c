@@ -25,25 +25,22 @@ void vm_load_palette(SCRIPT_CTX * THIS, UBYTE mask, UBYTE options) VM_CALL {
             MemcpyBanked(dest, sour, sizeof(palette_entry_t), bank);
         } else {
             UBYTE DMGPal;
-            switch (nb) {
-                case 0:
+            if (nb == 0) {
+                DMGPal = ReadBankedUBYTE((void *)sour, bank);
+                if (is_bkg) {
+                    DMG_palette[0] = DMGPal;
+                    if (is_commit) BGP_REG = DMGPal;
+                }
+                if (is_spr) {
+                    DMG_palette[1] = DMGPal;
+                    if (is_commit) OBP0_REG = DMGPal;
+                }
+            } else if (nb == 1) {
+                if (is_spr) {
                     DMGPal = ReadBankedUBYTE((void *)sour, bank);
-                    if (is_bkg) {
-                        DMG_palette[0] = DMGPal;
-                        if (is_commit) BGP_REG = DMGPal;
-                    }
-                    if (is_spr) {
-                        DMG_palette[1] = DMGPal;
-                        if (is_commit) OBP0_REG = DMGPal;
-                    }
-                    break;
-                case 1:
-                    if (is_spr) {
-                        DMGPal = ReadBankedUBYTE((void *)sour, bank);
-                        DMG_palette[2] = DMGPal;
-                        if (is_commit) OBP1_REG = DMGPal;
-                    }
-                    break;
+                    DMG_palette[2] = DMGPal;
+                    if (is_commit) OBP1_REG = DMGPal;
+                }
             }
         }
         if (is_commit) {

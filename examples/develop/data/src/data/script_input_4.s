@@ -108,7 +108,7 @@ GBVM$script_input_4$088b0d8b_52f3_4460_a48f_15b654b420f8$2017e4bb_16d3_47bc_a86c
 
         ; --- VM_CALL_NATIVE example -------------------------
         VM_PUSH_CONST           0                       ; actor 0 is the player
-        VM_CALL_NATIVE          b_check_update_running, _check_update_running
+        VM_CALL_NATIVE_FUNC     _check_update_running
         VM_IF_CONST     .EQ     .ARG0, 0, 1000$, 1      ; check result in .ARG0 for zero, and pop the value
         ; update script is running
         VM_JUMP                1001$
@@ -117,7 +117,7 @@ GBVM$script_input_4$088b0d8b_52f3_4460_a48f_15b654b420f8$2017e4bb_16d3_47bc_a86c
 1001$:
 
         VM_PUSH_CONST           10
-        VM_CALL_NATIVE          b_my_native_nonbloking_function, _my_native_nonbloking_function
+        VM_CALL_NATIVE_FUNC     _my_native_nonbloking_function
         VM_POP                  1
         VM_JUMP                 101$
         102$:
