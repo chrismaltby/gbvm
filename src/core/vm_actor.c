@@ -227,6 +227,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
         new_dir = CHK_FLAG(THIS->flags, MOVE_DIR_H) ? DIR_LEFT : DIR_RIGHT;
 
         // Move actor horizontally
+        UWORD prev_x = actor->pos.x;
         actor->pos.x += new_dir == DIR_LEFT ? -actor->move_speed : actor->move_speed;
 
         // Check for actor collision
@@ -248,9 +249,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
             actor_set_dir(actor, new_dir, TRUE);
         }
 
-        // Check if overshot destination
+        // Check if overshot destination or wrapped past zero
         if (
-            (new_dir == DIR_LEFT && (actor->pos.x <= params->X)) || // Overshot left
+            (new_dir == DIR_LEFT && (actor->pos.x <= params->X || actor->pos.x > prev_x)) || // Overshot left
             (new_dir == DIR_RIGHT && (actor->pos.x >= params->X))   // Overshot right
         ) {
             // Reached Horizontal Destination
@@ -266,6 +267,7 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
         new_dir = CHK_FLAG(THIS->flags, MOVE_DIR_V) ? DIR_UP : DIR_DOWN;
 
         // Move actor vertically
+        UWORD prev_y = actor->pos.y;
         actor->pos.y += new_dir == DIR_UP ? -actor->move_speed : actor->move_speed;
 
         // Check for actor collision
@@ -287,9 +289,9 @@ void vm_actor_move_to(SCRIPT_CTX * THIS, INT16 idx) VM_CALL {
             actor_set_dir(actor, new_dir, TRUE);
         }
 
-        // Check if overshot destination
+        // Check if overshot destination or wrapped past zero
         if (
-            (new_dir == DIR_UP && (actor->pos.y <= params->Y)) || // Overshot above
+            (new_dir == DIR_UP && (actor->pos.y <= params->Y || actor->pos.y > prev_y)) || // Overshot above
             (new_dir == DIR_DOWN &&  (actor->pos.y >= params->Y)) // Overshot below
          ) {
             actor->pos.y = params->Y;
@@ -649,6 +651,7 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
         return;
     } else if (params->X < actor->pos.x) {
         // Moving left
+        UWORD prev_x = actor->pos.x;
         actor->pos.x -= actor->move_speed;
 
         // Check for actor collision
@@ -660,8 +663,8 @@ void vm_actor_move_to_x(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
             return;
         }
 
-        // Check if overshot destination
-        if (actor->pos.x <= params->X) {
+        // Check if overshot destination or wrapped past zero
+        if (actor->pos.x <= params->X || actor->pos.x > prev_x) {
             // Reached Horizontal Destination
             actor->pos.x = params->X;
             actor_set_anim_idle(actor);
@@ -716,6 +719,7 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
         return;
     } else if (params->Y < actor->pos.y) {
         // Moving upwards
+        UWORD prev_y = actor->pos.y;
         actor->pos.y -= actor->move_speed;
 
         // Check for actor collision
@@ -727,8 +731,8 @@ void vm_actor_move_to_y(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
             return;
         }
 
-        // Check if overshot destination
-        if (actor->pos.y <= params->Y) {
+        // Check if overshot destination or wrapped past zero
+        if (actor->pos.y <= params->Y || actor->pos.y > prev_y) {
             actor->pos.y = params->Y;
             actor_set_anim_idle(actor);
             return;
@@ -780,6 +784,7 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
     if (!reached_x) {
         if (params->X < actor->pos.x) {
             // Moving left
+            UWORD prev_x = actor->pos.x;
             actor->pos.x -= actor->move_speed;
 
             // Check for actor collision
@@ -790,8 +795,8 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
                 reached_x = TRUE;
             }
 
-            // Check if overshot destination
-            if (actor->pos.x <= params->X) {
+            // Check if overshot destination or wrapped past zero
+            if (actor->pos.x <= params->X || actor->pos.x > prev_x) {
                 // Reached Horizontal Destination
                 actor->pos.x = params->X;
                 reached_x = TRUE;
@@ -820,6 +825,7 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
     if (!reached_y) {
         if (params->Y < actor->pos.y) {
             // Moving upwards
+            UWORD prev_y = actor->pos.y;
             actor->pos.y -= actor->move_speed;
 
             // Check for actor collision
@@ -830,8 +836,8 @@ void vm_actor_move_to_xy(SCRIPT_CTX * THIS, INT16 idx, UBYTE attr) VM_CALL {
                 reached_y = TRUE;
             }
 
-            // Check if overshot destination
-            if (actor->pos.y <= params->Y) {
+            // Check if overshot destination or wrapped past zero
+            if (actor->pos.y <= params->Y || actor->pos.y > prev_y) {
                 actor->pos.y = params->Y;
                 reached_y = TRUE;
             }
