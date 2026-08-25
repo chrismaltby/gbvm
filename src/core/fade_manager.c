@@ -146,82 +146,71 @@ void ApplyPaletteChangeColor(UBYTE index) {
 }
 #endif
 
-UBYTE DMGFadeToWhiteStep(UBYTE step, UBYTE pal) NAKED {
+#if defined(__SDCC) && defined(NINTENDO)
+UBYTE DMGFadeToWhiteStep(UBYTE step, UBYTE pal) NAKED PRESERVES_REGS(b, c, h, l) {
     pal; step;
 __asm
-#if defined(__SDCC) && defined(NINTENDO)
-        or      A
-        jr      Z, 0$
-
-        ld      D, A
-1$:
-        ld      H, #4
-2$:
-        ld      A, E
-        and     #3
-        jr      Z, 3$
-        dec     A
-3$:
-        srl     A
-        rr      L
-        srl     A
-        rr      L
-
-        srl     E
-        srl     E
-
-        dec     H
-        jr      NZ, 2$
-
-        ld      E, L
-
-        dec     D
-        jr      NZ, 1$
+        or a
+        ld d, a
+        ld a, e
+        ret z
 0$:
-        ld      A, E
-#endif
+        ld e, a
+        rrca
+        or e
+        and #0b01010101
+        cpl
+        inc a
+        add e
+    
+        dec d
+        jr nz, 0$
         ret
 __endasm;
 }
+#else
+UBYTE DMGFadeToWhiteStep(UBYTE step, UBYTE pal) {
+    while(step) {
+        pal -= ((pal >> 1) | pal) & 0b01010101;
+        step--;
+    }
+    return pal;
+}
+#endif
 
-UBYTE DMGFadeToBlackStep(UBYTE step, UBYTE pal) NAKED {
+#if defined(__SDCC) && defined(NINTENDO)
+UBYTE DMGFadeToBlackStep(UBYTE step, UBYTE pal) NAKED PRESERVES_REGS(b, c, h, l) {
     pal; step;
 __asm
-#if defined(__SDCC) && defined(NINTENDO)
-        or      A
-        jr      Z, 0$
-
-        ld      D, A
-1$:
-        ld      H, #4
-2$:
-        ld      A, E
-        and     #3
-        cp      #3
-        jr      Z, 3$
-        inc     A
-3$:
-        srl     A
-        rr      L
-        srl     A
-        rr      L
-
-        srl     E
-        srl     E
-
-        dec     H
-        jr      NZ, 2$
-
-        ld      E, L
-
-        dec     D
-        jr      NZ, 1$
+        or a
+        ld d, a
+        ld a, e
+        ret z
 0$:
-        ld      A, E
-#endif
+        ld e, a
+        rrca
+        and e
+        cpl
+        and #0b01010101
+        add e
+
+        dec d
+        jr nz, 0$
         ret
 __endasm;
 }
+#else
+UBYTE DMGFadeToWhiteStep(UBYTE step, UBYTE pal) {
+    while(step) {
+        pal += (~((pal >> 1) & pal)) & 0b01010101;
+        step--;
+    }
+    return pal;
+}
+#endif
+
+
+
 
 void ApplyPaletteChangeDMG(UBYTE index) {
     if (index > 4) index = 4;
