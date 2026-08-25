@@ -36,13 +36,13 @@ typedef struct set_submap_params_t {
 void ui_draw_frame(UBYTE x, UBYTE y, UBYTE width, UBYTE height) BANKED;
 
 extern UBYTE _itoa_fmt_len;
-UBYTE itoa_fmt(INT16 v, UBYTE * d) OLDCALL BANKED PRESERVES_REGS(b, c);
+unsigned char * itoa_fmt(INT16 v, UBYTE * d);
 
-inline UBYTE itoa_format(INT16 v, UBYTE * d, UBYTE dlen) {
+inline unsigned char * itoa_format(INT16 v, UBYTE * d, UBYTE dlen) {
     _itoa_fmt_len = dlen;
-    UBYTE len = itoa_fmt(v, d);
+    unsigned char * const end = itoa_fmt(v, d);
     if (vwf_direction != UI_PRINT_LEFTTORIGHT) reverse(d);
-    return len;
+    return end;
 }
 
 static const unsigned char * load_text(const unsigned char * s, INT16 * args) NONBANKED {
@@ -52,11 +52,11 @@ static const unsigned char * load_text(const unsigned char * s, INT16 * args) NO
             switch (*++s) {
                 // variable value of fixed width, zero padded
                 case 'D':
-                    d += itoa_format(*args, d, *++s - '0');
+                    d = itoa_format(*args, d, *++s - '0');
                     break;
                 // variable value
                 case 'd':
-                    d += itoa_format(*args, d, 0);
+                    d = itoa_format(*args, d, 0);
                     break;
                 // char from variable
                 case 'c':

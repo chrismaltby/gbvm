@@ -5,8 +5,6 @@
 
 __itoa_fmt_len::
     .ds 0x01
-.itoa_fmt_buf::
-    .ds 0x03
 
     .area   _CODE_255
 
@@ -14,194 +12,149 @@ __itoa_fmt_len::
 b_itoa_fmt = 255
 
 _itoa_fmt::
-    push    BC
-    ldhl    SP, #8
-    ld      A, (HL+)
-    ld      E, A
-    ld      A, (HL+)
-    ld      D, A        ; DE: int
-    ld      A, (HL+)
-    ld      C, A
-    ld      B, (HL)     ; BC: dest
-
-    push    BC
-
-    ld      A, D
-    add     A, A
-    jr      NC, 2$
-
-    rra         ; DE = abs(DE)
-    cpl
-    ld      D, A
-    ld      A, E
-    cpl
-    ld      E, A
-    inc     DE
-
-    ld      HL, #__itoa_fmt_len
-    ld      A, (HL)
-    or      A
-    jr      Z, 1$
-    dec     (HL)
-1$:
-    ld      A, #'-'
-    ld      (BC), A
-    inc     BC
-
-2$:
-    call    .utoa_fmt
-
-    ld      H, B
-    ld      L, C
-    pop     DE
-    ld      A, D
-    cpl
-    ld      D, A
-    ld      A, E
-    cpl
-    ld      E, A
-    inc     DE
-    add     HL, DE
-    ld      D, H
-    ld      E, L
-
-    pop     BC
-    ret
-
+	ld a, (__itoa_fmt_len)
+    bit 7, d
+    jr z, .utoa_fmt
+	
+	ld l, a
+	
+	; negate DE
+    xor a
+    sub e
+    ld e, a
+    sbc a
+    sub d
+    ld d, a
+	
+	; prepend a minus sign
+	ld a, #'-'
+    ld (bc), a
+    inc bc
+	
+	ld a, l
+	or a
+	jr z, .utoa_fmt
+	dec a
 .utoa_fmt::             ; convert unsigned int into ascii
-    push    BC
-
-    ld      HL, #(.itoa_fmt_buf + 2)
-
-    xor     A           ; clear value
-    ld      (HL-), A
-    ld      (HL-), A
-    ld      (HL), A
-
-    ld      B, #16
+	; input :
+	;  -  a : minimum length of the string
+	;  - de : number to convert to ascii
+	;  - bc : destination string
+	; output :
+	;  - bc : points to the null terminator of the new string
+	
+    sub #6
+    inc a
+    jr c, 1$
+    
+	; prepend length - 5 leading zero if length >= 6
+    ld h, b
+    ld l, c
+    
+    ld c, a
+    ld a, #'0'
+0$:
+    ld (hl+), a
+    dec c
+    jr nz, 0$
+    
+    ld b, h
+    ld c, l
+	xor a
 1$:
-    sla     E
-    rl      D
+    ld hl, #-10000
+    add hl, de
+    jr c, 2$		; 5 digit number ?
+    jr z, 4$		; length >= 5 ?
+    
+    ld hl, #-1000
+    add hl, de
+    jr c, 5$		; 4 digit number ?
+    inc a
+    jr z, 7$		; length = 4 ?
 
-    ld      A, (HL)
-    adc     A
-    daa
-    ld      (HL+), A
-    ld      A, (HL)
-    adc     A
-    daa
-    ld      (HL+), A
-    ld      A, (HL)
-    adc     A
-    daa
-    ld      (HL-), A
-    dec     HL
-
-    dec     B
-    jr      NZ, 1$
-
-    pop     BC
-
-    ld      A, (__itoa_fmt_len)
-    sub     #5
-    jr      C, 8$
-    jr      Z, 8$
-    ld      D, A
-    ld      A, #'0'
-9$:
-    ld      (BC), A
-    inc     BC
-    dec     D
-    jr      NZ, 9$
-    ld      A, #5
-    ld      (__itoa_fmt_len), A
-8$:
-
-    ld      A, (__itoa_fmt_len)
-    or      A
-    jr      Z, 7$
-    ld      A, #1
-7$:
-    ld      D, A
-    ld      E, #'0'
-    ld      HL, #(.itoa_fmt_buf + 2)
-
-    ld      A, (HL-)
-    and     #0x0f
-    add     D
-    jr      Z, 3$
-    sub     D
-    add     A, E
-    ld      D, #1       ; make D nonzero
-    ld      (BC), A
-    inc     BC
-
-    ld      A, (__itoa_fmt_len)
-    or      A
-    jr      Z, 3$
-    cp      #5
-    jr      NC, 3$
-    dec     BC
+    ld hl, #-100
+    add hl, de
+    jr c, 8$		; 3 digit number ?
+    inc a
+    jr z, 10$		; length = 3 ?
+    inc a
+    ld a, e
+    ld h, b
+    ld l, c
+    jr z, 11$		; length = 2 ?
+    cp #10
+    jr nc, 11$		; 2 digit number ?
+	; 1 digit number
+    jr 14$
+2$:
+    ld de, #-10000
+    xor a
 3$:
-    ld      A, (HL)
-    swap    A
-    and     #0x0f
-    add     D
-    jr      Z, 4$
-    sub     D
-    add     A, E
-    ld      D, #1       ; make D nonzero
-    ld      (BC), A
-    inc     BC
-
-    ld      A, (__itoa_fmt_len)
-    or      A
-    jr      Z, 4$
-    cp      #4
-    jr      NC, 4$
-    dec     BC
+    inc a
+    add hl, de
+    jr c, 3$
 4$:
-    ld      A, (HL-)
-    and     #0x0f
-    add     D
-    jr      Z, 5$
-    sub     D
-    add     A, E
-    ld      D, #1       ; make D nonzero
-    ld      (BC), A
-    inc     BC
-
-    ld      A, (__itoa_fmt_len)
-    or      A
-    jr      Z, 5$
-    cp      #3
-    jr      NC, 5$
-    dec     BC
+    ld de, #10000
+    add hl, de
+    
+    add #'0'
+    ld (bc), a
+    inc bc
 5$:
-    ld      A, (HL)
-    swap    A
-    and     #0x0f
-    add     D
-    jr      Z, 6$
-    sub     D
-    add     A, E
-    ld      (BC), A
-    inc     BC
-
-    ld      A, (__itoa_fmt_len)
-    or      A
-    jr      Z, 6$
-    cp      #2
-    jr      NC, 6$
-    dec     BC
+    ld de, #-1000
+    ccf
+    sbc a
 6$:
-    ld      A, (HL)
-    and     #0x0f
-    add     A, E
-    ld      (BC), A
-    inc     BC
+    inc a
+    add hl, de
+    jr c, 6$
+7$:
+    ld de, #1000
+    add hl, de
+    
+    add #'0'
+    ld (bc), a
+    inc bc
+8$:
+    ld de, #-100
+    ccf
+    sbc a
+9$:
+    inc a
+    add hl, de
+    jr c, 9$
+10$:
+    add #'0'
 
-    xor     A
-    ld      (BC), A     ; write trailing #0
+    ld h, b
+    ld b, l
+    ld l, c
+    
+    ld (hl+), a
 
+    inc d
+    ld a, b
+    sub e			; sub #-100
+11$:
+    ld bc, #0x350A	; ld b, #'0' + 5; ld c, #10
+	sub #50
+	jr c, 12$
+	sub #50
+	ld b, #'0' + 10
+12$:
+    dec b
+	add c			; add #10
+    jr nc, 12$
+13$:
+    ld (hl), b
+    inc hl
+14$:
+    add #'0'
+    ld (hl+), a
+    ld (hl), d		; ld (hl), #0
+	
+	ld b, h
+	ld c, l
+	
     ret
