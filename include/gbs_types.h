@@ -9,7 +9,7 @@
 
 #include "data/scene_types.h"
 #include "bankdata.h"
-#include "parallax.h"
+#include "interrupts/parallax.h"
 #include "collision.h"
 
 #define COLLISION_GROUP_NONE 0x0
